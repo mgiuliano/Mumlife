@@ -1,0 +1,43 @@
+{% if heading %}
+    <h3>{{ heading }}</h3>
+{% endif %}
+<a href="{{ SITE_URL }}message/{{ id }}" class="message clearfix">
+    <div class="message-left">
+        <div class="picture">
+            {% if eventdate  %}
+            <img class="avatar"
+                 src="{{ STATIC_URL }}img/calendar.png"
+                 alt="{{ eventdate }}" width="48" height="48" />
+            <span class="message-month">{{ eventmonth }}</span>
+            <span class="message-day">{{ eventday }}</span>
+            {% else %}
+            <img class="avatar"
+                 src="{% if member.picture %}{{ member.picture }}{% else %}{{ STATIC_URL }}img/picture-default.png{% endif %}"
+                 alt="{{ member.name }}" width="48" height="48" />
+            {% endif %}
+        </div>
+    </div>
+    <div class="message-right">
+        <div class="message-author">
+            {% if eventdate %}
+                {{ name }}, <span>{{ eventtime }},</span> {{ location }}
+                {% if distance and distance != 'N/A' %}
+                    <span>({{ distance }})</span>
+                {% endif %}
+            {% else %}
+                {{ member.name }}
+            {% endif %}
+            {% comment %}<span>@{{ visibility }}</span>{% endcomment %}
+        </div>
+        <div class="message-body">
+            {{ body|safe }}
+            {% for tag in tags %}<span>{{ tag.value }}</span> {% endfor %}
+            <span class="message-age" title="{{ timestamp }}">{{ age }}</span>
+        </div>
+        <div class="message-tools">
+            {% if replies %}
+                <div class="message-replies-count">{{ replies|length }}</div>
+            {% endif %}
+        </div>
+    </div>
+</a>

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block pagetheme %}c{% endblock %}
+{% block contenttheme %}c{% endblock %}
+{% block footertheme %}c{% endblock %}
+
+{% block content %}
+<div class="write-message">
+    <div data-entity="message" data-type="message">
+        <h2><span>Write Message</span> / <a href="{{ SITE_URL }}create-event">Create Event</a></h2>
+
+        <div class="box">
+            <div class="form-card">
+                <div class="ui-content" id="errors"
+                     data-role="popup"
+                     data-transition="pop"
+                     data-position-to="window"
+                     data-dismissible="false"
+                     data-theme="a"
+                     data-overlay-theme="a">
+                    <a class="ui-btn-left" href="#" data-role="button" data-iconpos="notext" data-icon="delete" data-rel="back" data-theme="a">Close</a>
+                    <div id="errors-content"></div>
+                </div>
+                {{ form.body }}
+            </div>
+
+            {{ form.visibility }}
+            <div class="message-types clearfix">
+                {% for option in form.visibility.field.choices %}<div class="message-type">
+                    <a href="#" data-entity="message-type" class="message-option" data-type="{{ option.0 }}">
+                        <p>{{ option.1 }}</p>
+                        {% if option.1 == 'Friends' %}
+                        <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-friends" alt="" />
+                        <span>Only your friends will see this message</span>
+                        {% elif option.1 == 'Global' %}
+                        <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-global" alt="" />
+                        <span>Everyone on Mumlife will see this message</span>
+                        {% else %}
+                        <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-local" alt="" />
+                        <span>Everyone in your local area will see this message</span>
+                        {% endif %}
+                    </a>
+                </div>{% endfor %}
+            </div>
+
+            <div class="submit-btn">
+                <button data-entity="button" class="button message-button">Post</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extrajs %}{{ block.super }}
+<script type="text/javascript">
+    $(document).on('ml.Ready', function () {
+        $('.message-body').focus();
+        new ML.Messages({'api_url': '{{ api_url }}', 'token': '{{ csrf_token }}'});
+    });
+</script>
+{% endblock %}

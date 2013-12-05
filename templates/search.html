@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block header %}
+<div class="search-form">
+    <form method="post" action="{{ SITE_URL }}s/">
+        {% csrf_token %}
+        <input type="text" data-clear-btn="true" name="terms" placeholder="@local" value="{% if tagstring %}{{ tagstring }}{% else %}@local{% endif %}" />
+    </form>
+</div>
+{% endblock %}
+
+{% block content %}
+    <div class="feed">
+        {{ results|safe }}
+        <button data-icon="plus">More</button>
+    </div>
+{% endblock %}
+
+{% block footermenu %}
+<li class="nav-local">
+    <a href="#" title="Local" data-entity="filter" rel="@local"><img src="{{ STATIC_URL }}img/z.gif" class="icon icon-local" alt="" /><span>Local</span></a>
+</li>
+<li class="nav-global">
+    <a href="#" title="Global" data-entity="filter" rel="@global"><img src="{{ STATIC_URL }}img/z.gif" class="icon icon-global" alt="" /><span>Global</span></a>
+</li>
+<li class="nav-friends">
+    <a href="#" title="Friends" data-entity="filter" rel="@friends"><img src="{{ STATIC_URL }}img/z.gif" class="icon icon-friends" alt="" /><span>Friends</span></a>
+</li>
+<li class="nav-private">
+    <a href="#" title="Private" data-entity="filter" rel="@private"><img src="{{ STATIC_URL }}img/z.gif" class="icon icon-private" alt="" /><span>Private</span></a>
+</li>
+{% endblock %}
+
+{% block extrajs %}{{ block.super }}
+<script type="text/javascript">
+    $(document).on('ml.Ready', function () {
+        new ML.Feed({'url': '{{ SITE_URL }}', 'results': {{ total }}, 'next': '{{ next }}', 'filters': true, 'autoscroll': true});
+    });
+</script>
+{% endblock %}

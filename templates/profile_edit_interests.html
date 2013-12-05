@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block bodyclass %}edit-mode{% endblock %}
+{% block pagetheme %}c{% endblock %}
+{% block headertheme %}c{% endblock %}
+{% block contenttheme %}c{% endblock %}
+{% block footertheme %}c{% endblock %}
+
+{% block backbutton %}
+<a data-role="button"
+   data-icon="arrow-l"
+   data-iconpos="notext"
+   data-wrapperels="span"
+   data-rel="back"
+   href="{{ SITE_URL }}profile/edit">Back</a>
+{% endblock %}
+
+{% block content %}
+    <header>
+        <h2>{{ account.fullname }} (edit interests)</h2>
+    </header>
+    <section>
+    
+        <div class="form-card">
+            <form action="" class="box" method="post" enctype="multipart/form-data">{% csrf_token %}
+                <div class="form-field">
+                    {{ form.interests.label_tag }}
+                    {{ form.interests }}
+                    {% if popular %}
+                    <p class="description">You can add interests from the list of most popular interests below. Click or tap on it to add it to your list.</p>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+
+        {% if popular %}
+        <div class="popular-interests">
+            <ul data-role="listview" data-inset="true" data-filter="true" data-filter-placeholder="Filter popular interests">
+                {% for interest in popular %}
+                    <li><a href="#" data-entity="interest">{{ interest.name }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+    </section>
+    <footer> </footer>
+{% endblock %}
+
+{% block extrajs %}{{ block.super }}
+<script type="text/javascript">
+    $(document).on('ml.Ready', function () {
+        new ML.AutoField({'entity': {{ account.id }}, 'field': 'interests', 'api_url': '{{ api_url }}', 'token': '{{ csrf_token }}'});
+        // Auto-fill interests on click
+        var field = $('#id_interests');
+        $('[data-entity="interest"]').click(function () {
+            var value = $(this).text();
+            // only add value if not already in field
+            if (field.val().indexOf(value) < 0) {
+                field.val([field.val(), value].join(' '));
+            }
+            return false;
+        });
+    });
+</script>
+{% endblock %}

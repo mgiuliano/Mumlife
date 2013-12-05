@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block extrahead %}
+<script type="text/javascript">
+    $(document).bind("mobileinit", function () {
+        $.mobile.ajaxEnabled = false;
+        $.mobile.linkBindingEnabled = false;
+        $.ns = 'jqm';
+    });
+</script>
+<script type="text/javascript" src="http://code.jquery.com/mobile/1.3.2/jquery.mobile-1.3.2.min.js"></script>
+<script src="{{ STATIC_URL }}js/jqm-datebox.comp.calbox.min.js"></script>
+{% endblock %}
+
+{% block bodyclass %}edit-mode{% endblock %}
+{% block pagetheme %}c{% endblock %}
+{% block headertheme %}c{% endblock %}
+{% block contenttheme %}c{% endblock %}
+{% block footertheme %}c{% endblock %}
+
+{% block backbutton %}
+<a data-role="button"
+   data-icon="arrow-l"
+   data-iconpos="notext"
+   data-wrapperels="span"
+   data-rel="back"
+   href="{{ SITE_URL }}profile/edit">Back</a>
+{% endblock %}
+
+{% block content %}
+    <header>
+        <h2>{{ account.fullname }} (edit kids)</a></h2>
+    </header>
+    <section>
+
+        {% if account.kid_set.count %}
+            <ul data-role="listview" data-inset="true">
+            {% for kid in account.kid_set.all %}
+                <li><a href="{{ SITE_URL }}profile/edit/kids/{{ kid.id }}"><strong>{{ kid.name }}</strong>, {{ kid.get_gender_display }}, {{ kid.age }}</a></li>
+            {% endfor %}
+            </ul>
+        {% endif %}
+
+        <div class="form-card add-kid" data-role="collapsible">
+            <h3>Add Kid</h3>
+            {% if form.errors %}
+                <div id="form-errors">
+                    {% if form.fullname.errors %}
+                        <p><strong>{{ form.fullname.label }}</strong>: {% for error in form.fullname.errors %}
+                            {{ error }}{% if forloop.last %}{% else %}, {% endif %}
+                        {% endfor %}</p>
+                    {% endif %}
+                    {% if form.gender.errors %}
+                        <p><strong>{{ form.gender.label }}</strong>: {% for error in form.gender.errors %}
+                            {{ error }}{% if forloop.last %}{% else %}, {% endif %}
+                        {% endfor %}</p>
+                    {% endif %}
+                    {% if form.dob.errors %}
+                        <p><strong>{{ form.dob.label }}</strong>: {% for error in form.dob.errors %}
+                            {{ error }}{% if forloop.last %}{% else %}, {% endif %}
+                        {% endfor %}</p>
+                    {% endif %}
+                </div>
+            {% endif %}
+            <form action="" method="post" class="box">{% csrf_token %}
+                <div class="form-field">
+                    {{ form.fullname.label_tag }}
+                    {{ form.fullname }}
+                    <p class="description">{{ form.fullname.help_text }}</p>
+                </div>
+                <div class="form-field">
+                    {{ form.gender.label_tag }}
+                    {{ form.gender }}
+                    <p class="description">{{ form.gender.help_text }}</p>
+                </div>
+                <div class="form-field">
+                    {{ form.dob.label_tag }}
+                    <input type="date" name="dob" id="{{ form.dob.id_for_label }}" value=""
+                           data-role="datebox"
+                           data-options='{"mode": "calbox", "calUsePickers": true, "overrideDateFormat": "%Y-%m-%d", "beforeToday": true}' />
+                    <p class="description">{{ form.dob.help_text }}</p>
+                </div>
+                <div class="form-field">
+                    {{ form.visibility.label_tag }}
+                    {{ form.visibility }}
+                    <p class="description">{{ form.visibility.help_text }}</p>
+                </div>
+                <div class="form-field">
+                    <input type="submit" class="button" value="Add Kid" data-icon="check" />
+                </div>
+            </form>
+        </div>
+    </section>
+    <footer> </footer>
+{% endblock %}
+
+{% block extrajs %}{{ super }}
+<script type="text/javascript">
+    $(document).on('ml.Ready', function () {
+        // Add the datebox CSS last
+        $('head').append('<link type="text/css" href="{{ STATIC_URL }}css/jqm-datebox.min.css" rel="stylesheet" />');
+        {% if form.errors %}
+            $('.add-kid').trigger('expand');
+        {% endif %}
+    });
+</script>
+{% endblock %}

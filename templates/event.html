@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% comment %}
+
+    Create/ Edit Event
+
+{% endcomment %}
+
+{% block pagetheme %}c{% endblock %}
+{% block contenttheme %}c{% endblock %}
+{% block footertheme %}c{% endblock %}
+
+{% block extrahead %}
+<script type="text/javascript">
+    $(document).bind("mobileinit", function () {
+        $.mobile.ajaxEnabled = false;
+        $.mobile.linkBindingEnabled = false;
+        $.ns = 'jqm';
+    });
+</script>
+<script type="text/javascript" src="http://code.jquery.com/mobile/1.3.2/jquery.mobile-1.3.2.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/jqm-datebox.core.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/jqm-datebox.mode.datebox.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/jqm-datebox.mode.calbox.min.js"></script>
+{% endblock %}
+
+{% block backbutton %}
+<a data-role="button"
+   data-icon="arrow-l"
+   data-iconpos="notext"
+   data-wrapperels="span"
+   data-rel="back"
+   href="{{ SITE_URL }}message/{{ event_id }}">Back</a>
+{% endblock %}
+
+{% block content %}
+<div class="write-message">
+    <div data-entity="message" data-type="message">
+        <h2>{% if edit_mode %}
+            Edit Event
+        {%else %}
+            <a href="{{ SITE_URL }}write-message">Write Message</a> / <span>Create Event</span>
+        {% endif %}</h2>
+
+        <div class="box">
+            <div class="form-card">
+                <div class="ui-content" id="errors"
+                     data-role="popup"
+                     data-transition="pop"
+                     data-position-to="window"
+                     data-dismissible="false"
+                     data-theme="a"
+                     data-overlay-theme="a">
+                    <a class="ui-btn-left" href="#" data-role="button" data-iconpos="notext" data-icon="delete" data-rel="back" data-theme="a">Close</a>
+                    <div id="errors-content"></div>
+                </div>
+
+                <label>Event Name</label>
+                {{ form.name }}
+
+                <input type="date" data-name="Event Date" class="message-date" value="{{ form.eventdate.value|date:"Y-m-d" }}"
+                       placeholder="{% now "Y-m-d" %}"
+                       required="required"
+                       data-role="datebox"
+                       data-options='{"mode": "calbox", "calUsePickers": true, "overrideDateFormat": "%Y-%m-%d", "afterToday": true}' />
+
+                <label>Event Time</label>
+                <input type="date" class="message-time" value="{{ form.eventdate.value|date:"H:i" }}"
+                       placeholder="{% now "H:i" %}"
+                       data-role="datebox"
+                       data-options='{"mode": "timebox", "overrideTimeFormat": 24}' />
+
+                <label>Address &amp; Postcode</label>
+                {{ form.location }}
+                <p class="description">The event location. With a valid postcode, the event will be shown on a map.</p>
+
+                <label>Event Description</label>
+                <textarea 
+                    data-name="Event Description" 
+                    class="message-body elastic" 
+                    rows="2" cols="70" required="required">{% if form.body.value %}{{ form.body.value }}{% endif %}</textarea>
+
+                <label>Event Visibility</label>
+            </div>
+
+            {{ form.visibility }}
+            <div class="message-types clearfix">
+                {% for option in form.visibility.field.choices %}<div class="message-type">
+                    <a href="#" data-entity="message-type" class="message-option" data-type="{{ option.0 }}">
+                        <p>{{ option.1 }}</p>
+                        {% if option.1 == 'Friends' %}
+                        <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-friends" alt="" />
+                        <span>Only your friends will see this message</span>
+                        {% elif option.1 == 'Global' %}
+                        <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-global" alt="" />
+                        <span>Everyone on Mumlife will see this message</span>
+                        {% else %}
+                        <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-local" alt="" />
+                        <span>Everyone in your local area will see this message</span>
+                        {% endif %}
+                    </a>
+                </div>{% endfor %}
+            </div>
+
+            <div class="submit-btn">
+                <button data-entity="button" class="button message-button">Post</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extrajs %}{{ block.super }}
+<script type="text/javascript">
+    $(document).on('ml.Ready', function () {
+        $('head').append('<link type="text/css" href="{{ STATIC_URL }}css/jqm-datebox.min.css" rel="stylesheet" />');
+        $('.message-name').focus();
+        new ML.Messages({
+            'api_url': '{{ api_url }}',
+            'token': '{{ csrf_token }}',
+            'edit-mode': {% if edit_mode %}true{% else %}false{% endif %},
+            'event_id': {% if event_id %}{{ event_id }}{% else %}null{% endif %}
+        });
+    });
+</script>
+{% endblock %}

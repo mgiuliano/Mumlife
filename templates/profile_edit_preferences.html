@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block bodyclass %}edit-mode{% endblock %}
+{% block pagetheme %}c{% endblock %}
+{% block headertheme %}c{% endblock %}
+{% block contenttheme %}c{% endblock %}
+{% block footertheme %}c{% endblock %}
+
+{% block backbutton %}
+<a data-role="button"
+   data-icon="arrow-l"
+   data-iconpos="notext"
+   data-wrapperels="span"
+   data-rel="back"
+   href="{{ SITE_URL }}profile/edit">Back</a>
+{% endblock %}
+
+{% block content %}
+    <header>
+        <h2>{{ account.fullname }} (edit preferences)</h2>
+    </header>
+    <section>
+        <div class="form-card box">
+            <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
+                <div class="form-field">
+                    {{ form.units.label_tag }}
+                    <fieldset data-role="controlgroup" id="id_units" name="units" data-value="{{ form.units.value }}">
+                    {% for choice in form.units.field.choices %}
+                        {% if choice.0 != '' %}
+                        <input name="units" id="units-choice-{{ choice.0 }}" type="radio"
+                               value="{{ choice.0 }}"
+                               {% if choice.0 == form.units.value %}checked="checked"{% endif %}>
+                        <label for="units-choice-{{ choice.0 }}">{{ choice.1 }}</label>
+                        {% endif %}
+                    {% endfor %}
+                    </fieldset>
+                    <p class="description">{{ form.units.help_text }}</p>
+                </div>
+            </form>
+        </div>
+    </section>
+    <footer> </footer>
+{% endblock %}
+
+{% block extrajs %}{{ block.super }}
+<script type="text/javascript" src="{{ STATIC_URL }}js/jquery.ajaxfileupload.js"></script>
+<script type="text/javascript">
+    $(document).on('ml.Ready', function () {
+        // Auto Fields
+        new ML.AutoField({'entity': {{ account.id }}, 'field': 'units', 'api_url': '{{ api_url }}', 'token': '{{ csrf_token }}', 'widget': 'select'});
+    });
+</script>
+{% endblock %}

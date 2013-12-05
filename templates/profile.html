@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block header %}
+<div class="profile picture"><img
+    class="avatar"
+    src="{% if member.picture %}{{ member.picture }}{% else %}{{ STATIC_URL }}img/picture-default.png{% endif %}"
+    alt="{{ member.name }}" width="48" height="48" /></div>
+{% endblock %}
+
+{% block content %}
+<div class="profile">
+    <h2>
+        {{ member.name }}{% if member.age %}, {{ member.age }}{% endif %}, {{ member.area }}
+    </h2>
+    <div>
+        <div data-entity="message" data-type="private-message" data-recipient="{{ member.id }}" class="hidden">
+            <textarea class="message-body elastic" rows="2" cols="70"></textarea>
+            <button class="button message-button">Post</button>
+        </div>
+        
+        {% if member.about %}<div class="about">{{ member.about|linebreaks }}</div>{% endif %}
+
+        {% if member.tags %}
+        <h3>Interests</h3>
+        <p>{% for tag in member.tags %}<span><a href="{{ SITE_URL }}members/%23{{ tag.key }}">{{ tag.value }}</a></span> {% endfor %}</p>
+        {% endif %}
+
+        {% if member.distance != 'N/A' %}
+        <h3>Distance</h3>
+        <p>{{ member.distance }}</p>
+        {% endif %}
+
+        {% if member.kids.count %}<h3>Children</h3>
+            <ul>{% for kid in member.kids.all %}
+                <li><strong>{{ kid.name }}</strong>, {{ kid.get_gender_display }}, {{ kid.age }}</li>
+            {% endfor %}</ul>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block footermenu %}
+{% if member.id == account.id %}
+<li class="nav-edit">
+    <a href="{{ SITE_URL }}profile/edit" title="Edit Profile"><img src="{{ STATIC_URL }}img/z.gif" class="icon icon-settings" alt="" /><span>Edit Profile</span></a>
+</li>
+{% else %}
+
+{% comment %}Add to Friend{% endcomment %}
+{% if member.friend_status and member.friend_status == 'Approved' %}
+<li><img src="{{ STATIC_URL }}img/z.gif" class="icon icon-friend" alt="" /><span>Friend</span></li>
+{% elif member.friend_status and member.friend_status == 'Pending' %}
+<li><img src="{{ STATIC_URL }}img/z.gif" class="icon icon-pendingfriend" alt="" /><span>Requested</span></li>
+{% elif member.friend_status and member.friend_status == 'Requesting' %}
+<li><a class="addtofriend" href="#{{ account.id }},{{ member.id }}" rel="confirm">
+    <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-confirmfriend" alt="" /><span>Approve</span>
+</a></li>
+{% elif member.friend_status and member.friend_status == 'Blocked' %}
+    {% comment %}This member relationship is blocked{% endcomment %}
+{% else %}
+<li><a class="addtofriend" href="#{{ account.id }},{{ member.id }}">
+    <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-addtofriend" alt="" /><span>Add to friend</span>
+</a></li>
+{% endif %}
+
+{% comment %}Write a Private Message{% endcomment %}
+<li>
+    <a href="#" data-entity="message">
+        <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-write" alt="" /><span>Write</span>
+    </a>
+</li>
+{% endif %}
+{% endblock %}
+
+{% block extrajs %}{{ block.super }}
+<script type="text/javascript">
+    $(document).on('ml.Ready', function () {
+        new ML.AddToFriends({'class': 'addtofriend', 'api_url': '{{ api_url }}', 'token': '{{ csrf_token }}'});
+        new ML.Messages({'api_url': '{{ api_url }}', 'token': '{{ csrf_token }}'});
+    });
+</script>
+{% endblock %}

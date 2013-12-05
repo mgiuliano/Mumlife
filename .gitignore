@@ -1,0 +1,5 @@
+/mumlife/settings.py
+/runtime/
+/uploads/
+*.log
+*.pyc

@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+{% comment %}
+
+    Message/Event
+
+{% endcomment %}
+
+{% block extrahead %}
+{% if result.postcode %}
+<script type="text/javascript" src="http://ecn.dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=7.0"></script>
+{% endif %}
+{% endblock %}
+
+{% block backbutton %}
+<a data-role="button"
+   data-icon="arrow-l"
+   data-iconpos="notext"
+   data-wrapperels="span"
+   data-rel="back"
+   href="{{ SITE_URL }}{% if result.eventdate %}events/{% else %}s/{% endif %}">Back</a>
+{% endblock %}
+
+{% block header %}
+<div class="profile picture">
+    {% if result.eventdate  %}
+    <img class="avatar"
+         src="{{ STATIC_URL }}img/calendar.png"
+         alt="{{ result.eventdate }}" width="48" height="48" />
+    <span class="message-month">{{ result.eventmonth }}</span>
+    <span class="message-day">{{ result.eventday }}</span>
+    {% else %}
+    <a href="{{ SITE_URL }}profile/{{ result.member.slug }}"><img
+    class="avatar"
+    src="{% if result.member.picture %}{{ result.member.picture }}{% else %}{{ STATIC_URL }}img/picture-default.png{% endif %}"
+    alt="{{ result.member.name }}" width="48" height="48" /></a>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="message-full {% if result.eventdate  %}message-event{% endif %}">
+    <h2>{% if result.name  %}
+        {{ result.name }}
+    {% else %}
+        {{ result.member.name }}
+    {% endif %}</h2>
+
+    <div class="ui-content" id="errors"
+         data-role="popup"
+         data-transition="pop"
+         data-position-to="window"
+         data-dismissible="false"
+         data-theme="a"
+         data-overlay-theme="a">
+        <a class="ui-btn-left" href="#" data-role="button" data-iconpos="notext" data-icon="delete" data-rel="back" data-theme="a">Close</a>
+        <div id="errors-content"></div>
+    </div>
+    
+    {% if result.eventdate  %}
+        <div class="message-event-details clearfix">
+            <div class="message-event-time"><span>{{ result.eventtime }}</span></div>
+            <div class="message-event-info">
+                <div>{{ result.location }}{% if result.distance and result.distance != 'N/A' %}
+                    <span>({{ result.distance }})</span>
+                {% endif %}</div>
+            </div>
+        </div>
+        {% if result.postcode %}
+        <div class="message-map box">
+            <div id="map"></div>
+            <script type="text/javascript">
+                $(document).on('ml.Ready', function () {
+                    var key = 'AmXCuMvaJGPW0JXSQmcO4e5hKauvjs_TztK0DGcinHK6mFaVAq5lm3OzHkAPnpyE';
+                    var map = null;
+                    var postcode = '{{ result.postcode }}';
+ 
+                    function getMap () {
+                        // Initialize the map
+                        map = new Microsoft.Maps.Map(document.getElementById("map"), {
+                            credentials: key, 
+                            mapTypeId: Microsoft.Maps.MapTypeId.road,
+                            disableZooming: true
+                        });
+                        var geocodeRequest = "http://dev.virtualearth.net/REST/v1/Locations?query="
+                                           + encodeURI(postcode) + "&output=json&jsonp=GeocodeCallback&key=" + key;
+                        CallRestService(geocodeRequest);
+                    }
+
+                    function CallRestService(request) {
+                        var script = document.createElement("script");
+                        script.setAttribute("type", "text/javascript");
+                        script.setAttribute("src", request);
+                        document.body.appendChild(script);
+                    }
+
+                    function GeocodeCallback(result) {
+                        //console.log("Found location: " + result.resourceSets[0].resources[0].name);
+                        if (result &&
+                            result.resourceSets &&
+                            result.resourceSets.length > 0 &&
+                            result.resourceSets[0].resources &&
+                            result.resourceSets[0].resources.length > 0)
+                        {
+                            // Set the map view using the returned bounding box
+                            var bbox = result.resourceSets[0].resources[0].bbox;
+                            var viewBoundaries = Microsoft.Maps.LocationRect.fromLocations(
+                                new Microsoft.Maps.Location(bbox[0], bbox[1]), 
+                                new Microsoft.Maps.Location(bbox[2], bbox[3])
+                            );
+                            map.setView({ bounds: viewBoundaries});
+
+                            // Add a pushpin at the found location
+                            var location = new Microsoft.Maps.Location(
+                                result.resourceSets[0].resources[0].point.coordinates[0],
+                                result.resourceSets[0].resources[0].point.coordinates[1]
+                            );
+                            var pushpin = new Microsoft.Maps.Pushpin(location);
+                            map.entities.push(pushpin);
+                        }
+                    }
+                    window.GeocodeCallback = GeocodeCallback;
+
+                    getMap();
+                });
+            </script>
+        </div>
+        {% endif %}
+    {% endif %}
+
+    <div class="message-body">
+        {{ result.body_with_links|safe }}
+        {% for tag in result.tags %}<a href="{{ SITE_URL}}s/%23{{ tag.key }}">{{ tag.value }}</a> {% endfor %}
+        <p class="message-age" title="{{ result.timestamp }}">{{ result.age }}</p>
+    </div>
+
+    {% if account.id == result.member.id and result.eventdate %}
+        <a href="{{ SITE_URL }}edit-event/{{ result.id }}" data-role="button" data-icon="edit" data-iconpos="left">Edit Event</a>
+    {% endif %}
+
+    <div data-entity="replies" data-rel="message-{{ result.id }}" class="message-replies box">
+        {% for reply in result.replies %}
+        <div class="message-reply clearfix">
+            <div class="picture"><a class="avatar" href="{{ SITE_URL }}profile/{{ reply.member.slug }}"><img
+                class="avatar"
+                src="{% if reply.member.picture %}{{ reply.member.picture }}{% else %}{{ STATIC_URL }}img/picture-default.png{% endif %}"
+                alt="{{ reply.member.name }}" width="48" height="48" /></a></div>
+            <div class="message-reply-info">
+                <div class="message-reply-author"><a class="bold" href="{{ SITE_URL }}profile/{{ reply.member.slug }}">{{ reply.member.name }}</a></div>
+                <div class="message-reply-body">
+                    -
+                    {{ reply.body|safe }}
+                    {% for tag in reply.tags %}<span><a href="{{ SITE_URL }}%23{{ tag.key }}">{{ tag.value }}</a></span> {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        <div data-entity="message" data-mid="{{ result.id }}" data-type="reply" class="message-reply-form">
+            <textarea class="message-body elastic"
+                      name="Reply message"
+                      data-entity="text"
+                      data-mid="{{ result.id }}" rows="1" cols="70" placeholder="reply" required="required"></textarea>
+            <button class="message-button button" data-entity="button" data-mid="{{ result.id }}">Post</button>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extrajs %}{{ block.super }}
+<script type="text/javascript">
+    $(document).on('ml.Ready', function () {
+        new ML.Messages({'api_url': '{{ api_url }}', 'token': '{{ csrf_token }}'});
+    });
+</script>
+{% endblock %}

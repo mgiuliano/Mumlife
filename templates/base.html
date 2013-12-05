@@ -1,0 +1,103 @@
+{% load static %}<!DOCTYPE HTML>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+    <head>
+        <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>{% block title %}Mumlife{% endblock %}</title>
+        <meta name="viewport" content="width=device-width, user-scalable=false">
+        <meta name="description" content="">
+        <link rel="icon" href="{{ STATIC_URL }}images/favicon.ico" type="image/x-icon">
+        <link rel="stylesheet" href="{{ STATIC_URL }}css/mumlife.css">
+        <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}js/platform.js"></script>
+        <script src="{{ STATIC_URL }}js/mumlife.js"></script>
+        <script type="text/javascript">
+            var SITE_URL = '{{ SITE_URL }}';
+        </script>
+        {% block extrastyle %}{% endblock %}
+        {% block extrahead %}{% endblock %}
+        {% block blockbots %}<meta name="robots" content="NONE,NOARCHIVE" />{% endblock %}
+    </head>
+
+    <body class="{% block bodyclass %}{% endblock %}">
+        <!--[if lt IE 7]>
+            <p class="chromeframe">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">activate Google Chrome Frame</a> to improve your experience.</p>
+        <![endif]-->
+        <div data-role="page" data-theme="{% block pagetheme %}a{% endblock %}">
+
+            <header data-role="header" data-theme="{% block headertheme %}a{% endblock %}" class="clearfix">
+                <h1 class="title"><a href="{{ SITE_URL }}"><img src="{{ STATIC_URL }}img/logo.png" alt="mumlife" /></a></h1>
+                {% if user.is_authenticated %}
+                    {% comment %}{% if notifications %}<span id="notifications">
+                        <span class="ui-btn-corner-all">{{ notifications }}</span>
+                    </span>{% endif %}{% endcomment %}
+                    <div class="buttons">
+                        <a data-role="button"
+                           data-icon="bars"
+                           data-iconpos="notext"
+                           data-wrapperels="span"
+                           data-entity="menu"
+                           href="#">Menu</a>
+                        <a data-role="button"
+                           data-icon="gear"
+                           data-iconpos="notext"
+                           data-wrapperels="span" 
+                           href="{{ SITE_URL }}profile/edit">{{ account.fullname }}</a>
+                        <a data-role="button"
+                           data-icon="edit"
+                           data-iconpos="notext"
+                           data-wrapperels="span"
+                           href="{{ SITE_URL }}write-message">Write message</a>
+                        {% block backbutton %}{% endblock %}
+                    </div>
+                {% endif %}
+                <div id="menu">
+                    <ul data-role="listview" data-inset="true">
+                        <li><a href="{{ SITE_URL }}s/">Messages</a></li>
+                        <li><a href="{{ SITE_URL }}events/">Events</a></li>
+                        <li><a href="{{ SITE_URL }}members/">Members</a></li>
+                    </ul>
+                </div>
+                {% block header %}{% endblock %}
+            </header>
+
+            <div class="main-container" data-role="content" data-theme="{% block contenttheme %}a{% endblock %}">
+                <div class="main wrapper clearfix">
+                    <article>
+                        {% block content %}{% endblock %}
+                    </article>
+                </div>
+            </div>
+
+            <footer data-role="footer" data-position="fixed" data-theme="{% block footertheme %}a{% endblock %}">
+                {% if user.is_authenticated %}
+                <nav>
+                    <ul class="clearfix">
+                        {% block footermenu %}{% endblock %}
+                    </ul>
+                </nav>
+                {% endif %}
+                {% comment %}
+                <p><em>Powered by Beatscope Engineering</em>, &copy; 2008-{% now "Y" %} <a href="http://www.beatscope.co.uk/" target="_blank">Beatscope Limited</a></p>
+                {% endcomment %}
+            </footer>
+
+        </div>
+
+        <script type="text/javascript">
+            $(document).ready(function () {
+                new ML.Application({'static_url': '{{ STATIC_URL }}'});
+            });
+        </script>
+        {% block extrajs %}{% endblock %}
+        {% comment %}<script>
+            var _gaq=[['_setAccount','UA-XXXXX-X'],['_trackPageview']];
+            (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+            g.src='//www.google-analytics.com/ga.js';
+            s.parentNode.insertBefore(g,s)}(document,'script'));
+        </script>{% endcomment %}
+    </body>
+</html>
