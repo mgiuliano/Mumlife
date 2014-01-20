@@ -1,25 +1,13 @@
 {% extends "base.html" %}
 
 {% block bodyclass %}edit-mode{% endblock %}
-{% block pagetheme %}c{% endblock %}
-{% block headertheme %}c{% endblock %}
-{% block contenttheme %}c{% endblock %}
-{% block footertheme %}c{% endblock %}
 
-{% block backbutton %}
-<a data-role="button"
-   data-icon="arrow-l"
-   data-iconpos="notext"
-   data-wrapperels="span"
-   data-rel="back"
-   href="{{ SITE_URL }}profile/edit">Back</a>
-{% endblock %}
+{% block heading %}<h1>Edit interests</h1>{% endblock %}
 
 {% block content %}
-    <header>
-        <h2>{{ account.fullname }} (edit interests)</h2>
-    </header>
     <section>
+
+        <a href="{{ SITE_URL }}profile/edit" data-role="button" data-icon="arrow-l" data-iconpos="left">Back</a>
     
         <div class="form-card">
             <form action="" class="box" method="post" enctype="multipart/form-data">{% csrf_token %}
@@ -32,6 +20,8 @@
                 </div>
             </form>
         </div>
+
+        <p class="description">Changes are saved automatically.</p>
 
         {% if popular %}
         <div class="popular-interests">
@@ -50,7 +40,7 @@
 {% block extrajs %}{{ block.super }}
 <script type="text/javascript">
     $(document).on('ml.Ready', function () {
-        new ML.AutoField({'entity': {{ account.id }}, 'field': 'interests', 'api_url': '{{ api_url }}', 'token': '{{ csrf_token }}'});
+        new ML.AutoField({'model': 'members', 'entity': {{ account.id }}, 'field': 'interests'});
         // Auto-fill interests on click
         var field = $('#id_interests');
         $('[data-entity="interest"]').click(function () {

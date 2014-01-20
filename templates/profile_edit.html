@@ -1,71 +1,18 @@
 {% extends "base.html" %}
 
 {% block bodyclass %}edit-mode{% endblock %}
-{% block pagetheme %}c{% endblock %}
-{% block headertheme %}c{% endblock %}
-{% block contenttheme %}c{% endblock %}
-{% block footertheme %}c{% endblock %}
 
-{% block backbutton %}
-<a data-role="button"
-   data-icon="arrow-l"
-   data-iconpos="notext"
-   data-wrapperels="span"
-   data-rel="back"
-   href="{{ SITE_URL }}profile">Back</a>
-{% endblock %}
+{% block heading %}<h1>Edit profile</h1>{% endblock %}
 
 {% block content %}
-    <header>
-        <h2>{{ account.fullname }} (edit mode)</h2>
-    </header>
     <section>
-        <a href="{{ SITE_URL }}profile/edit/account" data-role="button" data-icon="arrow-r" data-iconpos="right">My profile</a>
+        <a href="{{ SITE_URL }}profile" data-role="button" data-icon="arrow-l" data-iconpos="left">Back</a>
+        <a href="{{ SITE_URL }}profile/edit/account" data-role="button" data-icon="arrow-r" data-iconpos="right">Account settings</a>
         <a href="{{ SITE_URL }}profile/edit/kids" data-role="button" data-icon="arrow-r" data-iconpos="right">My kids</a>
         <a href="{{ SITE_URL }}profile/edit/interests" data-role="button" data-icon="arrow-r" data-iconpos="right">My interests</a>
+        <a href="{{ SITE_URL }}profile/edit/friends" data-role="button" data-icon="arrow-r" data-iconpos="right">My friends</a>
         <a href="{{ SITE_URL }}profile/edit/preferences" data-role="button" data-icon="arrow-r" data-iconpos="right">Preferences</a>
-
-        {% comment %} Friends Requests {% endcomment %}
-        {% if friend_requests %}
-        <div data-role="collapsible">
-            <h2>Friends Requests</h2>
-            <ul data-role="listview" data-inset="true">
-                {% for friend in friend_requests %}
-                    <li>
-                        <div class="ui-grid-b">
-                            <div class="ui-block-a">
-                                <a href="{{ SITE_URL }}profile/{{ friend.slug }}" data-role="button" data-icon="arrow-r" data-iconpos="right"><strong>{{ friend.name }}</strong></a>
-                            </div>
-                            <div class="ui-block-b">
-                                <a class="addtofriend"
-                                   href="#{{ account.id }},{{ friend.id }}"
-                                   rel="confirm"
-                                   data-role="button" data-icon="check" data-iconpos="right"><span>Approve</span></a>
-                            </div>
-                            <div class="ui-block-c">
-                                <a class="addtofriend"
-                                   href="#{{ account.id }},{{ friend.id }}"
-                                   rel="block"
-                                   data-role="button" data-icon="delete" data-iconpos="right"><span>Block</span></a>
-                            </div>
-                        </div>
-                    </li>
-                {% endfor %}
-            </ul>
-        </div>
-        {% endif %}
-
         <a href="{{ SITE_URL }}logout" data-role="button" data-icon="delete" data-iconpos="left">Logout</a>
-
     </section>
     <footer> </footer>
-{% endblock %}
-
-{% block extrajs %}{{ block.super }}
-<script type="text/javascript">
-    $(document).on('ml.Ready', function () {
-        new ML.AddToFriends({'class': 'addtofriend', 'api_url': '{{ api_url }}', 'token': '{{ csrf_token }}'});
-        new ML.Messages({'api_url': '{{ api_url }}', 'token': '{{ csrf_token }}'});
-    });
-</script>
 {% endblock %}

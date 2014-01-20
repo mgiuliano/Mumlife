@@ -4,7 +4,7 @@ import json
 import os
 
 if __name__ == "__main__":
-    os.environ['DJANGO_SETTINGS_MODULE'] = 'mumlife.settings'
+    os.environ['DJANGO_SETTINGS_MODULE'] = 'conf.settings'
 
     from mumlife import utils
     from mumlife.engines import SearchEngine
@@ -60,7 +60,7 @@ if __name__ == "__main__":
         else:
             try:
                 distance = utils.get_postcodes_distance(postcode_from=postcode_from, postcode_to=postcode_to)
-                print 'Distance:', distance
+                print 'Distance (km, miles):', distance
             except Exception as e:
                 print ' >> ERROR -', e
 

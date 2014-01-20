@@ -28,7 +28,7 @@ class MemberSerializer(serializers.ModelSerializer):
                   'gender', 'gender_display', \
                   'dob', 'age', \
                   'picture', 'about', \
-                  'interests', 'units', \
+                  'interests', 'units', 'max_range', \
                   'spouse', 'friendships', \
                   'location', 'tags')
 
@@ -60,8 +60,9 @@ class MessageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Message
-        fields = ('id', 'member', 'area', 'timestamp', \
-                  'name', 'location', 'eventdate', \
+        fields = ('id', 'area', 'timestamp', \
+                  'name', 'location', 'eventdate', 'eventenddate', \
                   'visibility', 'visibility_display', \
+                  'occurrence', 'occurs_until', \
                   'tags', 'body', \
                   'is_reply', 'replies')

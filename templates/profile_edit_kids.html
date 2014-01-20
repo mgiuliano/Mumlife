@@ -1,37 +1,25 @@
 {% extends "base.html" %}
+{% load l10n %}
 
 {% block extrahead %}
 <script type="text/javascript">
     $(document).bind("mobileinit", function () {
         $.mobile.ajaxEnabled = false;
         $.mobile.linkBindingEnabled = false;
-        $.ns = 'jqm';
     });
 </script>
-<script type="text/javascript" src="http://code.jquery.com/mobile/1.3.2/jquery.mobile-1.3.2.min.js"></script>
-<script src="{{ STATIC_URL }}js/jqm-datebox.comp.calbox.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/jquery.mobile-1.3.2.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/jqm-datebox.comp.calbox.min.js"></script>
 {% endblock %}
 
 {% block bodyclass %}edit-mode{% endblock %}
-{% block pagetheme %}c{% endblock %}
-{% block headertheme %}c{% endblock %}
-{% block contenttheme %}c{% endblock %}
-{% block footertheme %}c{% endblock %}
 
-{% block backbutton %}
-<a data-role="button"
-   data-icon="arrow-l"
-   data-iconpos="notext"
-   data-wrapperels="span"
-   data-rel="back"
-   href="{{ SITE_URL }}profile/edit">Back</a>
-{% endblock %}
+{% block heading %}<h1>Edit kids</h1>{% endblock %}
 
 {% block content %}
-    <header>
-        <h2>{{ account.fullname }} (edit kids)</a></h2>
-    </header>
     <section>
+
+        <a href="{{ SITE_URL }}profile/edit" data-role="button" data-icon="arrow-l" data-iconpos="left">Back</a>
 
         {% if account.kid_set.count %}
             <ul data-role="listview" data-inset="true">
@@ -75,9 +63,11 @@
                 </div>
                 <div class="form-field">
                     {{ form.dob.label_tag }}
+                    {% localize on %}
                     <input type="date" name="dob" id="{{ form.dob.id_for_label }}" value=""
                            data-role="datebox"
                            data-options='{"mode": "calbox", "calUsePickers": true, "overrideDateFormat": "%Y-%m-%d", "beforeToday": true}' />
+                    {% endlocalize %}
                     <p class="description">{{ form.dob.help_text }}</p>
                 </div>
                 <div class="form-field">

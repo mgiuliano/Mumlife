@@ -36,13 +36,15 @@ class SearchEngineTest(TestCase):
     def setUp(self):
         # Delete superuser
         Member.objects.filter(user__is_superuser=1).delete()
-        print
+        self.verbose = False
+        if self.verbose:
+            print
 
     def test_U1(self):
         """
         Tests that U1 sees, for the followng searches:
             S1 "@local"         : M1 (LOCAL), M2 (GLOBAL, my area)
-            S2 "@global"        : M1 (LOCAL), M2 (GLOBAL, my area), M5 (GLOBAL, outside area)
+            S2 "@global"        : M5 (GLOBAL, outside area)
             S3 "#se16"          : M1 (LOCAL), M2 (GLOBAL, my area)
             S4 "#se22"          : No Match
             S5 "#se22 @global"  : M5 (GLOBAL, outside area)
@@ -51,11 +53,12 @@ class SearchEngineTest(TestCase):
 
         """
         member = Member.objects.get(fullname="Freya Hum")
-        print '[U1]', member.fullname, ', Area:', member.area
-        se = SearchEngine(account=member, verbose=True)
+        if self.verbose:
+            print '[U1]', member.fullname, ', Area:', member.area
+        se = SearchEngine(account=member, verbose=self.verbose)
         searches = [
             ("@local",          [1,2]),
-            ("@global",         [1,2,5]),
+            ("@global",         [5]),
             ("#se16",           [1,2]),
             ("#se22",           []),
             ("#se22 @global",   [5]),
@@ -63,16 +66,18 @@ class SearchEngineTest(TestCase):
             ("@private",        [8]),
         ]
         for terms, expected in searches:
-            print "[U1] Test {} in {}".format(terms, expected)
-            results = se.search(terms)
-            print " >>", [self.getId(r) for r in results]
+            if self.verbose:
+                print "[U1] Test {} in {}".format(terms, expected)
+            results = se.search_messages(terms)
+            if self.verbose:
+                print " >>", [self.getId(r) for r in results]
             self.assertQuerysetEqual(results, expected, self.getId, ordered=False)
 
     def test_U2(self):
         """
         Tests that U2 sees, for the followng searches:
             S1 "@local"         : M1 (LOCAL), M2 (LOCAL)
-            S2 "@global"        : M1 (LOCAL), M2 (LOCAL), M5 (GLOBAL, outside area)
+            S2 "@global"        : M5 (GLOBAL, outside area)
             S3 "#se16"          : M1 (LOCAL), M2 (LOCAL)
             S4 "#se22"          : No Match
             S5 "#se22 @global"  : M5 (GLOBAL, outside area)
@@ -81,11 +86,12 @@ class SearchEngineTest(TestCase):
 
         """
         member = Member.objects.get(fullname="Suzanna Cole")
-        print '[U2]', member.fullname, ', Area:', member.area
-        se = SearchEngine(account=member, verbose=True)
+        if self.verbose:
+            print '[U2]', member.fullname, ', Area:', member.area
+        se = SearchEngine(account=member, verbose=self.verbose)
         searches = [
             ("@local",          [1,2]),
-            ("@global",         [1,2,5]),
+            ("@global",         [5]),
             ("#se16",           [1,2]),
             ("#se22",           []),
             ("#se22 @global",   [5]),
@@ -93,16 +99,18 @@ class SearchEngineTest(TestCase):
             ("@private",        [7]),
         ]
         for terms, expected in searches:
-            print "[U2] Test {} in {}".format(terms, expected)
-            results = se.search(terms)
-            print " >>", [self.getId(r) for r in results]
+            if self.verbose:
+                print "[U2] Test {} in {}".format(terms, expected)
+            results = se.search_messages(terms)
+            if self.verbose:
+                print " >>", [self.getId(r) for r in results]
             self.assertQuerysetEqual(results, expected, self.getId, ordered=False)
 
     def test_U3(self):
         """
         Tests that U3 sees, for the followng searches:
             S1 "@local"         : M1 (LOCAL), M2 (GLOBAL, my area), M3 (FRIEND, my area)
-            S2 "@global"        : M1 (LOCAL), M2 (GLOBAL, my area), M3 (FRIEND, my area), M5 (GLOBAL, outside area)
+            S2 "@global"        : M5 (GLOBAL, outside area)
             S3 "#se16"          : M1 (LOCAL), M2 (GLOBAL, my area), M3 (FRIEND, my area)
             S4 "#se22"          : No Match
             S5 "#se22 @global"  : M5 (GLOBAL, outside area)
@@ -111,11 +119,12 @@ class SearchEngineTest(TestCase):
 
         """
         member = Member.objects.get(fullname="Amanda Poke")
-        print '[U3]', member.fullname, ', Area:', member.area
-        se = SearchEngine(account=member, verbose=True)
+        if self.verbose:
+            print '[U3]', member.fullname, ', Area:', member.area
+        se = SearchEngine(account=member, verbose=self.verbose)
         searches = [
             ("@local",          [1,2,3]),
-            ("@global",         [1,2,3,5]),
+            ("@global",         [5]),
             ("#se16",           [1,2,3]),
             ("#se22",           []),
             ("#se22 @global",   [5]),
@@ -123,67 +132,75 @@ class SearchEngineTest(TestCase):
             ("@private",        []),
         ]
         for terms, expected in searches:
-            print "[U3] Test {} in {}".format(terms, expected)
-            results = se.search(terms)
-            print " >>", [self.getId(r) for r in results]
+            if self.verbose:
+                print "[U3] Test {} in {}".format(terms, expected)
+            results = se.search_messages(terms)
+            if self.verbose:
+                print " >>", [self.getId(r) for r in results]
             self.assertQuerysetEqual(results, expected, self.getId, ordered=False)
 
     def test_U4(self):
         """
         Tests that U4 sees, for the followng searches:
             S1 "@local"         : M4 (LOCAL), M5 (GLOBAL, my area)
-            S2 "@global"        : M2 (GLOBAL, outside area), M4 (LOCAL), M5 (GLOBAL, my area)
+            S2 "@global"        : M2 (GLOBAL, outside area)
             S3 "#se16"          : No Match
             S4 "#se22"          : M4 (LOCAL), M5 (GLOBAL, my area)
-            S5 "#se22 @global"  : M4 (LOCAL), M5 (GLOBAL, my area)
+            S5 "#se22 @global"  : No Match
             S6 "@friend"        : No Match
             S7 "@private"       : No Match 
 
         """
         member = Member.objects.get(fullname="Rachel Chatter")
-        print '[U4]', member.fullname, ', Area:', member.area
-        se = SearchEngine(account=member, verbose=True)
+        if self.verbose:
+            print '[U4]', member.fullname, ', Area:', member.area
+        se = SearchEngine(account=member, verbose=self.verbose)
         searches = [
             ("@local",          [4,5]),
-            ("@global",         [2,4,5]),
+            ("@global",         [2]),
             ("#se16",           []),
             ("#se22",           [4,5]),
-            ("#se22 @global",   [4,5]),
+            ("#se22 @global",   []),
             ("@friends",        []),
             ("@private",        []),
         ]
         for terms, expected in searches:
-            print "[U4] Test {} in {}".format(terms, expected)
-            results = se.search(terms)
-            print " >>", [self.getId(r) for r in results]
+            if self.verbose:
+                print "[U4] Test {} in {}".format(terms, expected)
+            results = se.search_messages(terms)
+            if self.verbose:
+                print " >>", [self.getId(r) for r in results]
             self.assertQuerysetEqual(results, expected, self.getId, ordered=False)
 
     def test_U5(self):
         """
         Tests that U5 sees, for the followng searches:
             S1 "@local"         : M4 (LOCAL), M5 (LOCAL)
-            S2 "@global"        : M2 (GLOBAL, outside area), M4 (LOCAL), M5 (LOCAL)
+            S2 "@global"        : M2 (GLOBAL, outside area)
             S3 "#se16"          : No Match
             S4 "#se22"          : M4 (LOCAL), M5 (LOCAL)
-            S5 "#se22 @global"  : M4 (LOCAL), M5 (LOCAL)
+            S5 "#se22 @global"  : No Match
             S6 "@friend"        : M1 (Friend), M2 (Friend), M3 (Friend), M6 (OWN, FRIENDS)
             S7 "@private"       : M7 (PRIVATE to U2), M8 (PRIVATE from U1)
 
         """
         member = Member.objects.get(fullname="Sarah Parker")
-        print '[U5]', member.fullname, ', Area:', member.area
-        se = SearchEngine(account=member, verbose=True)
+        if self.verbose:
+            print '[U5]', member.fullname, ', Area:', member.area
+        se = SearchEngine(account=member, verbose=self.verbose)
         searches = [
             ("@local",          [4,5]),
-            ("@global",         [2,4,5]),
+            ("@global",         [2]),
             ("#se16",           []),
             ("#se22",           [4,5]),
-            ("#se22 @global",   [4,5]),
+            ("#se22 @global",   []),
             ("@friends",        [1,2,3,6]),
             ("@private",        [7,8]),
         ]
         for terms, expected in searches:
-            print "[U5] Test {} in {}".format(terms, expected)
-            results = se.search(terms)
-            print " >>", [self.getId(r) for r in results]
+            if self.verbose:
+                print "[U5] Test {} in {}".format(terms, expected)
+            results = se.search_messages(terms)
+            if self.verbose:
+                print " >>", [self.getId(r) for r in results]
             self.assertQuerysetEqual(results, expected, self.getId, ordered=False)

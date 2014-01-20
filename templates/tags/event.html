@@ -1,25 +1,31 @@
 {% if heading %}
     <h3>{{ heading }}</h3>
 {% endif %}
-<a href="{{ SITE_URL }}message/{{ id }}" class="message clearfix">
+<div class="message clearfix">
     <div class="message-left">
-        <div class="message-event-time">{{ eventtime }}</div>
+        <a href="{{ SITE_URL }}message/{{ id }}" class="message-event-link">
+            <div class="message-event-time">{{ eventtime }}</div>
+            <div class="message-event-visibility">
+                {% if distance and distance != 'N/A' %}<span>{{ distance }}</span>{% endif %}
+                <span>{{ area }}</span></div>
+        </a>
     </div>
     <div class="message-right">
         <div class="message-author">
-            {{ name }}
+            <a href="{{ SITE_URL }}message/{{ id }}">{{ name }}</a>
         </div>
         <div class="message-body">
-            {{ location }}
-            {% if distance and distance != 'N/A' %}
-                <span>({{ distance }})</span>
-            {% endif %}
-            <span class="message-age" title="{{ timestamp }}">{{ age }}</span>
+            <a href="{{ SITE_URL }}message/{{ id }}" class="message-body-link">
+                {{ location }}
+                <span class="message-age" title="{{ timestamp }}">{{ age }}</span>
+            </a>
         </div>
         <div class="message-tools">
             {% if replies %}
-                <div class="message-replies-count">{{ replies|length }}</div>
+                <a href="{{ SITE_URL }}message/{{ id }}" class="message-tools-link">
+                    <div class="message-replies-count">{{ replies|length }}</div>
+                </a>
             {% endif %}
         </div>
     </div>
-</a>
+</div>

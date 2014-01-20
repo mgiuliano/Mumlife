@@ -1,0 +1,10 @@
+{% block content %}
+    <h2>Notifications</h2>
+    <div class="notifications">
+        {% if noresults %}
+            <p>{{ noresults }}</p>
+        {% else %}
+            {{ results|safe }}
+        {% endif %}
+    </div>
+{% endblock %}

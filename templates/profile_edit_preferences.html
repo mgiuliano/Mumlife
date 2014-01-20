@@ -1,25 +1,14 @@
 {% extends "base.html" %}
 
 {% block bodyclass %}edit-mode{% endblock %}
-{% block pagetheme %}c{% endblock %}
-{% block headertheme %}c{% endblock %}
-{% block contenttheme %}c{% endblock %}
-{% block footertheme %}c{% endblock %}
 
-{% block backbutton %}
-<a data-role="button"
-   data-icon="arrow-l"
-   data-iconpos="notext"
-   data-wrapperels="span"
-   data-rel="back"
-   href="{{ SITE_URL }}profile/edit">Back</a>
-{% endblock %}
+{% block heading %}<h1>Edit preferences</h1>{% endblock %}
 
 {% block content %}
-    <header>
-        <h2>{{ account.fullname }} (edit preferences)</h2>
-    </header>
     <section>
+
+        <a href="{{ SITE_URL }}profile/edit" data-role="button" data-icon="arrow-l" data-iconpos="left">Back</a>
+
         <div class="form-card box">
             <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
                 <div class="form-field">
@@ -36,8 +25,15 @@
                     </fieldset>
                     <p class="description">{{ form.units.help_text }}</p>
                 </div>
+                <div class="form-field">
+                    {{ form.max_range.label_tag }}
+                    {{ form.max_range }}
+                    <p class="description">{{ form.max_range.help_text }}</p>
+                </div>
             </form>
         </div>
+        <p class="description">Changes are saved automatically.</p>
+
     </section>
     <footer> </footer>
 {% endblock %}
@@ -47,7 +43,8 @@
 <script type="text/javascript">
     $(document).on('ml.Ready', function () {
         // Auto Fields
-        new ML.AutoField({'entity': {{ account.id }}, 'field': 'units', 'api_url': '{{ api_url }}', 'token': '{{ csrf_token }}', 'widget': 'select'});
+        new ML.AutoField({'model': 'members', 'entity': {{ account.id }}, 'field': 'units', 'widget': 'select'});
+        new ML.AutoField({'model': 'members', 'entity': {{ account.id }}, 'field': 'max_range'});
     });
 </script>
 {% endblock %}

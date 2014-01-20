@@ -15,12 +15,17 @@ from django.utils import timezone
 from tagging.models import Tag, TaggedItem
 from longerusername.forms import AuthenticationForm
 from mumlife import utils
-from mumlife.models import Member, Kid, Message
-from mumlife.forms import MemberForm, KidForm, MessageForm
-from mumlife.engines import NotificationEngine, SearchEngine
+from mumlife.models import Member, Kid, Message, Friendships
+from mumlife.forms import SignUpForm, MemberForm, KidForm, MessageForm
 
 logger = logging.getLogger('mumlife.views')
 
+
+"""
+Public Views.
+============================================================
+
+"""
 
 def home(request):
     if request.user.is_anonymous():
@@ -44,8 +49,14 @@ def home(request):
         return HttpResponseRedirect('/s/')
 
 
+"""
+Members Views.
+============================================================
+
+"""
+
 @login_required
-def search(request, tagstring=''):
+def feed(request, tagstring=''):
     context = {}
     if request.method == 'POST' and request.POST.has_key('terms'):
         tagstring = urllib.quote(request.POST['terms'])
@@ -59,19 +70,23 @@ def search(request, tagstring=''):
     context['account'] = account
 
     # Fetch 1st page of results from the API using cookie authentication
-    url = '{}messages/1/{}'.format(settings.API_URL, tagstring)
+    url = '{}messages/1/{}'.format(settings.API_URL, urllib.quote(tagstring))
     cookies = {
         'sessionid': request.COOKIES[settings.SESSION_COOKIE_NAME],
         'csrftoken': request.COOKIES[settings.CSRF_COOKIE_NAME]
     }
     r = requests.get(url, cookies=cookies, params={'format': 'json'})
-    response = json.loads(r.text)
-
-    context['total'] = response['total']
-    context['results'] = response['content']
-    context['next'] = response['next']
+    try:
+        response = json.loads(r.text)
+        context['total'] = response['total']
+        context['results'] = response['html_content']
+        context['next'] = response['next']
+    except ValueError:
+        context['total'] = 0
+        context['results'] = ''
+        context['next'] = ''
         
-    t = loader.get_template('search.html')
+    t = loader.get_template('feed.html')
     c = RequestContext(request, context)
     return HttpResponse(t.render(c))
 
@@ -91,17 +106,35 @@ def events(request, tagstring=''):
     context['account'] = account
 
     # Fetch 1st page of results from the API using cookie authentication
-    url = '{}messages/1/{}'.format(settings.API_URL, tagstring)
+    url = '{}messages/1/{}'.format(settings.API_URL, urllib.quote(tagstring))
     cookies = {
         'sessionid': request.COOKIES[settings.SESSION_COOKIE_NAME],
         'csrftoken': request.COOKIES[settings.CSRF_COOKIE_NAME]
     }
-    r = requests.get(url, cookies=cookies, params={'format': 'json', 'events': 'true'})
-    response = json.loads(r.text)
-
-    context['total'] = response['total']
-    context['results'] = response['content']
-    context['next'] = response['next']
+    params = {
+        'format': 'json',
+        'events': 'true'
+    }
+    if request.GET.has_key('range') and request.GET['range']:
+        params['range'] = request.GET['range']
+    else:
+        # when no range is provided, we check whether one is stored in the cookie
+        # cookie name: ml_range
+        if request.COOKIES.has_key('ml_range') and request.COOKIES['ml_range']:
+            # the cookie is set, redirect to the same page,
+            # appended with the stored range
+            url = '/events/{}?range={}'.format(urllib.quote(tagstring), request.COOKIES['ml_range'])
+            return HttpResponseRedirect(url)
+    r = requests.get(url, cookies=cookies, params=params)
+    try:
+        response = json.loads(r.text)
+        context['total'] = response['total']
+        context['results'] = response['html_content']
+        context['next'] = response['next']
+    except ValueError:
+        context['total'] = 0
+        context['results'] = ''
+        context['next'] = ''
 
     t = loader.get_template('events.html')
     c = RequestContext(request, context)
@@ -109,45 +142,82 @@ def events(request, tagstring=''):
 
 
 @login_required
+def messages(request):
+    context = {}
+
+    account = request.user.get_profile()
+    context['account'] = account
+    context['friends'] = account.get_friends(Friendships.APPROVED)
+
+    # Fetch 1st page of results from the API using cookie authentication
+    url = '{}messages/1/{}'.format(settings.API_URL, '@private')
+    cookies = {
+        'sessionid': request.COOKIES[settings.SESSION_COOKIE_NAME],
+        'csrftoken': request.COOKIES[settings.CSRF_COOKIE_NAME]
+    }
+    r = requests.get(url, cookies=cookies, params={'format': 'json'})
+    try:
+        response = json.loads(r.text)
+        context['total'] = response['total']
+        context['results'] = response['html_content']
+        context['next'] = response['next']
+    except ValueError:
+        context['total'] = 0
+        context['results'] = ''
+        context['next'] = ''
+
+    t = loader.get_template('messages.html')
+    c = RequestContext(request, context)
+    return HttpResponse(t.render(c))
+
+
+@login_required
 def notifications(request):
     account = request.user.get_profile()
-    notifications = NotificationEngine(account=account).get()
     context = {
         'account': account
     }
-    context.update(notifications)
-    t = loader.get_template('notifications.html')
+
+    # Notifications are processed by MumlifeMiddleware
+    if request.META.has_key("MUMLIFE_NOTIFICATIONS") and request.META["MUMLIFE_NOTIFICATIONS"]:
+        response = request.META["MUMLIFE_NOTIFICATIONS"]
+        context['total'] = response['total']
+        context['results'] = response['html_content']
+        # Reset account notifications
+        account.notifications.reset(response)
+    else:
+        context['noresults'] = 'You do not have any notifications.'
+
+    t = loader.get_template('tags/notifications.html')
     c = RequestContext(request, context)
     return HttpResponse(t.render(c))
 
 
 @login_required
-def write_message(request):
+def post(request):
     account = request.user.get_profile()
-    context = {
-        'account': account,
-        'api_url': settings.API_URL
-    }
     # Messages are created using the API,
     # so there is no need to handle the POST action here.
     # we use the MessageForm for re-usability
-    context['form'] = MessageForm()
-    t = loader.get_template('write_message.html')
+    context = {
+        'account': account,
+        'form': MessageForm()
+    }
+    t = loader.get_template('post.html')
     c = RequestContext(request, context)
     return HttpResponse(t.render(c))
 
 
 @login_required
-def create_event(request):
+def post_event(request):
     account = request.user.get_profile()
-    context = {
-        'account': account,
-        'api_url': settings.API_URL
-    }
-    # Messages are created using the API,
+    # Events are created using the API,
     # so there is no need to handle the POST action here.
     # we use the MessageForm for re-usability
-    context['form'] = MessageForm()
+    context = {
+        'account': account,
+        'form': MessageForm()
+    }
     t = loader.get_template('event.html')
     c = RequestContext(request, context)
     return HttpResponse(t.render(c))
@@ -164,10 +234,9 @@ def edit_event(request, event_id):
         raise Http404
     account = request.user.get_profile()
     context = {
-        'edit_mode': True,
-        'event_id': event_id,
         'account': account,
-        'api_url': settings.API_URL,
+        'edit_mode': True,
+        'event_id': event_id
     }
     # Messages are created using the API,
     # so there is no need to handle the POST action here.
@@ -184,9 +253,19 @@ def message(request, mid):
     message = get_object_or_404(Message, pk=mid)
     context = {
         'account': account,
-        'api_url': settings.API_URL,
         'result': message.format(viewer=request.user.get_profile())
     }
+    # back button
+    backlink = 's/'
+    if message.eventdate:
+        backlink = 'events/'
+    elif message.visibility == Message.PRIVATE:
+        backlink = 'messages/'
+    elif message.visibility == Message.FRIENDS:
+        backlink = 's/@friends'
+    elif message.area != account.area:
+        backlink = 's/@global'
+    context['back'] = '{}{}'.format(settings.SITE_URL, backlink)
 
     t = loader.get_template('message.html')
     c = RequestContext(request, context)
@@ -197,8 +276,7 @@ def message(request, mid):
 def members(request, tagstring=''):
     account = request.user.get_profile()
     context = {
-        'account': account,
-        'api_url': settings.API_URL,
+        'account': account
     }
 
     if request.method == 'POST' and request.POST.has_key('terms'):
@@ -212,7 +290,6 @@ def members(request, tagstring=''):
     else:
         context['tagstring'] = tagstring
         tags = utils.Extractor(tagstring).extract_tags()
-        #context['tags'] = [{'key': tag[0], 'value': tag[1]} for tag in tags.items()]
         query_tags = Tag.objects.filter(name__in=tags.values())
         members = TaggedItem.objects.get_by_model(Member, query_tags)
 
@@ -245,8 +322,7 @@ def profile(request, slug=None):
 
     context = {
         'account': account,
-        'member': member,
-        'api_url': settings.API_URL
+        'member': member
     }
 
     t = loader.get_template('profile.html')
@@ -258,14 +334,20 @@ def profile(request, slug=None):
 def profile_edit(request, section=None, kid=None):
     account = request.user.get_profile()
     context = {
-        'account': account,
-        'api_url': settings.API_URL
+        'account': account
     }
 
     if section == 'account':
-        context['api_url'] = context['api_url'] + 'members/'
-        context['form'] = MemberForm(instance=account)
+        if request.method == 'POST':
+            form = MemberForm(request.POST, instance=account)
+            if form.is_valid():
+                form.save()
+                return HttpResponseRedirect('/profile/edit')
+            context['form'] = form
+        else:
+            context['form'] = MemberForm(instance=account)
         template_name = 'profile_edit_account.html'
+
     elif section == 'kids':
         # New Kid form
         if request.method == 'POST':
@@ -278,21 +360,28 @@ def profile_edit(request, section=None, kid=None):
         else:
             context['form'] = KidForm()
         template_name = 'profile_edit_kids.html'
+
     elif section == 'kid':
         try:
             kid = Kid.objects.get(pk=kid)
             if account not in kid.parents.all():
                 raise Http404
             context['kid'] = kid
-            context['api_url'] = context['api_url'] + 'kids/'
-            context['form'] = KidForm(instance=kid)
+            if request.method == 'POST':
+                form = KidForm(request.POST, instance=kid)
+                if form.is_valid():
+                    form.save()
+                    return HttpResponseRedirect('/profile/edit/kids')
+                context['form'] = form
+            else:
+                context['form'] = KidForm(instance=kid)
             template_name = 'profile_edit_kid.html'
         except Kid.DoesNotExist:
             raise Http404
+
     elif section == 'interests':
-        context['api_url'] = context['api_url'] + 'members/'
         context['form'] = MemberForm(instance=account)
-        # Popular interests
+        # popular interests
         popular = Tag.objects.usage_for_model(Member, counts=True, min_count=1)
         popular = sorted(popular, key=operator.attrgetter('count'), reverse=True)
         interests = Tag.objects.get_for_object(account)
@@ -300,16 +389,29 @@ def profile_edit(request, section=None, kid=None):
         intersection = filter(lambda x: x not in interests, popular)
         context['popular'] = intersection
         template_name = 'profile_edit_interests.html'
+
     elif section == 'preferences':
-        context['api_url'] = context['api_url'] + 'members/'
         context['form'] = MemberForm(instance=account)
         template_name = 'profile_edit_preferences.html'
-    else:
+
+    elif section == 'friends':
+        # Friend requests
         friend_requests = []
         for friend in account.get_friend_requests().all():
             friend_requests.append(friend.from_member)
         if friend_requests:
             context['friend_requests'] = friend_requests
+        # Friends
+        friends = account.get_friends(Friendships.APPROVED)
+        if friends:
+            context['friends'] = friends
+        # Blocked requests
+        blocked_requests = account.get_friends(Friendships.BLOCKED)
+        if blocked_requests:
+            context['blocked_requests'] = blocked_requests
+        template_name = 'profile_edit_friends.html'
+
+    else:
         template_name = 'profile_edit.html'
 
     t = loader.get_template(template_name)
