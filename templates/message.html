@@ -7,7 +7,7 @@
 
 {% block extrahead %}
 {% if result.postcode %}
-<script type="text/javascript" src="http://ecn.dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=7.0"></script>
+<script type="text/javascript" src="https://ecn.dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=7.0&s=1"></script>
 {% endif %}
 {% endblock %}
 
@@ -77,7 +77,7 @@
                             mapTypeId: Microsoft.Maps.MapTypeId.road,
                             disableZooming: true
                         });
-                        var geocodeRequest = "http://dev.virtualearth.net/REST/v1/Locations?query="
+                        var geocodeRequest = "//dev.virtualearth.net/REST/v1/Locations?query="
                                            + encodeURI(postcode) + "&output=json&jsonp=GeocodeCallback&key=" + key;
                         CallRestService(geocodeRequest);
                     }

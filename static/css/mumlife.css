@@ -467,10 +467,6 @@ body.anon .form-field.culumns-2 .ui-block-b .form-errors { margin-left:5px; }
     -webkit-box-shadow: 1px 1px 0             rgba(0,0,0,.2);
     box-shadow: 1px 1px 0                     rgba(0,0,0,.2);
 }
-<<<<<<< HEAD
-=======
-
->>>>>>> e408518b8b6a522054bade7bf9514d948b02d416
 .form-card {
     margin-top:1em;
 }
@@ -976,12 +972,9 @@ img.picture-edit {
 .write-message h2 a:hover {
     opacity:1;
 }
-<<<<<<< HEAD
 .write-message .form-card p.description {
     line-height:1em;
 }
-=======
->>>>>>> e408518b8b6a522054bade7bf9514d948b02d416
 .write-message .edit-eventdate {}
     .write-message .edit-eventdate .ui-block-a {
         width:55%;

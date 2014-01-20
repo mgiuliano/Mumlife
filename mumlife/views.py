@@ -70,12 +70,13 @@ def feed(request, tagstring=''):
     context['account'] = account
 
     # Fetch 1st page of results from the API using cookie authentication
-    url = '{}messages/1/{}'.format(settings.API_URL, urllib.quote(tagstring))
+    protocol = 'https' if request.is_secure() else 'http'
+    url = '{}:{}messages/1/{}'.format(protocol, settings.API_URL, urllib.quote(tagstring))
     cookies = {
         'sessionid': request.COOKIES[settings.SESSION_COOKIE_NAME],
         'csrftoken': request.COOKIES[settings.CSRF_COOKIE_NAME]
     }
-    r = requests.get(url, cookies=cookies, params={'format': 'json'})
+    r = requests.get(url, verify=False, cookies=cookies, params={'format': 'json'})
     try:
         response = json.loads(r.text)
         context['total'] = response['total']
@@ -106,7 +107,8 @@ def events(request, tagstring=''):
     context['account'] = account
 
     # Fetch 1st page of results from the API using cookie authentication
-    url = '{}messages/1/{}'.format(settings.API_URL, urllib.quote(tagstring))
+    protocol = 'https' if request.is_secure() else 'http'
+    url = '{}:{}messages/1/{}'.format(protocol, settings.API_URL, urllib.quote(tagstring))
     cookies = {
         'sessionid': request.COOKIES[settings.SESSION_COOKIE_NAME],
         'csrftoken': request.COOKIES[settings.CSRF_COOKIE_NAME]
@@ -125,7 +127,7 @@ def events(request, tagstring=''):
             # appended with the stored range
             url = '/events/{}?range={}'.format(urllib.quote(tagstring), request.COOKIES['ml_range'])
             return HttpResponseRedirect(url)
-    r = requests.get(url, cookies=cookies, params=params)
+    r = requests.get(url, verify=False, cookies=cookies, params=params)
     try:
         response = json.loads(r.text)
         context['total'] = response['total']
@@ -150,12 +152,13 @@ def messages(request):
     context['friends'] = account.get_friends(Friendships.APPROVED)
 
     # Fetch 1st page of results from the API using cookie authentication
-    url = '{}messages/1/{}'.format(settings.API_URL, '@private')
+    protocol = 'https' if request.is_secure() else 'http'
+    url = '{}:{}messages/1/{}'.format(protocol, settings.API_URL, '@private')
     cookies = {
         'sessionid': request.COOKIES[settings.SESSION_COOKIE_NAME],
         'csrftoken': request.COOKIES[settings.CSRF_COOKIE_NAME]
     }
-    r = requests.get(url, cookies=cookies, params={'format': 'json'})
+    r = requests.get(url, verify=False, cookies=cookies, params={'format': 'json'})
     try:
         response = json.loads(r.text)
         context['total'] = response['total']

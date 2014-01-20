@@ -78,27 +78,10 @@
 
                 <legend class="optional">Ends</legend>
                 <fieldset class="edit-eventdate">
-<<<<<<< HEAD
                     <input type="date" class="message-endtime" value="{{ form.eventenddate.value|date:"H:i" }}"
                            placeholder="{% now "H:i" %}"
                            data-role="datebox"
                            data-options='{"mode": "timebox", "overrideTimeFormat": 24, "useClearButton": true}' />
-=======
-                    <div class="ui-grid-a">
-                        <div class="ui-block-a">
-                            <input type="date" data-name="Event Ends" class="message-enddate" value="{{ form.eventenddate.value|date:"Y-m-d" }}"
-                                   placeholder="{% now "Y-m-d" %}"
-                                   data-role="datebox"
-                                   data-options='{"mode": "calbox", "calUsePickers": true, "overrideDateFormat": "%Y-%m-%d", "afterToday": true}' />
-                        </div>
-                        <div class="ui-block-b">
-                            <input type="date" class="message-endtime" value="{{ form.eventenddate.value|date:"H:i" }}"
-                                   placeholder="{% now "H:i" %}"
-                                   data-role="datebox"
-                                   data-options='{"mode": "timebox", "overrideTimeFormat": 24, "useClearButton": true}' />
-                        </div>
-                    </div>
->>>>>>> e408518b8b6a522054bade7bf9514d948b02d416
                 </fieldset>
 
                 <fieldset data-role="controlgroup" data-entity="occurrence" data-type="horizontal">
@@ -122,12 +105,8 @@
 
                 <label>Address &amp; Postcode <span class="required">*</span></label>
                 {{ form.location }}
-<<<<<<< HEAD
                 <p class="description">The event location. <strong>Please include a valid postcode</strong>, so that we can place the event on a map.</p>
                 <p class="description">Events with invalid postcodes will not show in the events calendar.</p>
-=======
-                <p class="description">The event location. Please include a valid postcode, so that we can place the event on a map.</p>
->>>>>>> e408518b8b6a522054bade7bf9514d948b02d416
 
                 <label>Event Description <span class="required">*</span></label>
                 <textarea 

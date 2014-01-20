@@ -16,12 +16,13 @@ class MumlifeMiddleware(object):
         # or we'll have ourself an infinite loop
         if request.user.is_authenticated() and view_func.__name__ in __processed_views:
             # Fetch notifications from the API using cookie authentication
-            url = '{}notifications/'.format(settings.API_URL)
+            protocol = 'https' if request.is_secure() else 'http'
+            url = '{}:{}notifications/'.format(protocol, settings.API_URL)
             cookies = {
                 'sessionid': request.COOKIES[settings.SESSION_COOKIE_NAME],
                 'csrftoken': request.COOKIES[settings.CSRF_COOKIE_NAME]
             }
-            r = requests.get(url, cookies=cookies, params={'format': 'json'})
+            r = requests.get(url, verify=False, cookies=cookies, params={'format': 'json'})
             try:
                 response = json.loads(r.text)
                 request.META["MUMLIFE_NOTIFICATIONS"] = response
