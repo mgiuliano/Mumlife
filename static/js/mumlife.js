@@ -764,16 +764,31 @@ ML.Messages.prototype.refresh = function () {
                     // The message is an event
                     is_event = true;
                     data['name'] = box.find('.message-name').val();
+<<<<<<< HEAD
                     var _eventdate = box.find('.message-date').val();
                     data['eventdate'] = _eventdate;
+=======
+                    data['eventdate'] = box.find('.message-date').val();
+>>>>>>> e408518b8b6a522054bade7bf9514d948b02d416
                     if (box.find('.message-time').val() == '') {
                         data['eventdate'] += ' 00:00';
                     } else {
                         data['eventdate'] += ' ' + box.find('.message-time').val();
                     }
+<<<<<<< HEAD
                     if (box.find('.message-endtime').val() != '') {
                         // eventendtime have the same date as eventdate
                         data['eventenddate'] = _eventdate + ' ' + box.find('.message-endtime').val();
+=======
+                    data['eventenddate'] = box.find('.message-enddate').val();
+                    if (data['eventenddate'] != '') {
+                        // if an end date is set, check for an end time
+                        if (box.find('.message-endtime').val() == '') {
+                            data['eventenddate'] += ' 00:00';
+                        } else {
+                            data['eventenddate'] += ' ' + box.find('.message-endtime').val();
+                        }
+>>>>>>> e408518b8b6a522054bade7bf9514d948b02d416
                     }
                     data['location'] = box.find('.message-location').val();
                     data['visibility'] = 3; // force global visibility for events
