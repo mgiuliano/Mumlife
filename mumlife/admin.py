@@ -4,7 +4,9 @@ from django.contrib import admin
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin
-from mumlife.models import Member, Kid, Friendships, Message
+from django.contrib.sites.models import Site
+from django.utils import timezone
+from mumlife.models import Member, Kid, Friendships, Message, Notifications
 
 logger = logging.getLogger('mumlife.admin')
 
@@ -76,20 +78,68 @@ class MessageAdminInline(admin.StackedInline):
     extra = 0
 
 
+class MessageIsEventListFilter(admin.SimpleListFilter):
+    # Human-readable title which will be displayed in the
+    # right admin sidebar just above the filter options.
+    title = 'is event'
+
+    # Parameter for the filter that will be used in the URL query.
+    parameter_name = 'isevent'
+
+    def lookups(self, request, model_admin):
+        """
+        Returns a list of tuples. The first element in each
+        tuple is the coded value for the option that will
+        appear in the URL query. The second element is the
+        human-readable name for the option that will appear
+        in the right sidebar.
+        """
+        return (
+            ('yes', 'Yes'),
+            ('no', 'No'),
+        )
+
+    def queryset(self, request, queryset):
+        """
+        Returns the filtered queryset based on the value
+        provided in the query string and retrievable via
+        `self.value()`.
+        """
+        if self.value() in ('yes', 'no'):
+            now = timezone.now()
+            if self.value() == 'yes':
+                return queryset.filter(eventdate__isnull=False)
+            else:
+                return queryset.exclude(eventdate__isnull=False)
+        return queryset
+
+
 class MessageAdmin(admin.ModelAdmin):
-    list_display = ('title', 'body', 'area', 'member', 'timestamp', 'visibility', 'tags', 'is_reply')
-    list_filter = ('area', 'is_reply')
+    list_display = ('title', 'area', 'postcode', 'member', 'timestamp', 'visibility', 'eventdate', 'tags', 'is_reply', 'is_event')
+    list_filter = ('area', 'is_reply', MessageIsEventListFilter)
+    search_fields = ('name', 'body', 'tags')
     inlines = (MessageAdminInline,)
     
     def title(self, obj):
         if obj.name:
             return obj.name
         else:
-            return obj.body
+            return obj
 
+    def is_event(self, obj):
+        if obj.eventdate:
+            return True
+        return False
+
+
+class NotificationsAdmin(admin.ModelAdmin):
+    list_display = ('member', '__unicode__', 'total')
+    
 
 site = BackOffice()
+site.register(Site)
 site.register(User, UserAdmin)
 site.register(Member, MemberAdmin)
 site.register(Kid, KidAdmin)
 site.register(Message, MessageAdmin)
+site.register(Notifications, NotificationsAdmin)

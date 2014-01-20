@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}Sign Up to Mumlife{% endblock %}
+
+{% block bodyclass %}anon register{% endblock %}
+
+{% block content %}
+<div class="intro">
+    <a href="{{ SITE_URL }}"><img src="{{ STATIC_URL }}img/logo-bigger.png" width="150" height="55" alt="Mumlife" /></a>
+    <p class="description"><strong>You have successfully signed up to Mumlife.</strong></p>
+    <p class="description">You need to confirm your email address before you can start using Mumlife.</p>
+    <p class="description">You will shortly receive a confirmation email with instructions on how do do so.</p>
+</div>
+{% endblock %}

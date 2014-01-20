@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}Sign Up to Mumlife{% endblock %}
+
+{% block bodyclass %}anon register{% endblock %}
+
+{% block content %}
+<div class="intro">
+    <a href="{{ SITE_URL }}"><img src="{{ STATIC_URL }}img/logo-bigger.png" width="150" height="55" alt="Mumlife" /></a>
+</div>
+
+<div class="login-box edit-mode">
+
+    <form class="form-card" action="" method="post">
+        {% csrf_token %}
+        <div class="form-field">
+            {{ form.email }}
+            {% if form.email.errors %}
+                <div class="form-errors">{{ form.email.errors }}</div>
+            {% endif %}
+        </div>
+        <div class="form-field culumns-2">
+            <div class="ui-grid-a">
+                <div class="ui-block-a">
+                    {{ form.first_name }}
+                    {% if form.first_name.errors %}
+                        <div class="form-errors">{{ form.first_name.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="ui-block-b">
+                    {{ form.last_name }}
+                    {% if form.last_name.errors %}
+                        <div class="form-errors">{{ form.last_name.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="form-field">
+            {{ form.postcode }}
+            {% if form.postcode.errors %}
+                <div class="form-errors">{{ form.postcode.errors }}</div>
+            {% endif %}
+            {% if form.postcode.help_text %}
+                <p class="description">{{ form.postcode.help_text }}</p>
+            {% endif %}
+        </div>
+        <div class="form-field">
+            {{ form.password }}
+            {% if form.password.errors %}
+                <div class="form-errors">{{ form.password.errors }}</div>
+            {% endif %}
+        </div>
+
+        {% if form.email.help_text %}
+            <p class="description">{{ form.email.help_text }}</p>
+        {% endif %}
+
+        <div class="form-field agreed">
+            <label>
+                {{ form.agreed }}
+                I agree to the <a href="/terms-of-use" target="_blank">Terms of Use</a> and <a href="/privacy-policy" target="_blank">Privacy Policy</a>
+            </label>
+            {% if form.agreed.errors %}
+                <div class="form-errors">{{ form.agreed.errors }}</div>
+            {% endif %}
+        </div>
+
+        <div class="ui-grid-solo">        
+            <input type="submit" value="Sign Up" class="button" />
+        </div>
+    </form>
+
+</div>
+
+{% include "tags/footer.html" %}
+{% endblock %}

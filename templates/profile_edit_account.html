@@ -1,40 +1,35 @@
 {% extends "base.html" %}
+{% load l10n %}
 
 {% block extrahead %}
 <script type="text/javascript">
     $(document).bind("mobileinit", function () {
         $.mobile.ajaxEnabled = false;
         $.mobile.linkBindingEnabled = false;
-        $.ns = 'jqm';
     });
 </script>
-<script type="text/javascript" src="http://code.jquery.com/mobile/1.3.2/jquery.mobile-1.3.2.min.js"></script>
-<script src="{{ STATIC_URL }}js/jqm-datebox.comp.calbox.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/jquery.mobile-1.3.2.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/jqm-datebox.comp.calbox.min.js"></script>
 {% endblock %}
 
 {% block bodyclass %}edit-mode{% endblock %}
-{% block pagetheme %}c{% endblock %}
-{% block headertheme %}c{% endblock %}
-{% block contenttheme %}c{% endblock %}
-{% block footertheme %}c{% endblock %}
 
-{% block backbutton %}
-<a data-role="button"
-   data-icon="arrow-l"
-   data-iconpos="notext"
-   data-wrapperels="span"
-   data-rel="back"
-   href="{{ SITE_URL }}profile/edit">Back</a>
-{% endblock %}
+{% block heading %}<h1>Account settings</h1>{% endblock %}
 
 {% block content %}
-    <header>
-        <h2>{{ account.fullname }} (edit profile)</h2>
-    </header>
     <section>
 
-        <div class="form-card box">
-            <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
+        <a href="{{ SITE_URL }}profile/edit" data-role="button" data-icon="arrow-l" data-iconpos="left">Back</a>
+
+        <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
+
+            {% if form.errors %}
+                <div id="form-errors">
+                    {{ form.errors }}
+                </div>
+            {% endif %}
+
+            <div class="form-card box">
                 <div class="form-field">
                     <label>Email Address</label>
                     <input type="text" disabled="disabled" value="{{ account.user.email }}" />
@@ -56,7 +51,6 @@
                     <p class="description">{{ form.postcode.help_text }}</p>
                 </div>
                 <div class="form-field">
-                    {{ form.gender.label_tag }}
                     <fieldset data-role="controlgroup" id="id_gender" name="gender" data-value="{{ form.gender.value }}">
                     {% for choice in form.gender.field.choices %}
                         {% if choice.0 != '' %}
@@ -71,10 +65,12 @@
                 </div>
                 <div class="form-field">
                     {{ form.dob.label_tag }}
+                    {% localize on %}
                     <input type="date" name="dob" id="{{ form.dob.id_for_label }}" value="{{ form.dob.value }}"
                            data-role="datebox"
                            data-options='{"mode": "calbox", "calUsePickers": true, "overrideDateFormat": "%Y-%m-%d", "beforeToday": true}' />
-                    <p class="description">{{ form.dob.help_text }}</p>
+                    {% endlocalize %}
+                    <p class="description">Your date of birth is, and always will be, private. We won't share it with anyone.</p>
                 </div>
                 <div class="form-field">
                     {{ form.picture.label_tag }}
@@ -88,8 +84,15 @@
                     {{ form.about }}
                     <p class="description">{{ form.about.help_text }}</p>
                 </div>
-            </form>
-        </div>
+            </div>
+
+            <div class="hidden">
+                {{ form.interests }}
+                {{ form.units }}
+                {{ form.max_range }}
+            </div>
+            <input type="submit" class="button" value="Save" data-icon="check" />
+        </form>
     </section>
     <footer> </footer>
 {% endblock %}
@@ -104,15 +107,8 @@
         // Expandable textareas
         $('#id_about').elastic();
 
-        // Auto Fields
-        new ML.AutoField({'entity': {{ account.id }}, 'field': 'fullname', 'api_url': '{{ api_url }}', 'token': '{{ csrf_token }}'});
-        new ML.AutoField({'entity': {{ account.id }}, 'field': 'postcode', 'api_url': '{{ api_url }}', 'token': '{{ csrf_token }}'});
-        new ML.AutoField({'entity': {{ account.id }}, 'field': 'gender', 'api_url': '{{ api_url }}', 'token': '{{ csrf_token }}', 'widget': 'select'});
-        new ML.AutoField({'entity': {{ account.id }}, 'field': 'dob', 'api_url': '{{ api_url }}', 'token': '{{ csrf_token }}', 'widget': 'date'});
-        new ML.AutoField({'entity': {{ account.id }}, 'field': 'about', 'api_url': '{{ api_url }}', 'token': '{{ csrf_token }}', 'widget': 'elastic'});
-
         // Upload Field
-        new ML.Upload({'url': '{{ SITE_URL }}upload','model': 'Member', 'field': 'picture', 'token': '{{ csrf_token }}', 'width': 90, 'height': 90});
+        new ML.Upload({'model': 'Member', 'field': 'picture', 'width': 150, 'height': 150});
     });
 </script>
 {% endblock %}

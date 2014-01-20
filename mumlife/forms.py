@@ -1,7 +1,9 @@
 # mumlife/forms.py
 import logging
 from django import forms
-from django.contrib.auth.forms import PasswordResetForm
+from django.core.exceptions import ValidationError
+from django.contrib.auth.models import User
+#from django.contrib.auth.forms import PasswordResetForm
 #from django.contrib.auth.tokens import default_token_generator
 from mumlife.models import Member, Kid, Message
 from mumlife.widgets import ImageWidget
@@ -49,10 +51,33 @@ logger = logging.getLogger('mumlife.forms')
 #            msg.send()
 
 
+class SignUpForm(forms.Form):
+    email = forms.EmailField(label='Email address',
+            widget=forms.TextInput(attrs={'placeholder': "Email address"}),
+            help_text="Your email will not be shared with any third parties or be used for the purposes of marketing products or services other than Mumlife.")
+    first_name = forms.CharField(label='First name', max_length=30, widget=forms.TextInput(attrs={'placeholder': "First name"}))
+    last_name = forms.CharField(label='Last name', max_length=30, widget=forms.TextInput(attrs={'placeholder': "Last name"}))
+    postcode = forms.CharField(label='Postcode', max_length=8, widget=forms.TextInput(attrs={'placeholder': "Postcode (include the gap)"}))
+    password = forms.CharField(label='Password', widget=forms.PasswordInput(attrs={'placeholder': "Password"}))
+    agreed = forms.BooleanField()
+
+    def clean_email(self):
+        # Email is required
+        if not self.cleaned_data.has_key("email"):
+            raise forms.ValidationError('Email address is required.')
+        # Check whether this email has already been registered
+        email = self.cleaned_data["email"]
+        try:
+            User.objects.get(email=email)
+        except User.DoesNotExist:
+            return email
+        raise forms.ValidationError('A user with that email address already exists.')
+
+
 class MemberForm(forms.ModelForm):
     class Meta:
         model = Member
-        fields = ('fullname', 'postcode', 'gender', 'dob', 'picture', 'about', 'interests', 'units')
+        fields = ('fullname', 'postcode', 'gender', 'dob', 'picture', 'about', 'interests', 'units', 'max_range')
         widgets = {
             'picture': ImageWidget(),
             'gender': forms.RadioSelect
@@ -63,6 +88,7 @@ class KidForm(forms.ModelForm):
     class Meta:
         model = Kid
         fields = ('fullname', 'gender', 'dob', 'visibility')
+
 
 class MessageForm(forms.ModelForm):
     VISIBILITY = tuple([o for o in Message.VISIBILITY_CHOICES if o[0] != Message.PRIVATE])
@@ -82,6 +108,7 @@ class MessageForm(forms.ModelForm):
                 'cols': "70",
                 'required': "required",
             }),
+            'occurrence': forms.RadioSelect(),
             'visibility': forms.Select(attrs={
                 'class': "message-visibility hidden"
             }),

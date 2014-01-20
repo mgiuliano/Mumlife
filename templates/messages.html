@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block heading %}<h1>Private messages</h1>{% endblock %}
+
+{% block content %}
+    <div class="ui-content" id="errors"
+         data-role="popup"
+         data-transition="pop"
+         data-position-to="window"
+         data-dismissible="false"
+         data-theme="a"
+         data-overlay-theme="a">
+        <a class="ui-btn-left" href="#" data-role="button" data-iconpos="notext" data-icon="delete" data-rel="back" data-theme="a">Close</a>
+        <div id="errors-content"></div>
+    </div>
+
+    <div data-entity="message" data-type="private-message" data-recipient="{{ member.id }}" class="hidden">
+        <div data-entity="friends-list" class="write-pm">
+            <ul data-role="listview" data-inset="true" data-filter="true" data-filter-reveal="true" data-filter-placeholder="Select a friend">
+                {% for friend in friends %}
+                    <li><a href="#" data-entity="recipient" data-id="{{ friend.id }}">{{ friend.fullname }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+        <textarea data-name="A message" class="message-body elastic" rows="2" cols="70" required="required"></textarea>
+        <button data-entity="button" class="button message-button">Post</button>
+    </div>
+
+    <div class="feed">
+        {{ results|safe }}
+        <button data-icon="plus">More</button>
+    </div>
+{% endblock %}
+
+{% block footermenu %}
+<li class="nav-local">
+    <a class="icon-link" href="#" data-entity="message" title="Post private message">
+        <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-write" alt="" />
+        <span>Post</span>
+    </a>
+</li>
+{% endblock %}
+
+{% block extrajs %}{{ block.super }}
+<script type="text/javascript">
+    $(document).on('ml.Ready', function () {
+        new ML.Feed({'results': {{ total }}, 'next': '{{ next }}', 'autoscroll': true});
+        new ML.Messages();
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}Sign Up to Mumlife{% endblock %}
+
+{% block bodyclass %}anon register{% endblock %}
+
+{% block content %}
+<div class="intro">
+    <a href="{{ SITE_URL }}"><img src="{{ STATIC_URL }}img/logo-bigger.png" width="150" height="55" alt="Mumlife" /></a>
+    <p class="description"><strong>Your account has been activated.</strong></p>
+    <p class="description">Your account has been activated. You may go ahead and log in now.</p>
+</div>
+
+<a href="{{ SITE_URL }}" data-role="button">{% trans 'Log in' %}</a>
+
+{% include "tags/footer.html" %}
+{% endblock %}

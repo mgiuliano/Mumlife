@@ -1,4 +1,4 @@
-/mumlife/settings.py
+/conf/settings.py
 /runtime/
 /uploads/
 *.log

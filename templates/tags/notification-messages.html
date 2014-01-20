@@ -1,0 +1,4 @@
+<p class="notification privates{% if read < count %} unread{% endif %}">
+    <a href="{{ SITE_URL }}messages/">You have {{ count }} message{{ count|pluralize }}</a>
+    <span>{{ age }}</span>
+</p>

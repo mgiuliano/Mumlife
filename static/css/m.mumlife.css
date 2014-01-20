@@ -1,1 +1,11 @@
-../../static_files/css/m.mumlife.css
+/** 
+ * Mumlife Mobile Styles.
+ * 
+ * @version     2013-11-17 1.0.0
+ * @author      Michael Giuliano <michael@beatscope.co.uk>
+ * @copyright   2013 Beatscope Limited | http://www.beatscope.co.uk/
+ */
+
+.ui-body-a {
+    background:#f5f0ec;
+}

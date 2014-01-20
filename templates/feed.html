@@ -1,0 +1,45 @@
+{% extends "base.html" %}i
+
+{% block heading %}<h1 data-role="filter-name">Activity Feed</h1>{% endblock %}
+
+{% block header %}
+<div class="search-form">
+    <form method="post" action="{{ SITE_URL }}s/">
+        {% csrf_token %}
+        <input type="text" data-clear-btn="true" name="terms" placeholder="Search for #topics" value="{% if tagstring %}{{ tagstring }}{% else %}{% endif %}" />
+    </form>
+</div>
+{% endblock %}
+
+{% block content %}
+    <div class="feed">
+        {{ results|safe }}
+        <button data-icon="plus">More</button>
+    </div>
+{% endblock %}
+
+{% block footermenu %}
+<li class="nav-local">
+    <a class="icon-link" href="#" title="Local" data-entity="filter" rel="@local"><img src="{{ STATIC_URL }}img/z.gif" class="icon icon-local" alt="" /><span>Local</span></a>
+</li>
+<li class="nav-global">
+    <a class="icon-link" href="#" title="Global" data-entity="filter" rel="@global"><img src="{{ STATIC_URL }}img/z.gif" class="icon icon-global" alt="" /><span>Global</span></a>
+</li>
+<li class="nav-friends">
+    <a class="icon-link" href="#" title="Friends" data-entity="filter" rel="@friends"><img src="{{ STATIC_URL }}img/z.gif" class="icon icon-friends" alt="" /><span>Friends</span></a>
+</li>
+<li class="nav-private right">
+    <a class="icon-link" href="{{ SITE_URL }}messages/" title="Messages">
+        <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-private" alt="" />
+        <span>Messages</span>
+    </a>
+</li>
+{% endblock %}
+
+{% block extrajs %}{{ block.super }}
+<script type="text/javascript">
+    $(document).on('ml.Ready', function () {
+        new ML.Feed({'results': {{ total }}, 'next': '{{ next }}', 'filters': true, 'autoscroll': true});
+    });
+</script>
+{% endblock %}

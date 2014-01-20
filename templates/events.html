@@ -1,13 +1,17 @@
 {% extends "base.html" %}
 
+{% block heading %}<h1>Events calendar</h1>{% endblock %}
+
 {% block header %}
 <div class="search-form">
-    <form method="post" action="{{ SITE_URL }}s/">
+    <form method="post" action="{{ SITE_URL }}events/">
         {% csrf_token %}
-        <input type="text" data-clear-btn="true" name="terms" placeholder="@local" value="{% if tagstring %}{{ tagstring }}{% else %}@local{% endif %}" />
+        <input type="text" data-clear-btn="true" name="terms" placeholder="Search for #topics" value="{% if tagstring %}{{ tagstring }}{% else %}{% endif %}" />
     </form>
 </div>
 {% endblock %}
+
+{% block post_link %}post-event{% endblock %}
 
 {% block content %}
     <div class="feed">
@@ -17,24 +21,20 @@
 {% endblock %}
 
 {% block footermenu %}
-<li class="nav-local">
-    <a href="#" title="Local" data-entity="filter" rel="@local"><img src="{{ STATIC_URL }}img/z.gif" class="icon icon-local" alt="" /><span>Local</span></a>
-</li>
-<li class="nav-global">
-    <a href="#" title="Global" data-entity="filter" rel="@global"><img src="{{ STATIC_URL }}img/z.gif" class="icon icon-global" alt="" /><span>Global</span></a>
-</li>
-<li class="nav-friends">
-    <a href="#" title="Friends" data-entity="filter" rel="@friends"><img src="{{ STATIC_URL }}img/z.gif" class="icon icon-friends" alt="" /><span>Friends</span></a>
-</li>
-<li class="nav-private">
-    <a href="#" title="Private" data-entity="filter" rel="@private"><img src="{{ STATIC_URL }}img/z.gif" class="icon icon-private" alt="" /><span>Private</span></a>
-</li>
+<div class="slider-container">
+    <form>
+        <label for="range" class="ui-hidden-accessible">Slider:</label>
+        <input name="range" id="range" min="1" max="{{ account.max_range }}" step="1" value="10" type="range">
+    </form>
+    <a id="filter" href="#" data-role="button" data-icon="check" data-iconpos="notext" data-inline="true">Check</a>
+</div>
+
 {% endblock %}
 
 {% block extrajs %}{{ block.super }}
 <script type="text/javascript">
     $(document).on('ml.Ready', function () {
-        new ML.Feed({'url': '{{ SITE_URL }}', 'results': {{ total }}, 'next': '{{ next }}', 'filters': true, 'events_only': true, 'autoscroll': true});
+        new ML.Feed({'results': {{ total }}, 'next': '{{ next }}', 'slider': true, 'events_only': true, 'autoscroll': true});
     });
 </script>
 {% endblock %}

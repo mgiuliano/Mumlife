@@ -3,7 +3,8 @@ from rest_framework.urlpatterns import format_suffix_patterns
 from api.views import MemberListView, MemberView, \
                       KidListView, KidView, \
                       FriendshipsListView, FriendshipView, \
-                      MessageListView, MessageView, MessagePostView
+                      MessageListView, MessageView, MessagePostView, \
+                      NotificationListView
 
 urlpatterns = patterns('',
 
@@ -16,7 +17,8 @@ urlpatterns = patterns('',
     url(r'^friendships/(?P<pk>[0-9]+)/$', FriendshipView.as_view(), name='friendship-view'),
     url(r'^messages/(?P<page>\d*)/?(?P<terms>.*)$', MessageListView.as_view(), name='messages-list'),
     url(r'^message/(?P<pk>[0-9]+)/$', MessageView.as_view(), name='message-detail'),
-    url(r'^messages/post$', MessagePostView.as_view(), name='message-add'),
+    url(r'^message/post$', MessagePostView.as_view(), name='message-add'),
+    url(r'^notifications/$', NotificationListView.as_view(), name='notifications-list'),
 
     # include login URLs for the browseable API.
     url(r'^auth/', include('rest_framework.urls', namespace='rest_framework')),

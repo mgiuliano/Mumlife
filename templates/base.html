@@ -7,16 +7,15 @@
         <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
         <title>{% block title %}Mumlife{% endblock %}</title>
-        <meta name="viewport" content="width=device-width, user-scalable=false">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
         <meta name="description" content="">
         <link rel="icon" href="{{ STATIC_URL }}images/favicon.ico" type="image/x-icon">
-        <link rel="stylesheet" href="{{ STATIC_URL }}css/mumlife.css">
-        <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+        <link rel="stylesheet" href="{{ STATIC_URL }}themes/mumlife.css">
+        <link rel="stylesheet" href="{{ STATIC_URL }}css/jquery.mobile.structure-1.3.2.min.css">
+        <link rel="stylesheet" href="{{ STATIC_URL }}css/mumlife-1.0.1.min.css">
+        <script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.9.1.min.js"></script>
         <script type="text/javascript" src="{{ STATIC_URL }}js/platform.js"></script>
-        <script src="{{ STATIC_URL }}js/mumlife.js"></script>
-        <script type="text/javascript">
-            var SITE_URL = '{{ SITE_URL }}';
-        </script>
+        <script src="{{ STATIC_URL }}js/mumlife-1.0.0.min.js"></script>
         {% block extrastyle %}{% endblock %}
         {% block extrahead %}{% endblock %}
         {% block blockbots %}<meta name="robots" content="NONE,NOARCHIVE" />{% endblock %}
@@ -28,68 +27,73 @@
         <![endif]-->
         <div data-role="page" data-theme="{% block pagetheme %}a{% endblock %}">
 
+            {% if user.is_authenticated %}
             <header data-role="header" data-theme="{% block headertheme %}a{% endblock %}" class="clearfix">
-                <h1 class="title"><a href="{{ SITE_URL }}"><img src="{{ STATIC_URL }}img/logo.png" alt="mumlife" /></a></h1>
-                {% if user.is_authenticated %}
-                    {% comment %}{% if notifications %}<span id="notifications">
-                        <span class="ui-btn-corner-all">{{ notifications }}</span>
-                    </span>{% endif %}{% endcomment %}
-                    <div class="buttons">
-                        <a data-role="button"
-                           data-icon="bars"
-                           data-iconpos="notext"
-                           data-wrapperels="span"
-                           data-entity="menu"
-                           href="#">Menu</a>
-                        <a data-role="button"
-                           data-icon="gear"
-                           data-iconpos="notext"
-                           data-wrapperels="span" 
-                           href="{{ SITE_URL }}profile/edit">{{ account.fullname }}</a>
-                        <a data-role="button"
-                           data-icon="edit"
-                           data-iconpos="notext"
-                           data-wrapperels="span"
-                           href="{{ SITE_URL }}write-message">Write message</a>
-                        {% block backbutton %}{% endblock %}
-                    </div>
-                {% endif %}
+                <div class="title"><a href="{{ SITE_URL }}"><img src="{{ STATIC_URL }}img/logo.png" alt="mumlife" /></a></div>
+                <div class="buttons">
+                    <a class="icon-link" href="#" data-entity="menu" title="Menu">
+                        <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-menu" alt="Menu" />
+                    </a>
+                    <a class="icon-link invisible{% if new_notifications %} active{% endif %}" href="#" data-entity="notifications" title="Notifications">
+                        <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-flag" alt="Notifications" />
+                    </a>
+                    <a class="icon-link" href="{{ SITE_URL }}{% block post_link %}post{% endblock %}" data-entity="write" title="Post">
+                        <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-write" alt="Post" />
+                    </a>
+                </div>
+                {% block heading %}{% endblock %}
                 <div id="menu">
                     <ul data-role="listview" data-inset="true">
-                        <li><a href="{{ SITE_URL }}s/">Messages</a></li>
-                        <li><a href="{{ SITE_URL }}events/">Events</a></li>
+                        <li><a href="{{ SITE_URL }}s/">Local posts</a></li>
+                        <li><a href="{{ SITE_URL }}events/">Events calendar</a></li>
                         <li><a href="{{ SITE_URL }}members/">Members</a></li>
+                        <li><a href="{{ SITE_URL }}messages/">Private messages</a></li>
+                        <li><a href="{{ SITE_URL }}profile/">My profile</a></li>
+                        <li><a href="{{ SITE_URL }}logout">Logout</a></li>
                     </ul>
                 </div>
                 {% block header %}{% endblock %}
             </header>
+            {% endif %}
 
             <div class="main-container" data-role="content" data-theme="{% block contenttheme %}a{% endblock %}">
                 <div class="main wrapper clearfix">
+                    {% if user.is_authenticated %}
+                    <div class="ui-content" id="notifications"
+                         data-role="popup"
+                         data-transition="pop"
+                         data-position-to="window"
+                         data-dismissible="false"
+                         data-theme="a"
+                         data-overlay-theme="a">
+                        <a class="ui-btn-left" href="#" data-role="button" data-iconpos="notext" data-icon="delete" data-rel="back" data-theme="a">Close</a>
+                        <div id="notifications-content"></div>
+                    </div>
+                    {% endif %}
                     <article>
                         {% block content %}{% endblock %}
                     </article>
                 </div>
             </div>
 
+            {% if user.is_authenticated %}
             <footer data-role="footer" data-position="fixed" data-theme="{% block footertheme %}a{% endblock %}">
-                {% if user.is_authenticated %}
                 <nav>
                     <ul class="clearfix">
                         {% block footermenu %}{% endblock %}
                     </ul>
                 </nav>
-                {% endif %}
                 {% comment %}
                 <p><em>Powered by Beatscope Engineering</em>, &copy; 2008-{% now "Y" %} <a href="http://www.beatscope.co.uk/" target="_blank">Beatscope Limited</a></p>
                 {% endcomment %}
             </footer>
+            {% endif %}
 
         </div>
 
         <script type="text/javascript">
             $(document).ready(function () {
-                new ML.Application({'static_url': '{{ STATIC_URL }}'});
+                new ML.Application({'site_url': '{{ SITE_URL }}', 'static_url': '{{ STATIC_URL }}', 'api_url': '{{ API_URL }}'});
             });
         </script>
         {% block extrajs %}{% endblock %}

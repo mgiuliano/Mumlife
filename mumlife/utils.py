@@ -73,6 +73,8 @@ class Extractor(object):
         return None
 
 def get_age(born):
+    if not born:
+        return 'N/A'
     today = datetime.date.today()
     try:
         birthday = born.replace(year=today.year)

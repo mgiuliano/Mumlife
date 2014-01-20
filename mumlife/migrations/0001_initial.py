@@ -22,15 +22,17 @@ class Migration(SchemaMigration):
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('user', self.gf('django.db.models.fields.related.OneToOneField')(related_name='profile', unique=True, to=orm['auth.User'])),
             ('fullname', self.gf('django.db.models.fields.CharField')(max_length=64)),
-            ('slug', self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True)),
+            ('slug', self.gf('django.db.models.fields.CharField')(default='', max_length=255, blank=True)),
             ('postcode', self.gf('django.db.models.fields.CharField')(max_length=8)),
-            ('gender', self.gf('django.db.models.fields.IntegerField')(null=True)),
-            ('dob', self.gf('django.db.models.fields.DateField')(null=True)),
+            ('gender', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
+            ('dob', self.gf('django.db.models.fields.DateField')(null=True, blank=True)),
             ('status', self.gf('django.db.models.fields.IntegerField')(default=0)),
             ('picture', self.gf('django.db.models.fields.files.ImageField')(max_length=100, null=True, blank=True)),
             ('about', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
             ('spouse', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='partner', null=True, to=orm['mumlife.Member'])),
             ('interests', self.gf('tagging.fields.TagField')()),
+            ('units', self.gf('django.db.models.fields.IntegerField')(default=1, null=True, blank=True)),
+            ('max_range', self.gf('django.db.models.fields.IntegerField')(default=10)),
         ))
         db.send_create_signal(u'mumlife', ['Member'])
 
@@ -66,16 +68,47 @@ class Migration(SchemaMigration):
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('member', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['mumlife.Member'])),
             ('area', self.gf('django.db.models.fields.CharField')(max_length=4)),
+            ('name', self.gf('django.db.models.fields.CharField')(max_length=200, null=True, blank=True)),
             ('body', self.gf('django.db.models.fields.TextField')()),
+            ('location', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
             ('timestamp', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
             ('eventdate', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
+            ('eventenddate', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
             ('visibility', self.gf('django.db.models.fields.IntegerField')(default=2)),
+            ('occurrence', self.gf('django.db.models.fields.IntegerField')(default=0)),
+            ('occurs_until', self.gf('django.db.models.fields.DateField')(null=True, blank=True)),
             ('tags', self.gf('tagging.fields.TagField')()),
             ('recipient', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='sender', null=True, to=orm['mumlife.Member'])),
             ('is_reply', self.gf('django.db.models.fields.BooleanField')(default=False)),
             ('reply_to', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='author', null=True, to=orm['mumlife.Message'])),
         ))
         db.send_create_signal(u'mumlife', ['Message'])
+
+        # Adding model 'Notifications'
+        db.create_table(u'mumlife_notifications', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('member', self.gf('django.db.models.fields.related.OneToOneField')(related_name='notifications', unique=True, to=orm['mumlife.Member'])),
+            ('total', self.gf('django.db.models.fields.IntegerField')(default=0)),
+            ('messages', self.gf('django.db.models.fields.IntegerField')(default=0)),
+            ('friends_requests', self.gf('django.db.models.fields.IntegerField')(default=0)),
+        ))
+        db.send_create_signal(u'mumlife', ['Notifications'])
+
+        # Adding M2M table for field events on 'Notifications'
+        db.create_table(u'mumlife_notifications_events', (
+            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
+            ('notifications', models.ForeignKey(orm[u'mumlife.notifications'], null=False)),
+            ('message', models.ForeignKey(orm[u'mumlife.message'], null=False))
+        ))
+        db.create_unique(u'mumlife_notifications_events', ['notifications_id', 'message_id'])
+
+        # Adding M2M table for field threads on 'Notifications'
+        db.create_table(u'mumlife_notifications_threads', (
+            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
+            ('notifications', models.ForeignKey(orm[u'mumlife.notifications'], null=False)),
+            ('message', models.ForeignKey(orm[u'mumlife.message'], null=False))
+        ))
+        db.create_unique(u'mumlife_notifications_threads', ['notifications_id', 'message_id'])
 
 
     def backwards(self, orm):
@@ -96,6 +129,15 @@ class Migration(SchemaMigration):
 
         # Deleting model 'Message'
         db.delete_table(u'mumlife_message')
+
+        # Deleting model 'Notifications'
+        db.delete_table(u'mumlife_notifications')
+
+        # Removing M2M table for field events on 'Notifications'
+        db.delete_table('mumlife_notifications_events')
+
+        # Removing M2M table for field threads on 'Notifications'
+        db.delete_table('mumlife_notifications_threads')
 
 
     models = {
@@ -161,17 +203,19 @@ class Migration(SchemaMigration):
         u'mumlife.member': {
             'Meta': {'object_name': 'Member'},
             'about': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'dob': ('django.db.models.fields.DateField', [], {'null': 'True'}),
+            'dob': ('django.db.models.fields.DateField', [], {'null': 'True', 'blank': 'True'}),
             'friendships': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'friends_with+'", 'to': u"orm['mumlife.Member']", 'through': u"orm['mumlife.Friendships']", 'blank': 'True', 'symmetrical': 'False', 'null': 'True'}),
             'fullname': ('django.db.models.fields.CharField', [], {'max_length': '64'}),
-            'gender': ('django.db.models.fields.IntegerField', [], {'null': 'True'}),
+            'gender': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'interests': ('tagging.fields.TagField', [], {}),
+            'max_range': ('django.db.models.fields.IntegerField', [], {'default': '10'}),
             'picture': ('django.db.models.fields.files.ImageField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'postcode': ('django.db.models.fields.CharField', [], {'max_length': '8'}),
-            'slug': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
+            'slug': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '255', 'blank': 'True'}),
             'spouse': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'partner'", 'null': 'True', 'to': u"orm['mumlife.Member']"}),
             'status': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
+            'units': ('django.db.models.fields.IntegerField', [], {'default': '1', 'null': 'True', 'blank': 'True'}),
             'user': ('django.db.models.fields.related.OneToOneField', [], {'related_name': "'profile'", 'unique': 'True', 'to': u"orm['auth.User']"})
         },
         u'mumlife.message': {
@@ -179,14 +223,29 @@ class Migration(SchemaMigration):
             'area': ('django.db.models.fields.CharField', [], {'max_length': '4'}),
             'body': ('django.db.models.fields.TextField', [], {}),
             'eventdate': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
+            'eventenddate': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_reply': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'location': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'member': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['mumlife.Member']"}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
+            'occurrence': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
+            'occurs_until': ('django.db.models.fields.DateField', [], {'null': 'True', 'blank': 'True'}),
             'recipient': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'sender'", 'null': 'True', 'to': u"orm['mumlife.Member']"}),
             'reply_to': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'author'", 'null': 'True', 'to': u"orm['mumlife.Message']"}),
             'tags': ('tagging.fields.TagField', [], {}),
             'timestamp': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             'visibility': ('django.db.models.fields.IntegerField', [], {'default': '2'})
+        },
+        u'mumlife.notifications': {
+            'Meta': {'object_name': 'Notifications'},
+            'events': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'related_name': "'notification_events'", 'blank': 'True', 'to': u"orm['mumlife.Message']"}),
+            'friends_requests': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'member': ('django.db.models.fields.related.OneToOneField', [], {'related_name': "'notifications'", 'unique': 'True', 'to': u"orm['mumlife.Member']"}),
+            'messages': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
+            'threads': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'related_name': "'notification_threads'", 'blank': 'True', 'to': u"orm['mumlife.Message']"}),
+            'total': ('django.db.models.fields.IntegerField', [], {'default': '0'})
         }
     }
 

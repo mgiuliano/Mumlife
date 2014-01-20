@@ -11,17 +11,8 @@
 {% endif %}
 {% endblock %}
 
-{% block backbutton %}
-<a data-role="button"
-   data-icon="arrow-l"
-   data-iconpos="notext"
-   data-wrapperels="span"
-   data-rel="back"
-   href="{{ SITE_URL }}{% if result.eventdate %}events/{% else %}s/{% endif %}">Back</a>
-{% endblock %}
-
 {% block header %}
-<div class="profile picture">
+<div class="profile-picture">
     {% if result.eventdate  %}
     <img class="avatar"
          src="{{ STATIC_URL }}img/calendar.png"
@@ -37,12 +28,14 @@
 </div>
 {% endblock %}
 
+{% block post_link %}{% if result.eventdate %}post-event{% else %}post{% endif %}{% endblock %}
+
 {% block content %}
 <div class="message-full {% if result.eventdate  %}message-event{% endif %}">
     <h2>{% if result.name  %}
         {{ result.name }}
     {% else %}
-        {{ result.member.name }}
+        <a href="{{ SITE_URL }}profile/{{ result.member.slug }}">{{ result.member.name }}</a>
     {% endif %}</h2>
 
     <div class="ui-content" id="errors"
@@ -65,6 +58,9 @@
                 {% endif %}</div>
             </div>
         </div>
+        {% if result.eventenddate %}
+            <div class="message-event-ends">Ends {{ result.eventendtime }}{% if result.eventenddate != result.eventdate %}, {{ result.eventenddate }}{% endif %}</div>
+        {% endif %}
         {% if result.postcode %}
         <div class="message-map box">
             <div id="map"></div>
@@ -127,9 +123,14 @@
         {% endif %}
     {% endif %}
 
-    <div class="message-body">
+    <div class="message-body box">
         {{ result.body_with_links|safe }}
         {% for tag in result.tags %}<a href="{{ SITE_URL}}s/%23{{ tag.key }}">{{ tag.value }}</a> {% endfor %}
+        {% if result.eventdate  %}
+        <p class="message-event-creator">
+            <a href="{{ SITE_URL }}profile/{{ result.member.slug }}">{{ result.member.name }}</a>
+        </p>
+        {% endif %}
         <p class="message-age" title="{{ result.timestamp }}">{{ result.age }}</p>
     </div>
 
@@ -158,11 +159,17 @@
         <div data-entity="message" data-mid="{{ result.id }}" data-type="reply" class="message-reply-form">
             <textarea class="message-body elastic"
                       name="Reply message"
+                      data-name="A message"
                       data-entity="text"
                       data-mid="{{ result.id }}" rows="1" cols="70" placeholder="reply" required="required"></textarea>
             <button class="message-button button" data-entity="button" data-mid="{{ result.id }}">Post</button>
         </div>
     </div>
+
+    <a data-role="button"
+       data-icon="arrow-l"
+       data-iconpos="left"
+       href="{{ back }}">Back</a>
 
 </div>
 {% endblock %}
@@ -170,7 +177,7 @@
 {% block extrajs %}{{ block.super }}
 <script type="text/javascript">
     $(document).on('ml.Ready', function () {
-        new ML.Messages({'api_url': '{{ api_url }}', 'token': '{{ csrf_token }}'});
+        new ML.Messages();
     });
 </script>
 {% endblock %}

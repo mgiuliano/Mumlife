@@ -35,25 +35,27 @@ class Member(models.Model):
 
     user = models.OneToOneField(User, related_name='profile')
     fullname = models.CharField("Full Name", max_length=64)
-    slug = models.CharField("Profile Slug", max_length=255, null=True, blank=True)
+    slug = models.CharField("Profile Slug", max_length=255, default='', blank=True)
     postcode = models.CharField("Postcode", max_length=8, help_text='Please include the gap (space) between the outward and inward codes')
     gender = models.IntegerField("Gender", choices=(
-        (0, 'Female'),
-        (1, 'Male'),
-    ), null=True)
-    dob = models.DateField("Date of Birth", null=True, help_text="Format 'YYYY-MM-DD' (e.g. 1976-04-27)")
+        (0, 'Mum'),
+        (1, 'Dad'),
+        (2, 'Bump')
+    ), null=True, blank=True)
+    dob = models.DateField("Date of Birth", null=True, blank=True)
     status = models.IntegerField("Verification Status", choices=STATUS_CHOICES, default=PENDING)
 
     # Optional
     picture = models.ImageField("Picture", upload_to='./member/%Y/%m/%d', null=True, blank=True, \
-                                help_text="PNG, JPEG, or GIF; max size 2 MB. Image must be 90 x 90 pixels or larger.")
+                                help_text="PNG, JPEG, or GIF; max size 2 MB. Image must be 150 x 150 pixels or larger.")
     about = models.TextField("About", null=True, blank=True)
     spouse = models.ForeignKey('self', related_name='partner', null=True, blank=True, help_text="Spouse or Partner")
     interests = TagField("Interests")
     units = models.IntegerField("Units", choices=(
         (0, 'Kilometers'),
         (1, 'Miles'),
-    ), null=True, default=1, help_text="Distance measurement units")
+    ), null=True, blank=True, default=1, help_text="Distance measurement units")
+    max_range = models.IntegerField("Maximum Search Distance", default=10, help_text="Maximum range used by the Event Calendar slider")
     friendships = models.ManyToManyField('self', null=True, blank=True, through='Friendships', \
                                          symmetrical=False, related_name='friends_with+')
 
@@ -61,12 +63,14 @@ class Member(models.Model):
         return self.name
 
     def format(self, viewer=None):
-        member = dict([(f.name, getattr(self, f.name)) for f in self._meta.fields])
+        member = {}
+        member['id'] = self.id
         member['user'] = self.user.id
+        member['slug'] = self.slug
         member['name'] = self.get_name(viewer)
-        member['dob'] = self.dob.strftime('%c')
         member['age'] = self.age
         member['gender'] = self.get_gender_display()
+        member['about'] = self.about
         if viewer:
             member['friend_status'] = viewer.check_if_friend(self)
         else:
@@ -82,9 +86,9 @@ class Member(models.Model):
                                           self.geocode.longitude,
                                           viewer.geocode.latitude,
                                           viewer.geocode.longitude)
-            if distance[viewer.units] < 0.5:
+            if round(distance[viewer.units], 1) < 0.5:
                 member['distance'] = 'less than half a {}'.format(viewer.get_units_display().lower()[:-1])
-            elif distance[viewer.units] <= 1:
+            elif round(distance[viewer.units], 1) <= 1.1:
                 member['distance'] = '{} {}'.format(round(distance[viewer.units], 1), viewer.get_units_display().lower()[:-1])
             else:
                 member['distance'] = '{} {}'.format(round(distance[viewer.units], 1), viewer.get_units_display().lower())
@@ -99,7 +103,7 @@ class Member(models.Model):
 
     def get_name(self, viewer=None):
         if self == viewer:
-            return 'Me'
+            return self.fullname
         if not viewer or not self.check_if_friend(viewer) == 'Approved':
             # Hide lastname for non-friends
             name = self.fullname.split(r' ')
@@ -120,10 +124,13 @@ class Member(models.Model):
         return self.kid_set.exclude(visibility=Kid.HIDDEN)
 
     def get_kids(self, viewer=None):
-        if not viewer or not self.check_if_friend(viewer) == 'Approved':
-            # Hide kids from non-friends
-            return []
-        return [kid.format(viewer=viewer) for kid in self.kids]
+        kids = []
+        for kid in self.kids:
+            # hide HIDDEN kids from other members
+            if viewer != self and kid.visibility == Kid.HIDDEN:
+                continue
+            kids.append(kid.format(viewer=viewer))
+        return kids
 
     @property
     def tags(self):
@@ -163,7 +170,10 @@ class Member(models.Model):
         return self.friendships.filter(to_friend__status=status, to_friend__from_member=self)
 
     def get_friend_requests(self):
-        return Friendships.objects.filter(status=Friendships.PENDING, to_member=self)
+        # Requests exclude any request from BLOCKED members
+        blocked = [m['id'] for m in self.get_friends(status=Friendships.BLOCKED).values('id')]
+        return Friendships.objects.filter(status=Friendships.PENDING, to_member=self)\
+                                  .exclude(from_member__id__in=blocked)
 
     def check_if_friend(self, member):
         try:
@@ -194,6 +204,7 @@ def create_member(sender, instance, created, **kwargs):
     # also make sure they are not created when used in the TestCase
     if created and not kwargs.get('raw', False):
         member = Member.objects.create(user=instance)
+        notifications = Notifications.objects.create(member=member)
 post_save.connect(create_member, sender=User)
 
 
@@ -213,7 +224,7 @@ class Kid(models.Model):
         (0, 'Daughter'),
         (1, 'Son'),
     ), null=True)
-    dob = models.DateField("Date of Birth", null=True, help_text="Format 'YYYY-MM-DD' (e.g. 2012-09-05)")
+    dob = models.DateField("Date of Birth", null=True)
     visibility = models.IntegerField("Kid Visibility", choices=VISIBILITY_CHOICES, default=BRACKETS)
 
     def __unicode__(self):
@@ -258,17 +269,29 @@ class Friendships(models.Model):
     to_member = models.ForeignKey(Member, related_name='to_friend')
     status = models.IntegerField(choices=STATUSES)
 
+    def __unicode__(self):
+        return u'{} & {} [{}]'.format(self.from_member, self.to_member, self.get_status_display())
+
 
 class Message(models.Model):
+    # Visibility Settings
     PRIVATE = 0
     FRIENDS = 1
-    LOCAL = 2
-    GLOBAL = 3
+    LOCAL   = 2
+    GLOBAL  = 3
     VISIBILITY_CHOICES = (
-        (PRIVATE, 'Private'),
-        (FRIENDS, 'Friends'),
-        (LOCAL, 'Local'),
-        (GLOBAL, 'Global'),
+        (PRIVATE,   'Private'),
+        (FRIENDS,   'Friends'),
+        (LOCAL,     'Local'),
+        (GLOBAL,    'Global'),
+    )
+
+    # Occurrence Settings
+    OCCURS_ONCE     = 0
+    OCCURS_WEEKLY   = 1
+    OCCURRENCE_CHOICES = (
+        (OCCURS_ONCE,   'Once'),
+        (OCCURS_WEEKLY, 'Weekly'),
     )
 
     member = models.ForeignKey(Member)
@@ -278,14 +301,17 @@ class Message(models.Model):
     location = models.TextField(blank=True, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     eventdate = models.DateTimeField(null=True, blank=True)
+    eventenddate = models.DateTimeField(null=True, blank=True)
     visibility = models.IntegerField(choices=VISIBILITY_CHOICES, default=LOCAL)
+    occurrence = models.IntegerField(choices=OCCURRENCE_CHOICES, default=OCCURS_ONCE)
+    occurs_until = models.DateField(null=True, blank=True)
     tags = TagField()
     recipient = models.ForeignKey(Member, null=True, blank=True, related_name='sender')
     is_reply = models.BooleanField(default=False)
     reply_to = models.ForeignKey('self', null=True, blank=True, related_name='author')
 
     def __unicode__(self):
-        return '{}: {}...'.format(str(self.member), self.body[:60])
+        return u'{}'.format(self.body)
 
     @property
     def replies(self):
@@ -296,6 +322,10 @@ class Message(models.Model):
 
     def get_replies(self, viewer=None):
         return [message.format(viewer=viewer) for message in self.replies]
+
+    def is_event(self):
+        return True if self.eventdate else False
+    is_event.boolean = True
 
     @property
     def postcode(self):
@@ -336,14 +366,22 @@ class Message(models.Model):
         # parse body to display hashtag links
         message['body'] = utils.Extractor(self.body).parse(with_links=False)
         message['body_with_links'] = utils.Extractor(self.body).parse()
-        message['timestamp'] = self.timestamp.strftime('%c')
+        message['date'] = self.timestamp.strftime('%c')
         # format event details
         if self.eventdate:
-            message['eventdate'] = self.eventdate.strftime('%A, %b %d')
+            message['eventdate'] = self.eventdate.strftime('%A, %b %d, %Y')
             message['eventtime'] = self.eventdate.strftime('%H:%M')
+            message['eventyear'] = self.eventdate.strftime('%Y')
             message['eventmonth'] = self.eventdate.strftime('%b')
             message['eventday'] = self.eventdate.strftime('%d')
+            if self.eventenddate:
+                message['eventenddate'] = self.eventenddate.strftime('%A, %b %d, %Y')
+                message['eventendtime'] = self.eventenddate.strftime('%H:%M')
             message['postcode'] = self.postcode
+            # events are not necessarily in the same area as the author
+            # we therefore override it by the event location postcode area
+            if self.postcode:
+                message['area'] = self.postcode.split(' ')[0]
             # distance details
             if not viewer or (not self.geocode.latitude and not self.geocode.longitude):
                 message['units'] = viewer.get_units_display()
@@ -354,13 +392,15 @@ class Message(models.Model):
                                               self.geocode.longitude,
                                               viewer.geocode.latitude,
                                               viewer.geocode.longitude)
-                if distance[viewer.units] <= 1:
+                if round(distance[viewer.units], 1) <= 1:
                     message['distance'] = '{} {}'.format(round(distance[viewer.units], 1), viewer.get_units_display().lower()[:-1])
                 else:
                     message['distance'] = '{} {}'.format(round(distance[viewer.units], 1), viewer.get_units_display().lower())
                 message['distance-key'] = distance[viewer.units]
         message['age'] = self.get_age()
         message['member'] = self.member.format(viewer=viewer)
+        if message.has_key('recipient') and message['recipient']:
+            message['recipient'] = message['recipient'].format(viewer=viewer)
         message['visibility'] = self.get_visibility_display().lower()
         if self.is_reply:
             message['reply_to'] = self.reply_to.id
@@ -376,3 +416,52 @@ class Message(models.Model):
         for tag in utils.Extractor(self.body).extract_tags().keys():
             del tags[tag]
         return [{'key': tag[0], 'value': tag[1]} for tag in tags.items()]
+
+
+class Notifications(models.Model):
+    member = models.OneToOneField(Member, related_name='notifications')
+    total = models.IntegerField(default=0)
+    messages = models.IntegerField(default=0)
+    friends_requests = models.IntegerField(default=0)
+    events = models.ManyToManyField(Message, related_name='notification_events', blank=True)
+    threads = models.ManyToManyField(Message, related_name='notification_threads', blank=True)
+
+    def __unicode__(self):
+        return u"{} Message(s), {} Friend(s) Request(s), {} Event(s), {} Thread(s)"\
+               .format(self.messages,
+                       self.friends_requests,
+                       self.events.count(),
+                       self.threads.count())
+
+    def count(self):
+        return self.messages \
+               + self.friends_requests \
+               + self.events.count() \
+               + self.threads.count()
+
+    def clear(self):
+        self.messages = 0
+        self.friends_requests = 0
+        self.events.clear()
+        self.threads.clear()
+
+    def reset(self, data):
+        """
+        Reset account notifications.
+        'data' is the result of the Notification API.
+
+        """
+        self.total = data['total']
+        self.events.clear()
+        self.threads.clear()
+        for result in data['results']:
+            if result['type'] in ('events', 'threads'):
+                # ManyToMany fields
+                if result['type'] == 'events':
+                    self.events.add(Message.objects.get(pk=result['event']['id']))
+                else:
+                    for message in result['thread']['messages']:
+                        self.threads.add(Message.objects.get(pk=message['id']))
+            else:
+                setattr(self, result['type'], result['count'])
+        self.save()

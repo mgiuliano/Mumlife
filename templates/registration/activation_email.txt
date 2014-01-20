@@ -1,0 +1,12 @@
+{% load i18n %}{% autoescape off %}
+Thanks for registering with Mumlife.
+
+Please follow the link below to activate your account:
+
+http://{{ site.domain }}/member/activate/{{ activation_key }}/
+
+Please note that this link will expire in {{ expiration_days }} days.
+
+Regards,
+The team @Mumlife
+{% endautoescape %}
