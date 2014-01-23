@@ -55,7 +55,7 @@ class Member(models.Model):
         (0, 'Kilometers'),
         (1, 'Miles'),
     ), null=True, blank=True, default=1, help_text="Distance measurement units")
-    max_range = models.IntegerField("Maximum Search Distance", default=10, help_text="Maximum range used by the Event Calendar slider")
+    max_range = models.IntegerField("Maximum Search Distance", default=5, help_text="Maximum range used by the Event Calendar slider")
     friendships = models.ManyToManyField('self', null=True, blank=True, through='Friendships', \
                                          symmetrical=False, related_name='friends_with+')
 
