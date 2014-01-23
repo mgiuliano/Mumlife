@@ -111,11 +111,10 @@ class Member(models.Model):
     def get_name(self, viewer=None):
         if self == viewer:
             return self.fullname
-        if not viewer or not self.check_if_friend(viewer) == 'Approved':
-            # Hide lastname for non-friends
+        else:
+            # show lastame initials
             name = self.fullname.split(r' ')
-            return '{} {}'.format(name[0], ''.join(['{}'.format(n[0].upper()) for n in name[1:]]))
-        return self.fullname
+            return '{} {}'.format(name[0], ''.join(['{}.'.format(n[0].upper()) for n in name[1:]]))
     
     @property
     def age(self):
