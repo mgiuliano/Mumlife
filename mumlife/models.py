@@ -413,15 +413,21 @@ class Message(models.Model):
             message['reply_to'] = self.reply_to.id
         else:
             message['tags'] = self.get_tags()
+            message['tags_item'] = self.get_tags(filter='item')
+            message['tags_inline'] = self.get_tags(filter='inline')
             message['replies'] = self.get_replies(viewer=viewer)
         return message
 
-    def get_tags(self):
+    def get_tags(self, filter=None):
         tags = utils.Extractor(self.tags).extract_tags()
-        # remove any inline tag from the list of tags, 
-        # so they don't appear twise
-        for tag in utils.Extractor(self.body).extract_tags().keys():
-            del tags[tag]
+        if filter:
+            if filter == 'item':
+                # remove inline tags 
+                for tag in utils.Extractor(self.body).extract_tags().keys():
+                    del tags[tag]
+            elif filter == 'inline':
+                # inline tags only
+                tags = utils.Extractor(self.body).extract_tags()
         return [{'key': tag[0], 'value': tag[1]} for tag in tags.items()]
 
 

@@ -371,7 +371,7 @@ class MessagePostView(APIView):
             raise Http404
 
         if message.member != request.user.get_profile():
-            # Only the creator can edit its own events
+            # only the creator can edit its own events
             raise Http404
 
         for key, value in request.DATA.items():
@@ -391,16 +391,21 @@ class MessagePostView(APIView):
                 else:
                     # clear date
                     value = None
-            elif key == 'body':
-                # reset tags
-                tags = utils.Extractor(value).extract_tags()
-                tags = tags.values()
-                tags.append('#{}'.format(request.user.get_profile().area.lower()))
-                tags = list(set(tags))
-                message.tags = ' '.join(tags)
             if getattr(message, key) != value:
                 setattr(message, key, value)
-            message.save()
+
+        # reset tags
+        tags = utils.Extractor(message.body).extract_tags().values()
+        tags.append('#{}'.format(request.user.get_profile().area.lower()))
+        if message.location:
+            postcode = utils.Extractor(message.location).extract_postcode()
+            if postcode:
+                tags.append('#{}'.format(postcode.split(' ')[0].lower()))
+        tags = list(set(tags))
+        message.tags = ' '.join(tags)
+
+        # save changes
+        message.save()
 
         # serialize message to return
         serializer = MessageSerializer(message)

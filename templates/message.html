@@ -136,7 +136,7 @@
 
     <div class="message-body box">
         {{ result.body_with_links|safe }}
-        {% for tag in result.tags %}<a href="{{ SITE_URL}}s/%23{{ tag.key }}">{{ tag.value }}</a> {% endfor %}
+        <div class="message-tags">{% for tag in result.tags_item %}<a href="{{ SITE_URL}}s/%23{{ tag.key }}">{{ tag.value }}</a> {% endfor %}</div>
         {% if result.eventdate  %}
         <p class="message-event-creator">
             {% if result.member.is_admin %}

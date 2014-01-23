@@ -17,6 +17,7 @@
         <div class="message-body">
             <a href="{{ SITE_URL }}message/{{ id }}" class="message-body-link">
                 {{ location }}
+                <div class="message-tags">{% for tag in tags %}<span>{{ tag.value }}</span> {% endfor %}</div>
                 <span class="message-age" title="{{ timestamp }}">{{ age }}</span>
             </a>
         </div>
