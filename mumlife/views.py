@@ -296,8 +296,9 @@ def members(request, tagstring=''):
         query_tags = Tag.objects.filter(name__in=tags.values())
         members = TaggedItem.objects.get_by_model(Member, query_tags)
 
-    # Exclude logged-in user
-    members = members.exclude(user=request.user)
+    # Exclude logged-in user & Administrators
+    members = members.exclude(user=request.user) \
+                     .exclude(user__groups__name='Administrators')
 
     # Convert to list of dictionaries, so that we can order them by key
     members = [member.format(viewer=account) for member in members]

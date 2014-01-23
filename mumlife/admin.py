@@ -2,8 +2,8 @@
 import logging
 from django.contrib import admin
 from django.conf import settings
-from django.contrib.auth.models import User
-from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.models import User, Group
+from django.contrib.auth.admin import UserAdmin, GroupAdmin
 from django.contrib.sites.models import Site
 from django.utils import timezone
 from mumlife.models import Member, Kid, Friendships, Message, Notifications, Geocode
@@ -144,6 +144,7 @@ class GeocodeAdmin(admin.ModelAdmin):
 site = BackOffice()
 site.register(Site)
 site.register(User, UserAdmin)
+site.register(Group, GroupAdmin)
 site.register(Member, MemberAdmin)
 site.register(Kid, KidAdmin)
 site.register(Message, MessageAdmin)

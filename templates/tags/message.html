@@ -11,11 +11,19 @@
                 {% if distance and distance != 'N/A' %}<span class="smaller">{{ distance }}</span>{% endif %}
                 <span>{{ area }}</span></div>
             {% else %}
+            {% if member.is_admin %}
+            <a href="{{ SITE_URL}}message/{{ id }}">
+                <img class="avatar"
+                     src="{% if member.picture %}{{ member.picture }}{% else %}{{ STATIC_URL }}img/picture-default.png{% endif %}"
+                     alt="{{ member.name }}" width="48" height="48" />
+            </a>
+            {% else %}
             <a href="{{ SITE_URL}}profile/{{ member.slug }}">
                 <img class="avatar"
                      src="{% if member.picture %}{{ member.picture }}{% else %}{{ STATIC_URL }}img/picture-default.png{% endif %}"
                      alt="{{ member.name }}" width="48" height="48" />
             </a>
+            {% endif %}
             <div class="message-visibility"><span>{{ visibility }}</span><span>{{ area }}</span></div>
             {% endif %}
         </div>
@@ -27,7 +35,11 @@
                     {{ name }}, <span>{{ eventtime }},</span> {{ location }}
                 </a>
             {% else %}
+                {% if member.is_admin %}
+                <a href="{{ SITE_URL }}message/{{ id }}">{{ member.name }}</a>
+                {% else %}
                 <a href="{{ SITE_URL}}profile/{{ member.slug }}">{{ member.name }}</a>
+                {% endif %}
             {% endif %}
             {% comment %}<span>@{{ visibility }}</span>{% endcomment %}
         </div>

@@ -20,10 +20,17 @@
     <span class="message-month">{{ result.eventmonth }}</span>
     <span class="message-day">{{ result.eventday }}</span>
     {% else %}
+    {% if result.member.is_admin %}
+    <img
+    class="avatar"
+    src="{% if result.member.picture %}{{ result.member.picture }}{% else %}{{ STATIC_URL }}img/picture-default.png{% endif %}"
+    alt="{{ result.member.name }}" width="48" height="48" />
+    {% else %}
     <a href="{{ SITE_URL }}profile/{{ result.member.slug }}"><img
     class="avatar"
     src="{% if result.member.picture %}{{ result.member.picture }}{% else %}{{ STATIC_URL }}img/picture-default.png{% endif %}"
     alt="{{ result.member.name }}" width="48" height="48" /></a>
+    {% endif %}
     {% endif %}
 </div>
 {% endblock %}
@@ -35,7 +42,11 @@
     <h2>{% if result.name  %}
         {{ result.name }}
     {% else %}
+        {% if result.member.is_admin %}
+        {{ result.member.name }}
+        {% else %}
         <a href="{{ SITE_URL }}profile/{{ result.member.slug }}">{{ result.member.name }}</a>
+        {% endif %}
     {% endif %}</h2>
 
     <div class="ui-content" id="errors"
@@ -128,7 +139,11 @@
         {% for tag in result.tags %}<a href="{{ SITE_URL}}s/%23{{ tag.key }}">{{ tag.value }}</a> {% endfor %}
         {% if result.eventdate  %}
         <p class="message-event-creator">
+            {% if result.member.is_admin %}
+            {{ result.member.name }}
+            {% else %}
             <a href="{{ SITE_URL }}profile/{{ result.member.slug }}">{{ result.member.name }}</a>
+            {% endif %}
         </p>
         {% endif %}
         <p class="message-age" title="{{ result.timestamp }}">{{ result.age }}</p>
@@ -141,14 +156,28 @@
     <div data-entity="replies" data-rel="message-{{ result.id }}" class="message-replies box">
         {% for reply in result.replies %}
         <div class="message-reply clearfix">
-            <div class="picture"><a class="avatar" href="{{ SITE_URL }}profile/{{ reply.member.slug }}"><img
-                class="avatar"
-                src="{% if reply.member.picture %}{{ reply.member.picture }}{% else %}{{ STATIC_URL }}img/picture-default.png{% endif %}"
-                alt="{{ reply.member.name }}" width="48" height="48" /></a></div>
+            <div class="picture">
+            {% if reply.member.is_admin %}
+                <span class="avatar"><img
+                    class="avatar"
+                    src="{% if reply.member.picture %}{{ reply.member.picture }}{% else %}{{ STATIC_URL }}img/picture-default.png{% endif %}"
+                    alt="{{ reply.member.name }}" width="48" height="48" /></span>
+            {% else %}
+                <a class="avatar" href="{{ SITE_URL }}profile/{{ reply.member.slug }}"><img
+                    class="avatar"
+                    src="{% if reply.member.picture %}{{ reply.member.picture }}{% else %}{{ STATIC_URL }}img/picture-default.png{% endif %}"
+                    alt="{{ reply.member.name }}" width="48" height="48" /></a>
+            {% endif %}
+            </div>
             <div class="message-reply-info">
-                <div class="message-reply-author"><a class="bold" href="{{ SITE_URL }}profile/{{ reply.member.slug }}">{{ reply.member.name }}</a></div>
+                <div class="message-reply-author">
+                    {% if reply.member.is_admin %}
+                    <span class="bold">{{ reply.member.name }}</span>
+                    {% else %}
+                    <a class="bold" href="{{ SITE_URL }}profile/{{ reply.member.slug }}">{{ reply.member.name }}</a>
+                    {% endif %}
+                </div>
                 <div class="message-reply-body">
-                    -
                     {{ reply.body|safe }}
                     {% for tag in reply.tags %}<span><a href="{{ SITE_URL }}%23{{ tag.key }}">{{ tag.value }}</a></span> {% endfor %}
                 </div>

@@ -20,6 +20,7 @@
         <div class="member clearfix">
             <div class="member-left">
                 <div class="picture"><a href="{{ SITE_URL }}profile/{{ member.slug }}"><img
+                    class="avatar"
                     src="{% if member.picture %}{{ member.picture }}{% else %}{{ STATIC_URL }}img/picture-default.png{% endif %}"
                     alt="{{ member.name }}" width="48" height="48" /></a></div>
             </div>

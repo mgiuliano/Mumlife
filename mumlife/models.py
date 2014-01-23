@@ -72,6 +72,7 @@ class Member(models.Model):
     def format(self, viewer=None):
         member = {}
         member['id'] = self.id
+        member['is_admin'] = 'Administrators' in [g['name'] for g in self.user.groups.values('name')]
         member['user'] = self.user.id
         member['slug'] = self.slug
         member['name'] = self.get_name(viewer)
