@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.sites.models import Site
 from django.utils import timezone
-from mumlife.models import Member, Kid, Friendships, Message, Notifications
+from mumlife.models import Member, Kid, Friendships, Message, Notifications, Geocode
 
 logger = logging.getLogger('mumlife.admin')
 
@@ -134,6 +134,11 @@ class MessageAdmin(admin.ModelAdmin):
 
 class NotificationsAdmin(admin.ModelAdmin):
     list_display = ('member', '__unicode__', 'total')
+
+
+class GeocodeAdmin(admin.ModelAdmin):
+    list_display = ('code', '__unicode__')
+    search_fields = ('code',)
     
 
 site = BackOffice()
@@ -143,3 +148,4 @@ site.register(Member, MemberAdmin)
 site.register(Kid, KidAdmin)
 site.register(Message, MessageAdmin)
 site.register(Notifications, NotificationsAdmin)
+site.register(Geocode, GeocodeAdmin)

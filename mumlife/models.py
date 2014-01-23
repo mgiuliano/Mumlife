@@ -465,3 +465,6 @@ class Notifications(models.Model):
             else:
                 setattr(self, result['type'], result['count'])
         self.save()
+
+    class Meta:
+        verbose_name_plural = "notifications"
