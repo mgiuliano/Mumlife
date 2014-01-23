@@ -59,6 +59,13 @@ class Member(models.Model):
     friendships = models.ManyToManyField('self', null=True, blank=True, through='Friendships', \
                                          symmetrical=False, related_name='friends_with+')
 
+    def save(self, *args, **kwargs):
+        if self.postcode:
+            self.postcode = self.postcode.upper()
+        else:
+            self.postcode = 'N/A'
+        super(Member, self).save(*args, **kwargs)
+
     def __unicode__(self):
         return self.name
 
@@ -334,7 +341,7 @@ class Message(models.Model):
         postcode = utils.Extractor(self.location).extract_postcode()
         if not postcode:
             return None
-        return postcode
+        return postcode.upper()
 
     @property
     def geocode(self):
