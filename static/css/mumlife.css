@@ -982,11 +982,12 @@ img.picture-edit {
 }
 .write-message .edit-eventdate {}
     .write-message .edit-eventdate .ui-block-a {
-        width:55%;
+        width:50%;
     }
     .write-message .edit-eventdate .ui-block-b {
-        width:45%;
+        width:50%;
     }
+    .write-message .edit-eventdate .ui-block-b label,
     .write-message .edit-eventdate .ui-block-b .ui-input-text {
         margin-left:10px;
     }

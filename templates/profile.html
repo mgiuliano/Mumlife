@@ -22,7 +22,11 @@
             {% if member.id != account.id and member.distance != 'N/A' %}
             <li>{{ member.distance }}</li>
             {% endif %}
+
+            {% if member.gender %}
             <li>{{ member.gender }}</li>
+            {% endif %}
+
             {% if member.kids|length %}
             <li>{{ member.kids|length }} kid{{ member.kids|pluralize }}</li>
             {% endif %}

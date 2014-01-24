@@ -5,6 +5,7 @@
 
 {% endcomment %}
 
+{% block heading %}<h1>{% if edit_mode %}Edit Event{% else %}Create Event{% endif %}</h1>{% endblock %}
 {% block extrahead %}
 <script type="text/javascript">
     $(document).bind("mobileinit", function () {
@@ -13,9 +14,8 @@
     });
 </script>
 <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.mobile-1.3.2.min.js"></script>
-<script type="text/javascript" src="{{ STATIC_URL }}js/jqm-datebox.core.min.js"></script>
-<script type="text/javascript" src="{{ STATIC_URL }}js/jqm-datebox.mode.datebox.min.js"></script>
-<script type="text/javascript" src="{{ STATIC_URL }}js/jqm-datebox.mode.calbox.min.js"></script>
+<script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+<link type="text/css" href="{{ STATIC_URL }}css/jquery.ui.datepicker.css" rel="stylesheet" />
 {% endblock %}
 
 {% block post_link %}post-event{% endblock %}
@@ -25,20 +25,12 @@
     <div data-entity="message" data-type="message">
 
         {% if edit_mode %}
-            <h2>Edit Event</h2>
             <a data-role="button"
                data-icon="arrow-l"
                data-iconpos="left"
                href="{{ SITE_URL }}message/{{ event_id }}">Back</a>
         {% else %}
-            <div class="ui-grid-a">
-                <div class="ui-block-a">
-                    <a data-role="button" href="{{ SITE_URL }}post">Post</a>
-                </div>
-                <div class="ui-block-b">
-                    <div data-role="button" class="active">Event</div>
-                </div>
-            </div>
+            <a data-role="button" data-icon="arrow-l" data-iconpos="left" href="{{ SITE_URL }}write">Back</a>
         {% endif %}
 
         <div class="box">
@@ -57,31 +49,26 @@
                 <label>Event Name <span class="required">*</span></label>
                 {{ form.name }}
 
-                <legend>Starts <span class="required">*</span></legend>
+
+                <legend>Event Date <span class="required">*</span></legend>
+                <input type="date" name="eventdate" data-name="Event starts" class="message-date"
+                       value="{{ form.eventdate.value|date:"Y-m-d" }}"
+                       placeholder="{% now "Y-m-d" %}"
+                       required="required">
+
                 <fieldset class="edit-eventdate">
                     <div class="ui-grid-a">
                         <div class="ui-block-a">
-                            <input type="date" data-name="Event starts" class="message-date" value="{{ form.eventdate.value|date:"Y-m-d" }}"
-                                   placeholder="{% now "Y-m-d" %}"
-                                   required="required"
-                                   data-role="datebox"
-                                   data-options='{"mode": "calbox", "calUsePickers": true, "overrideDateFormat": "%Y-%m-%d", "afterToday": true}' />
+                            <label>Starts</label>
+                            <input type="date" class="message-time" value="{{ form.eventdate.value|date:"H:i" }}"
+                                   placeholder="{% now "H:i" %}">
                         </div>
                         <div class="ui-block-b">
-                            <input type="date" class="message-time" value="{{ form.eventdate.value|date:"H:i" }}"
-                                   placeholder="{% now "H:i" %}"
-                                   data-role="datebox"
-                                   data-options='{"mode": "timebox", "overrideTimeFormat": 24, "useClearButton": true}' />
+                            <label>Ends</label>
+                            <input type="date" class="message-endtime" value="{{ form.eventenddate.value|date:"H:i" }}"
+                                   placeholder="{% now "H:i" %}">
                         </div>
                     </div>
-                </fieldset>
-
-                <legend class="optional">Ends</legend>
-                <fieldset class="edit-eventdate">
-                    <input type="date" class="message-endtime" value="{{ form.eventenddate.value|date:"H:i" }}"
-                           placeholder="{% now "H:i" %}"
-                           data-role="datebox"
-                           data-options='{"mode": "timebox", "overrideTimeFormat": 24, "useClearButton": true}' />
                 </fieldset>
 
                 <fieldset data-role="controlgroup" data-entity="occurrence" data-type="horizontal">
@@ -97,10 +84,8 @@
 
                 <div data-entity="occurrence-until" class="hidden">
                     <label class="optional">Occurs Until</label>
-                    <input type="date" value="{{ form.occurs_until.value|date:"Y-m-d" }}"
-                           placeholder="{% now "Y-m-d" %}"
-                           data-role="datebox"
-                           data-options='{"mode": "calbox", "calUsePickers": true, "overrideDateFormat": "%Y-%m-%d", "useClearButton": true, "afterToday": true}' />
+                    <input type="date" name="eventenddate" value="{{ form.occurs_until.value|date:"Y-m-d" }}"
+                           placeholder="{% now "Y-m-d" %}">
                 </div>
 
                 <label>Address &amp; Postcode <span class="required">*</span></label>
@@ -143,7 +128,14 @@
             <div class="hidden">{{ form.visibility }}</div>
 
             <div class="submit-btn">
-                <button data-entity="button" class="button message-button">Post</button>
+                <div data-corners="true" data-shadow="true" data-iconshadow="true" data-wrapperels="span" data-icon="check" data-theme="a" data-disabled="false"
+                     class="ui-submit ui-btn ui-shadow ui-btn-corner-all ui-btn-icon-left ui-btn-up-a" aria-disabled="false">
+                    <span class="ui-btn-inner">
+                        <span class="ui-btn-text">Post</span>
+                        <span class="ui-icon ui-icon-check ui-icon-shadow">&nbsp;</span>
+                    </span>
+                    <input data-entity="button" type="submit" data-icon="check" data-role="button" value="Post" class="ui-btn-hidden" data-disabled="false">
+                </div>
             </div>
         </div>
     </div>
@@ -153,7 +145,27 @@
 {% block extrajs %}{{ block.super }}
 <script type="text/javascript">
     $(document).on('ml.Ready', function () {
-        $('head').append('<link type="text/css" href="{{ STATIC_URL }}css/jqm-datebox.min.css" rel="stylesheet" />');
+        // Event Date Picker
+        $('[name="eventdate"]').datepicker({
+            dateFormat: "yy-mm-dd",
+            minDate: "+1d",
+            beforeShow: function() {
+                setTimeout(function() {
+                    $('.ui-datepicker').css('z-index', 99999999999999);
+                }, 0);
+            }
+        });
+        // Event End Date Picker
+        $('[name="eventenddate"]').datepicker({
+            dateFormat: "yy-mm-dd",
+            minDate: "+2d",
+            beforeShow: function() {
+                setTimeout(function() {
+                    $('.ui-datepicker').css('z-index', 99999999999999);
+                }, 0);
+            }
+        });
+
         $('.message-name').focus();
         new ML.Messages({
             'edit-mode': {% if edit_mode %}true{% else %}false{% endif %},

@@ -197,6 +197,13 @@ def notifications(request):
 
 
 @login_required
+def write(request):
+    t = loader.get_template('write.html')
+    c = RequestContext(request)
+    return HttpResponse(t.render(c))
+
+
+@login_required
 def post(request):
     account = request.user.get_profile()
     # Messages are created using the API,

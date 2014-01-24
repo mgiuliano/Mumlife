@@ -14,6 +14,7 @@ urlpatterns = patterns('',
     url(r'^messages/$', 'mumlife.views.messages'),
     url(r'^notifications', 'mumlife.views.notifications'),
 
+    url(r'^write$', 'mumlife.views.write'),
     url(r'^post$', 'mumlife.views.post'),
     url(r'^post-event$', 'mumlife.views.post_event'),
     url(r'^edit-event/(?P<event_id>[0-9]+)$$', 'mumlife.views.edit_event'),

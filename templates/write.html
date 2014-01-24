@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block heading %}<h1>Post or Event?</h1>{% endblock %}
+
+{% block content %}
+    <a data-role="button" href="{{ SITE_URL }}post">Write Post</a>
+    <a data-role="button" href="{{ SITE_URL }}post-event">Create Event</a>
+{% endblock %}
+
+{% block extrajs %}{{ block.super }}
+<script type="text/javascript">
+    $(document).on('ml.Ready', function () {
+        $('.message-body').focus();
+        new ML.Messages();
+    });
+</script>
+{% endblock %}

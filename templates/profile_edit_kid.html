@@ -9,7 +9,8 @@
     });
 </script>
 <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.mobile-1.3.2.min.js"></script>
-<script src="{{ STATIC_URL }}js/jqm-datebox.comp.calbox.min.js"></script>
+<script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+<link type="text/css" href="{{ STATIC_URL }}css/jquery.ui.datepicker.css" rel="stylesheet" />
 {% endblock %}
 
 {% block bodyclass %}edit-mode{% endblock %}
@@ -46,9 +47,9 @@
                 <div class="form-field">
                     {{ form.dob.label_tag }}
                     {% localize on %}
-                    <input type="date" name="dob" id="{{ form.dob.id_for_label }}" value="{{ form.dob.value }}"
-                           data-role="datebox"
-                           data-options='{"mode": "calbox", "calUsePickers": true, "overrideDateFormat": "%Y-%m-%d", "beforeToday": true}' />
+                    <input type="date" name="dob" id="{{ form.dob.id_for_label }}" 
+                           value="{{ form.dob.value }}"
+                           placeholder="{% now "Y-m-d" %}">
                     {% endlocalize %}
                     <p class="description">{{ form.dob.help_text }}</p>
                 </div>
@@ -68,7 +69,14 @@
                 </div>
             </div>
 
-            <input type="submit" class="button" value="Save" data-icon="check" />
+            <div data-corners="true" data-shadow="true" data-iconshadow="true" data-wrapperels="span" data-icon="check" data-theme="a" data-disabled="false"
+                 class="ui-submit ui-btn ui-shadow ui-btn-corner-all ui-btn-icon-left ui-btn-up-a" aria-disabled="false">
+                <span class="ui-btn-inner">
+                    <span class="ui-btn-text">Save</span>
+                    <span class="ui-icon ui-icon-check ui-icon-shadow">&nbsp;</span>
+                </span>
+                <input type="submit" data-icon="check" data-role="button" value="Save" class="ui-btn-hidden" data-disabled="false">
+            </div>
         </form>
     </section>
     <footer> </footer>
@@ -77,8 +85,19 @@
 {% block extrajs %}{{ block.super }}
 <script type="text/javascript">
     $(document).on('ml.Ready', function () {
-        // Add the datebox CSS last
-        $('head').append('<link type="text/css" href="{{ STATIC_URL }}css/jqm-datebox.min.css" rel="stylesheet" />');
+        // DoB Date Picker
+        $('[name="dob"]').datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: "yy-mm-dd",
+            maxDate: 0,
+            yearRange: '1972:{% now "Y" %}',
+            beforeShow: function() {
+                setTimeout(function() {
+                    $('.ui-datepicker').css('z-index', 99999999999999);
+                }, 0);
+            }
+        });
     });
 </script>
 {% endblock %}

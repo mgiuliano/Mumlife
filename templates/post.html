@@ -1,17 +1,12 @@
 {% extends "base.html" %}
 
+{% block heading %}<h1>Write Post</h1>{% endblock %}
+
 {% block content %}
 <div class="write-message">
     <div data-entity="message" data-type="message">
 
-        <div class="ui-grid-a">
-            <div class="ui-block-a">
-                <div data-role="button" class="active">Post</div>
-            </div>
-            <div class="ui-block-b">
-                <a data-role="button" href="{{ SITE_URL }}post-event">Event</a>
-            </div>
-        </div>
+        <a data-role="button" data-icon="arrow-l" data-iconpos="left" href="{{ SITE_URL }}write">Back</a>
 
         <div class="box">
             <div class="form-card">
