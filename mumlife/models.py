@@ -65,6 +65,7 @@ class Member(models.Model):
         else:
             self.postcode = 'N/A'
         super(Member, self).save(*args, **kwargs)
+        self.generate_slug()
 
     def __unicode__(self):
         return self.name
@@ -114,8 +115,9 @@ class Member(models.Model):
             return self.fullname
         else:
             # show lastame initials
-            name = self.fullname.split(r' ')
-            return '{} {}'.format(name[0], ''.join(['{}.'.format(n[0].upper()) for n in name[1:]]))
+            name = self.fullname.split()
+            return '{} {}'.format(name[0], 
+                                  ''.join(['{}.'.format(n[0].upper()) for n in name[1:]]))
     
     @property
     def age(self):
@@ -124,7 +126,7 @@ class Member(models.Model):
     @property
     def area(self):
         # For UK only, return inward code
-        return self.postcode.split(' ')[0]
+        return self.postcode.split()[0]
 
     @property
     def kids(self):
@@ -199,7 +201,7 @@ class Member(models.Model):
     def generate_slug(self):
         if not self.slug:
             # Slug format: hyphenise(fullname)/random(1-999)/(1+count(fullname)/random(1-999)*(1+count(fullname))
-            initials = ''.join(['{}.'.format(n[0]) for n in self.fullname.split(r' ')])
+            initials = ''.join(['{}.'.format(n[0]) for n in self.fullname.split()])
             hyphenized = re.sub(r'\s\s*', '-', initials.lower())
             count = Member.objects.filter(slug__contains=hyphenized).count()
             slug = '{}/{}/{}/{}'.format(hyphenized, random.randint(1, 999), count+1, (count+1) * random.randint(1, 999))
@@ -388,7 +390,7 @@ class Message(models.Model):
             # events are not necessarily in the same area as the author
             # we therefore override it by the event location postcode area
             if self.postcode:
-                message['area'] = self.postcode.split(' ')[0]
+                message['area'] = self.postcode.split()[0]
             # distance details
             if not viewer or (not self.geocode.latitude and not self.geocode.longitude):
                 message['units'] = viewer.get_units_display()
