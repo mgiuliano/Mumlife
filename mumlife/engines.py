@@ -57,6 +57,7 @@ class SearchEngine(object):
 
     def search_messages(self, terms='@local'):
         """
+        Exclude ALL Events.
         Search rules:
             - search terms are matches against hashtags;
             - search for nothing returns local results;
@@ -73,6 +74,9 @@ class SearchEngine(object):
 
         """
         messages = self.search(terms=terms)
+
+        # Exclude events
+        messages = messages.exclude(eventdate__isnull=False)
         
         # @friends results
         if self.flag == '@friends':
