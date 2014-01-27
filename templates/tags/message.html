@@ -1,63 +1,44 @@
 <div class="message clearfix">
     <div class="message-left">
-        <div class="picture">
-            {% if eventdate  %}
-            <img class="avatar"
-                 src="{{ STATIC_URL }}img/calendar.png"
-                 alt="{{ eventdate }}" width="48" height="48" />
-            <span class="message-month">{{ eventmonth }}</span>
-            <span class="message-day">{{ eventday }}</span>
-            <div class="message-visibility">
-                {% if distance and distance != 'N/A' %}<span class="smaller">{{ distance }}</span>{% endif %}
-                <span>{{ area }}</span></div>
-            {% else %}
-            {% if member.is_admin %}
-            <a href="{{ SITE_URL}}message/{{ id }}">
-                <img class="avatar"
-                     src="{% if member.picture %}{{ member.picture }}{% else %}{{ STATIC_URL }}img/picture-default.png{% endif %}"
-                     alt="{{ member.name }}" width="48" height="48" />
-            </a>
-            {% else %}
-            <a href="{{ SITE_URL}}profile/{{ member.slug }}">
-                <img class="avatar"
-                     src="{% if member.picture %}{{ member.picture }}{% else %}{{ STATIC_URL }}img/picture-default.png{% endif %}"
-                     alt="{{ member.name }}" width="48" height="48" />
-            </a>
-            {% endif %}
-            <div class="message-visibility"><span>{{ visibility }}</span><span>{{ area }}</span></div>
-            {% endif %}
-        </div>
+        {% if member.is_admin %}
+            <div class="message-picture">
+                <a href="{{ SITE_URL}}message/{{ id }}">
+                    <img class="avatar"
+                         src="{% if member.picture %}{{ member.picture }}{% else %}{{ STATIC_URL }}img/picture-default.png{% endif %}"
+                         alt="{{ member.name }}" width="48" height="48" />
+                </a>
+            </div>
+        {% else %}
+            <div class="message-picture">
+                <a href="{{ SITE_URL}}profile/{{ member.slug }}">
+                    <img class="avatar"
+                         src="{% if member.picture %}{{ member.picture }}{% else %}{{ STATIC_URL }}img/picture-default.png{% endif %}"
+                         alt="{{ member.name }}" width="48" height="48" />
+                </a>
+            </div>
+        {% endif %}
+        {% comment %}<div class="message-visibility">{{ visibility }}</div>{% endcomment %}
+        <div class="message-area">{{ area }}</div>
     </div>
     <div class="message-right">
         <div class="message-author">
-            {% if eventdate %}
-                <a href="{{ SITE_URL }}message/{{ id }}" class="message-event-link">
-                    {{ name }}, <span>{{ eventtime }},</span> {{ location }}
-                </a>
-            {% else %}
-                {% if member.is_admin %}
+            {% if member.is_admin %}
                 <a href="{{ SITE_URL }}message/{{ id }}">{{ member.name }}</a>
-                {% else %}
+            {% else %}
                 <a href="{{ SITE_URL}}profile/{{ member.slug }}">{{ member.name }}</a>
-                {% endif %}
             {% endif %}
-            {% comment %}<span>@{{ visibility }}</span>{% endcomment %}
         </div>
         <div class="message-body">
             <a href="{{ SITE_URL }}message/{{ id }}" class="message-body-link">
-                {% if eventdate  %}
-                    {% for tag in tags %}<span>{{ tag.value }}</span> {% endfor %}
-                {% else %}
-                    {{ body|safe }}
-                    {% for tag in tags_item %}<span>{{ tag.value }}</span> {% endfor %}
-                {% endif %}
+                {{ body|safe }}
+                {% for tag in tags_item %}<span>{{ tag.value }}</span> {% endfor %}
                 <span class="message-age" title="{{ timestamp }}">{{ age }}</span>
             </a>
         </div>
         <div class="message-tools">
             {% if replies %}
                 <a href="{{ SITE_URL }}message/{{ id }}" class="message-tools-link">
-                    <div class="message-replies-count">{{ replies|length }}</div>
+                    <span class="message-replies-count">{{ replies|length }}</span>
                 </a>
             {% endif %}
         </div>

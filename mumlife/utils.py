@@ -95,15 +95,15 @@ def get_age_bracket(dob):
             raise
     age = get_age(dob)
     if age <= 0:
-        return 'Baby (0 to 12 months)'
+        return 'Baby'
     elif age <= 2:
-        return 'Toddler (1 to 2 years)'
+        return 'Toddler'
     elif age <= 12:
-        return 'Child (3 to 12 years)'
+        return 'Child'
     elif age <= 17:
-        return 'Teenager (13 to 17 years)'
+        return 'Teenager'
     else:
-        return 'Adult (18+ years)'
+        return 'Adult'
     
 
 BING_MAPS_KEY = 'AmXCuMvaJGPW0JXSQmcO4e5hKauvjs_TztK0DGcinHK6mFaVAq5lm3OzHkAPnpyE'

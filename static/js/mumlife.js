@@ -1,7 +1,7 @@
 /**
  * Mumlife - Common Scripts.
  *
- * @version     2014-01-20 1.0.0
+ * @version     2014-01-25 1.0.1
  * @author      Michael Giuliano <michael@beatscope.co.uk>
  * @copyright   2014 Beatscope Limited | http://www.beatscope.co.uk/
  */
@@ -526,7 +526,7 @@ ML.Feed = function (settings) {
     }
     if (settings.hasOwnProperty('slider') && settings['slider']) {
         // update slider value
-        var pattern = new RegExp(/\?range=\d+/g);
+        var pattern = new RegExp(/\?range=.+/g);
         var matches = pattern.exec(location.search);
         if (matches) {
             var match = matches.pop().split('=').pop();
@@ -554,7 +554,7 @@ ML.Feed = function (settings) {
         // Fetch more when end of page is reached
         $(window).scroll(function() {
             if (!self.loading && settings['next'] != '') {
-                var trigger = $(".ui-page").height() - 25;
+                var trigger = $(".ui-page").height() - 280;
                 if ($(document).scrollTop() + $(window).height() >= trigger) {
                     self.refresh();
                 }
@@ -750,7 +750,7 @@ ML.Messages.prototype.refresh = function () {
                 }
                 var data = {
                     'body': body,
-                    'visibility': visibility,
+                    'visibility': parseInt(visibility),
                     'mid': box.data('mid'),
                     'recipient': recipient
                 };

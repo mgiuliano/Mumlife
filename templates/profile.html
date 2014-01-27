@@ -1,7 +1,15 @@
 {% extends "base.html" %}
 
+{% block bodyclass %}profile{% endblock %}
+
+{% block heading %}<h1>&nbsp;
+    <div class="header-pic"><img class="avatar"
+         src="{% if member.picture %}{{ member.picture }}{% else %}{{ STATIC_URL }}img/picture-default.png{% endif %}"
+         alt="{{ member.name }}" width="150" height="150" /></div>
+</h1>{% endblock %}
+
 {% block content %}
-<div class="profile">
+<div class="member-profile">
     <div class="ui-content" id="errors"
          data-role="popup"
          data-transition="pop"
@@ -13,63 +21,35 @@
         <div id="errors-content"></div>
     </div>
 
-    <div class="picture clearfix">
-        <img class="avatar"
-             src="{% if member.picture %}{{ member.picture }}{% else %}{{ STATIC_URL }}img/picture-default.png{% endif %}"
-             alt="{{ member.name }}" width="150" height="150" />
-        <ul>
-            <li>{{ member.area }}</li>
-            {% if member.id != account.id and member.distance != 'N/A' %}
-            <li>{{ member.distance }}</li>
-            {% endif %}
-
-            {% if member.gender %}
-            <li>{{ member.gender }}</li>
-            {% endif %}
-
-            {% if member.kids|length %}
-            <li>{{ member.kids|length }} kid{{ member.kids|pluralize }}</li>
-            {% endif %}
-
-            {% comment %}   Add to Friend   {% endcomment %}
-            {% if member.id != account.id %}
-            {% if member.friend_status and member.friend_status == 'Approved' %}
-            <li><img src="{{ STATIC_URL }}img/z.gif" class="icon icon-friend" alt="Friend" /></li>
-            {% elif member.friend_status and member.friend_status == 'Pending' %}
-            <li><img src="{{ STATIC_URL }}img/z.gif" class="icon icon-pendingfriend" alt="Requested" /></li>
-            {% elif member.friend_status and member.friend_status == 'Requesting' %}
-            <li><a class="icon-link addtofriend" href="#{{ account.id }},{{ member.id }}" rel="confirm">
-                <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-confirmfriend" alt="Approve" />
-            </a></li>
-            {% elif member.friend_status and member.friend_status == 'Blocked' %}
-                {% comment %}   This member relationship is blocked     {% endcomment %}
-            {% else %}
-            <li><a class="icon-link addtofriend" href="#{{ account.id }},{{ member.id }}">
-                <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-addtofriend" alt="Add to friend" />
-            </a></li>
-            {% endif %}
-            {% endif %}
-
-        </ul>
-    </div>
-
-    <h2>{{ member.name }}</h2>
-    {% if member.tags %}
-    <p class="interests">{% for tag in member.tags %}<span><a href="{{ SITE_URL }}members/%23{{ tag.key }}">{{ tag.value }}</a></span> {% endfor %}</p>
-    {% endif %}
+    <h2>{% if member.gender %}{{ member.gender }} {% endif %}{{ member.name }}</h2>
 
     <div data-entity="message" data-type="private-message" data-recipient="{{ member.id }}" class="hidden">
         <textarea data-name="A message" class="message-body elastic" rows="2" cols="70" required="required"></textarea>
         <button data-entity="button" class="button message-button">Post</button>
     </div>
 
-    {% if member.about %}<div class="about box">{{ member.about|linebreaks }}</div>{% endif %}
-
-    {% if member.kids|length %}<h3>My Kid{{ member.kids|pluralize }}</h3>
-        <ul class="kids">{% for kid in member.kids %}
-            <li class="box"><strong>{{ kid.name }}</strong>, {{ kid.age }}</li>
-        {% endfor %}</ul>
+    <h2>{{ member.area }}</h2>
+    {% if member.id != account.id and member.distance != 'N/A' %}
+    <div class="distance">{{ member.distance }}</div>
     {% endif %}
+
+    <div class="member-details">
+
+        {% if member.about %}<div class="about">{{ member.about|linebreaks }}</div>{% endif %}
+
+        {% if member.tags %}
+        <p class="interests">I enjoy {% for tag in member.tags %}<a href="{{ SITE_URL }}members/%23{{ tag.key }}">{{ tag.value }}</a> {% endfor %}</p>
+        {% endif %}
+
+        {% if member.kids|length %}
+            <div class="kids">{% for kid in member.kids %}
+                <div class="kid {{ kid.gender|lower }}">
+                    {{ kid.gender }} {{ kid.name }}
+                    <div class="kid-age">{{ kid.age }}{% if kid.visibility == 'Show exact age' %} year{{ kid.age|pluralize }}{% endif %}</div>
+                </div>
+            {% endfor %}</div>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}
 

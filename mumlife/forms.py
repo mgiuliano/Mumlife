@@ -91,7 +91,7 @@ class KidForm(forms.ModelForm):
 
 
 class MessageForm(forms.ModelForm):
-    VISIBILITY = tuple([o for o in Message.VISIBILITY_CHOICES if o[0] != Message.PRIVATE])
+    VISIBILITY = tuple([o for o in Message.VISIBILITY_CHOICES if o[0] not in (Message.GLOBAL, Message.PRIVATE)])
 
     def __init__(self, *args, **kwargs):
         super(MessageForm, self).__init__(*args, **kwargs)

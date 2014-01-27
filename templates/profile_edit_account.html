@@ -68,7 +68,7 @@
                     {{ form.dob.label_tag }}
                     {% localize on %}
                     <input type="date" name="dob" id="{{ form.dob.id_for_label }}"
-                           value="{{ form.dob.value }}"
+                           value="{{ form.dob.value|date:"Y-m-d" }}"
                            placeholder="{% now "Y-m-d" %}">
                     {% endlocalize %}
                     <p class="description">Your date of birth is, and always will be, private. We won't share it with anyone.</p>
@@ -109,19 +109,22 @@
 <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.ajaxfileupload.js"></script>
 <script type="text/javascript">
     $(document).on('ml.Ready', function () {
-        // DoB Date Picker
-        $('[name="dob"]').datepicker({
-            changeMonth: true,
-            changeYear: true,
-            dateFormat: "yy-mm-dd",
-            maxDate: "-12y",
-            yearRange: '1952:{% now "Y" %}',
-            beforeShow: function() {
-                setTimeout(function() {
-                    $('.ui-datepicker').css('z-index', 99999999999999);
-                }, 0);
-            }
-        });
+        // iOS has a built-in date picker
+        if (platform.os.family != 'iOS') {
+            // DoB Date Picker
+            $('[name="dob"]').datepicker({
+                changeMonth: true,
+                changeYear: true,
+                dateFormat: "yy-mm-dd",
+                maxDate: "-12y",
+                yearRange: '1952:{% now "Y" %}',
+                beforeShow: function() {
+                    setTimeout(function() {
+                        $('.ui-datepicker').css('z-index', 99999999999999);
+                    }, 0);
+                }
+            });
+        }
 
         // Expandable textareas
         $('#id_about').elastic();

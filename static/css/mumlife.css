@@ -1,9 +1,9 @@
 /** 
  * Mumlife Styles.
  * 
- * @version     2014-01-23 1.0.2
+ * @version     2014-01-25 2.0.0
  * @author      Michael Giuliano <michael@beatscope.co.uk>
- * @copyright   2013 Beatscope Limited | http://www.beatscope.co.uk/
+ * @copyright   2014 Beatscope Limited | http://www.beatscope.co.uk/
  */
 
 * {
@@ -18,7 +18,7 @@ button,
 input,
 select,
 textarea {
-    color: #222;
+    color: #444;
 }
 body {
     font-size: 1em;
@@ -65,6 +65,9 @@ body {
     font: 16px/26px Arial;
     min-width:320px; /* 64px * 5 icons */
 }
+.ui-content {
+    padding:5px;
+}
 .ui-header .ui-title {
     margin:0;
 }
@@ -81,10 +84,11 @@ h2 {
     font-size:1.2em;
     color:#a93e2e;
     text-align:center;
+    text-shadow: 2px 2px 2px #c9a690;
 }
 a:link, a:visited, a:hover, a:active { outline:none; }
 a {
-    color:#2e71a4;
+    color:#ae2f19;
 }
 a.bold {
     color:#A93E2E;
@@ -218,15 +222,26 @@ header .buttons .icon-link:first-child + .icon-link {
 header .title {
     position:relative;
     text-align:center;
-    margin:0 33%;
+    margin:5px 25%;
+    font-size:0.7em;
+    line-height:32px;
     z-index:10;
+    text-transform:uppercase;
 }
 header .search-form {
     margin:0 5px;
 }
-header .search-form input[type="text"] {
-    border-radius:0.8em;
+header .search-form .ui-body-a {
+    background:#aadfd7;
+    border:none;
 }
+header .search-form input[type="text"] {
+    border-radius:0.3em;
+}
+    header .search-form input[type="text"].ui-input-text::-webkit-input-placeholder { color:#fff; opacity:0.6; }
+    header .search-form input[type="text"].ui-input-text::-moz-placeholder { color:#fff; opacity:0.6; } /* firefox 19+ */
+    header .search-form input[type="text"].ui-input-text:-ms-input-placeholder { color:#fff; opacity:0.6; } /* ie */
+    header .search-form input[type="text"].ui-input-text:-moz-placeholder { color:#fff; opacity:0.6; }
 
 /* ======
     Menu
@@ -234,7 +249,9 @@ header .search-form input[type="text"] {
 
 #menu {
     display:none;
+    position:relative;
     margin:0 5px 10px;
+    z-index:999;
 }
 #menu .ui-icon {
     margin-right:2px;
@@ -297,12 +314,11 @@ body.anon .ui-page {
 }
 
 body.home .ui-page {
-    background-color:#fff;
-    background-image:url(../creative/home.jpg);
+    background-color:#64b0b3;
+    background-image:url(../creative/6999917.jpg);
 }
 body.register .ui-page {
-    background-color:#8f7e66;
-    background-image:url(../creative/register.jpg);
+    background-color:#64b0b3;
 }
 
 body.home .intro {
@@ -316,16 +332,14 @@ body.register .intro {
         width:150px;
         height:auto;
         margin-left:-10px;
-        margin-top:-10px;
         padding:0 5px;
     }
     body.anon .intro p {
         color:#fff;
         font-size:1.4em;
-        line-height:1.1em;
+        line-height:1.2em;
         font-weight:bold;
         text-shadow:1px 1px 5px #000;
-        margin-bottom:45px;
     }
     body.anon .intro p.description {
         color:#222;
@@ -337,6 +351,9 @@ body.register .intro {
         border-radius:.3em;
         background:rgba(255,255,255,.8);
     }
+    body.register .intro p.description {
+        background:#fae7be;
+    }
 body.anon #form-errors {
     margin-left:5px;
     margin-right:5px;
@@ -346,9 +363,10 @@ body.anon .form-card {
 }
 body.register .form-card {
     margin:0;
-    padding:5px;
+    padding:4px;
     border-radius:.3em;
-    background:rgba(255,255,255,.6);
+    border:solid 1px #c6ad85;
+    background:#fae7be;
 }
     body.anon .form-card .form-field {
         margin:5px;
@@ -377,7 +395,7 @@ body.anon div.ui-input-text {
     text-shadow:0 1px 0 #222;
     font-weight:normal;
     background:rgba(0,0,0,.5);
-    border-color:#fff;
+    border-color:#c6ad85;
     border-radius:0.3em;
     box-shadow:none;
 }
@@ -538,134 +556,6 @@ img.picture-edit {
 
 
 /* ===============
-    Activity Feed
-   =============== */
-
-.feed {
-    margin-bottom:48px;
-}
-.feed .ui-btn { display:none; }
-.feed .message {
-    padding:5px 0;
-    color:#222;
-}
-.feed .message:last-child {
-    border-bottom:none;
-}
-.feed .message a {
-    font-weight:normal;
-    text-decoration:none;
-    color:#222;
-}
-
-.message-left {
-    float:left;
-    width:22%;
-}
-    .message-left .picture {
-        position:relative;
-        float:right;
-        margin-top:5px;
-        margin-right:20%;
-    }
-    .message-left .message-month {
-        position:absolute;
-        top:5px;
-        width:100%;
-        height:18px;
-        font-size:0.75em;
-        line-height:1.5em;
-        color:#fff;
-        text-shadow: 0 1px 0 #888;
-        text-transform:uppercase;
-        text-align:center;
-    }
-    .message-left .message-day {
-        position:absolute;
-        top:24px;
-        width:100%;
-        height:28px;
-        font-size:1.1em;
-        line-height:1.7em;
-        text-align:center;
-    }
-    .message-left .message-visibility {
-        width:53px;
-        font-size:0.9em;
-        line-height:1.2em;
-        color:#999;
-        text-transform:capitalize;
-        padding-left:5px;
-        text-shadow: 0 1px 0 #fff;
-    }
-        .message-left .message-visibility span { display:block; }
-        .message-left .message-visibility span.smaller { font-size:0.8em; }
-
-.message-right {
-    position:relative;
-    float:right;
-    width:74%;
-    padding:2%;
-    background:#fff;
-    border-radius:0.3em;
-    box-shadow: 2px 2px 2px #ccc;
-}
-    .message-right .message-author {
-        font-weight:bold;
-        line-height:1.3em;
-        margin-bottom:.3em;
-        color:#a93e2e;
-    }
-        .message-right .message-author a {
-            color:#a93e2e;
-            font-weight:bold;
-        }
-        .message-right .message-author span {
-            color:#999;
-            font-style:italic;
-            font-weight:normal;
-        }
-    .message-right .message-body {
-        line-height:1.3em;
-        padding-bottom:5px;
-    }
-        .message-right .message-body a.message-body-link {
-            color:#222;
-        }
-        .message-right .message-body span {
-            color:#999;
-            font-style:italic
-        }
-    .message-right .message-age {
-        display:block;
-        font-size:0.9em;
-        color:#999;
-    }
-    .message-right .message-tools {}
-        .message-right .message-tools .message-replies-count {
-            color:#000;
-            font-size:0.65em;
-            line-height:1.4em;
-            text-shadow:#fff 0 1px 0;
-            text-align:center;
-            display:block;
-            float:left;
-            width:19px;
-            height:18px;
-            margin-right:10px;
-            background:url(../img/icon-comment.png) no-repeat;
-        }
-
-/* Private Message Form */
-.write-pm {
-    margin:15px auto;
-}
-#errors-screen {
-    background:#000;
-}
-
-
-/* ===============
     Notifications
    =============== */
 
@@ -689,7 +579,7 @@ img.picture-edit {
         border:none;
     }
     .notifications .notification.unread {
-        background:#b9e2f8;
+        background:#f89e91;
         margin-top:1px;
         margin-bottom:1px;
         border-radius:0.3em;
@@ -707,35 +597,149 @@ img.picture-edit {
     }
 
 
-/* =================
-    Events Calendar
-   ================= */
+/* ============
+    Local Feed
+   ============ */
 
-.feed h3 {
+.feed {
+    margin-bottom:48px;
+}
+.feed .ui-btn { display:none; }
+.feed .message {
+    padding:5px;
+    margin-bottom:5px;
+    border:solid 1px #c6ad85;
+    border-radius:0.3em;
+    color:#306663;
+}
+.feed .message:link,
+.feed .message:visited { background:#fae7be; }
+.feed .message:hover { background:#f8deb4; }
+.feed .message:active { background:#e7cda4; }
+.feed .message a {
+    font-weight:normal;
+    text-decoration:none;
+}
+
+.message-left {
+    float:left;
+    width:25%;
+}
+    .message-left .message-picture img.avatar {
+        margin:0 auto;
+        border-color:#fff;
+        border-radius:48px;
+    }
+    .message-left .message-visibility,
+    .message-left .message-area {
+        font-size:0.9em;
+        text-align:center;
+        line-height:1.2em;
+        color:#999;
+        text-transform:capitalize;
+        text-shadow: 0 1px 0 #fff;
+    }
+
+.message-right {
+    position:relative;
+    float:right;
+    width:75%;
+}
+    .message-right .message-author,
+    .message-right .message-author a,
+    .message-right .message-author a:link,
+    .message-right .message-author a:hover,
+    .message-right .message-author a:visited {
+        font-weight:bold;
+        margin-bottom:.3em;
+        line-height:1.3em;
+    }
+    .message-right .message-body,
+    .message-right .message-body a,
+    .message-right .message-body a:link,
+    .message-right .message-body a:hover,
+    .message-right .message-body a:visited {
+        line-height:1.3em;
+        padding-bottom:5px;
+        color:#306663;
+    }
+        .message-right .message-body span {
+            color:#999;
+            font-style:italic
+        }
+        .message-right .message-age {
+            display:block;
+            font-size:0.9em;
+            color:#999;
+        }
+    .message-right .message-tools {}
+        .message-right .message-tools .message-replies-count {
+            color:#fff;
+            font-size:0.65em;
+            line-height:1.4em;
+            text-shadow:#999 0 1px 0;
+            text-align:center;
+            display:block;
+            float:left;
+            width:19px;
+            height:18px;
+            margin-right:10px;
+            background:url(../img/icon-comment.png) no-repeat;
+        }
+
+/* Private Message Form */
+.write-pm {
+    margin:15px auto;
+}
+#errors-screen {
+    background:#000;
+}
+
+
+/* ============
+    Activities
+   ============ */
+
+body.activities .feed h3 {
     color:#666;
     font-size:.9em;
     text-transform:uppercase;
-    border-bottom:solid 1px #ddd;
+    text-shadow: 1px 1px 1px #fff;
 }
-.feed .message-event-time {
-    color:#666;
-    text-align:right;
-    line-height:1.3em;
-    padding-top:9%;
-    margin-right:20%;
-}
-.feed .message-event-visibility {
-    font-size:0.9em;
-    line-height:1.2em;
-    color:#999;
-    text-transform:capitalize;
-    padding-left:5px;
-    text-align:right;
-    margin-right:20%;
-    text-shadow: 0 1px 0 #fff;
-}
-    .feed .message-event-visibility span { display:block; }
+    body.activities .feed .message-left span {
+        display:block;
+        font-size:0.9em;
+        text-align:center;
+        line-height:1.2em;
+        color:#999;
+        text-transform:capitalize;
+        text-shadow: 0 1px 0 #fff;
+    }
+    body.activities .feed .message-left .message-picture {
+        position:relative;
+    }
+        body.activities .feed .message-left .message-picture .message-eventmonth {
+            position:absolute;
+            top:8px;
+            width:100%;
+            color:#fff;
+            font-size:0.75em;
+            text-transform:uppercase;
+            display:block;
+            text-align:center;
+        }
+        body.activities .feed .message-left .message-picture .message-eventday {
+            position:absolute;
+            top:25px;
+            width:100%;
+            color:#ae2f19;
+            font-weight:bold;
+            font-size:1.2em;
+            display:block;
+            text-align:center;
+        }
 
+/** Slider **/
 .slider-container {
     position:relative;
     padding:0 5px;
@@ -754,76 +758,41 @@ img.picture-edit {
     Message / Event Details
    ========================= */
 
-/* Member Picture */
-.profile-picture {
-    position:relative;
-    margin:0 auto;
-    width:58px; /* 48 + 10px img borders */
-    height:58px;
-    margin-top:12px;
-    margin-bottom:-12px;
+body.fullmessage .header-pic-small {
+    position:absolute;
+    width:100%;
+    top:0;
 }
-    .profile-picture img.avatar {
+    body.fullmessage .header-pic-small img.avatar {
+        margin:0 auto;
         border-color:#fff;
-    }
-    .profile-picture .message-month {
-        position:absolute;
-        top:5px;
-        width:100%;
-        height:18px;
-        font-size:0.75em;
-        line-height:1.4em;
-        color:#fff;
-        text-shadow: 0 1px 0 #888;
-        text-transform:uppercase;
-        text-align:center;
-    }
-    .profile-picture .message-day {
-        position:absolute;
-        top:25px;
-        width:100%;
-        height:28px;
-        font-size:1.1em;
-        line-height:1.6em;
-        text-align:center;
-        color:#222;
-        text-shadow:none;
+        border-radius:150px;
     }
 
 .message-full {
     position::relative;
-    margin-top:12px;
+    margin-top:20px;
 }
 .message-full h2 a {
     text-decoration:none;
 }
 .message-full .message-event-details {
     margin:1em 0;
+    color:#306663;
+    text-align:center;
 }
-    .message-full .message-event-details .message-event-time {
-        float:left;
-        width:22%;
-    }
-        .message-full .message-event-details .message-event-time span {
-            display:block;
-            color:#666;
-            line-height:1.3em;
-            margin-right:20%;
-        }
     .message-full .message-event-details .message-event-info {
-        float:right;
-        width:78%;
-        line-height:1.3em;
+        margin-top:1em;
+        padding:0 10%;
+        font-weight:bold;
+        line-height:1.2em;
     }
         .message-full .message-event-details .message-event-info span {
+            display:block;
             color:#666;
+            font-weight:normal;
             font-style:italic;
         }
-.message-full .message-event-ends {
-    margin-bottom:1em;
-    line-height:1.1em;
-    color:#666;
-}
 .message-full.message-event .message-map {
     position:relative;
     height:250px;
@@ -836,7 +805,9 @@ img.picture-edit {
     }
 .message-full .message-body {
     margin-top:1em;
+    padding:0 10px;
     line-height:1.3em;
+    color:#306663;
 }
     .message-full .message-body a,
     .message-full .message-body a:visited {
@@ -863,38 +834,33 @@ img.picture-edit {
     margin:1em 0;
 }
     .message-full .message-replies .message-reply {
-        padding:9px 0;
-        border-bottom:dotted 1px #ccc;
-        border-left:dotted 1px #ccc;
-        border-right:dotted 1px #ccc;
-        background:#fff;
-    }
-    .message-full .message-replies .message-reply:first-child {
-        border-top:dotted 1px #ccc;
+        margin-bottom:.5em;
+        border:solid 1px #c6ad85;
+        border-radius:0.3em;
+        color:#306663;
+        background:#fae7be;
+        padding:5px;
     }
         .message-full .message-replies .message-reply .picture {
             float:left;
-            width:30%;
+            width:25%;
         }
+            .message-full .message-replies .message-reply .picture img.avatar {
+                border-color:#fff;
+                border-radius:48px;
+                margin:0 auto;
+            }
             .message-full .message-replies .message-reply .picture a,
             .message-full .message-replies .message-reply .picture span {
                 display:block;
-                float:right;
-                margin-right:15%;
             }
         .message-full .message-replies .message-reply .message-reply-info {
             float:left;
-            width:70%;
+            width:75%;
             line-height:1.3em;
         }
-            .message-full .message-replies .message-reply .message-reply-author,
-            .message-full .message-replies .message-reply .message-reply-body {
-                display:inline;
-                margin-right:5px;
-            }
 .message-full .message-reply-form {
     width:100%;
-    margin-top:1em;
 }
 
 
@@ -902,63 +868,66 @@ img.picture-edit {
     Member Profile
    ================ */
 
-.profile {
-    margin-bottom:60px;
-}
-.profile .picture {
-    position:relative;
-}
-.profile .picture img.avatar {
-    border-color:#fff;
-    box-shadow:2px 2px 3px #999;
-}
-.profile .picture ul {
-    list-style-type:none;
-    width:100%;
+body.profile .header-pic {
     position:absolute;
+    width:100%;
     top:0;
 }
-    .profile .picture ul li {
-        line-height:1.1em;
-        color:#666;
-        margin-left:175px;
-        padding:0.25em 0;
-        text-shadow: 0 1px 0 #fff;
+    body.profile .header-pic img.avatar {
+        margin:0 auto;
+        border-color:#fff;
+        border-radius:150px;
     }
-    .profile .picture ul li img.icon-addtofriend {
-        background-position:-128px -96px;
-    }
-    .profile .picture ul li a:hover img.icon-addtofriend {
-        background-position:-128px -32px;
-    }
-
-.profile h2 {
-    margin-top:1em;
-    text-align:left;
+body.profile .member-profile {
+    margin-top:130px;
+    margin-bottom:48px;
 }
-.profile div[data-entity="message"] {
+body.profile div[data-entity="message"] {
     margin-top:1em;
     margin-bottom:1em;
 }
-.profile p.interests {
-    margin:0 0 0.7em;
-    font-size:0.9em;
+body.profile p.interests {
+    margin:0.7em 10%;
+    text-align:center;
 }
-    .profile p.interests a,
-    .profile p.interests a.ui-link {
-        color:#666;
-        font-weight:normal;
+    body.profile p.interests a,
+    body.profile p.interests a.ui-link {
+        color:#306663;
+        font-weight:bold;
         text-decoration:none;
     }
-.profile h3 {
-    font-size:1em;
+body.profile .distance {
+    color:#306663;
+    text-align:center;
 }
-.profile ul.kids {
-    margin-top:.3em;
-    list-style-type:none;
+body.profile .member-details {
+    margin:1em 10%;
 }
-    .profile ul.kids li.box {
-        margin-bottom:.3em;
+body.profile .about {
+    color:#306663;
+    line-height:1.2em;
+    text-align:center;
+}
+body.profile .kids {
+    
+}
+    body.profile .kids .kid {
+        width:165px;
+        min-height:48px;
+        margin:.5em auto;
+        padding-top:.25em;
+        padding-left:105px;
+        color:#ae2f19;
+        line-height:1.2em;
+        font-weight:bold;
+        background-repeat:no-repeat;
+        background-position:32px 0;
+    }
+        body.profile .kids .kid.daughter { background-image:url(../img/pix-flower.png); }
+        body.profile .kids .kid.son { background-image:url(../img/pix-train.png); }
+    body.profile .kids .kid .kid-age {
+        color:#306663;
+        font-weight:normal;
     }
 
 
@@ -1000,8 +969,8 @@ img.picture-edit {
 }
     .write-message .message-types .message-type {
         float:left;
-        width:30%;
-        margin-right:5%;
+        width:48%;
+        margin-right:4%;
     }
     .write-message .message-types .message-type:last-child {
         margin-right:0;
@@ -1014,6 +983,11 @@ img.picture-edit {
         text-decoration:none;
         color:#666;
         border-radius:0.3em;
+    }
+    .write-message .message-types .message-type a.message-option:hover {
+        color:#fff;
+        background:#f89e91;
+        text-shadow: 0 1px 0 #888;
     }
     .write-message .message-types .message-type a.message-option p {
         padding:0;
@@ -1056,11 +1030,11 @@ img.picture-edit {
         background-position: -96px 0;
     }
     .write-message .message-types
-    .message-type a.message-option img.icon-friends{
+    .message-type a.message-option img.icon-friends {
         background-position: -32px -32px;
     }
     .write-message .message-types
-    .message-type a.message-option:hover img.icon-friends{
+    .message-type a.message-option:hover img.icon-friends {
         background-position: -32px -64px;
     }
     .write-message .message-types
@@ -1074,6 +1048,9 @@ img.picture-edit {
         line-height:1.1em;
         color:#999;
         text-align:center;
+    }
+    .write-message .message-types .message-type a.message-option:hover span {
+        color:#fff;
     }
     .write-message .message-types .message-type a.message-option.selected span {
         color:#fff;
@@ -1089,27 +1066,28 @@ img.picture-edit {
    ========= */
 
 .members .member {
-    padding:10px 0 15px;
-    border-bottom:dashed 1px #ccc;
-    color:#222;
-}
-.members .member:last-child {
-    border-bottom:none;
+    margin:0 20px;
+    padding:10px 0;
+    color:#306663;
+    border-radius:5px;
+    border-bottom:solid 2px #c6ad85;
 }
 .members .member-left {
     float:left;
-    width:22%;
+    width:25%;
 }
     .members .member-left .picture {
-        position:relative;
-        float:right;
-        margin-top:5px;
-        margin-right:20%;
+        width:58px;
+        margin:0 auto;
+    }
+    .members .member-left .picture img.avatar {
+        border-color:#fff;
+        border-radius:48px;
     }
 .members .member-right {
     position:relative;
     float:right;
-    width:78%;
+    width:75%;
 }
     .members .member-right .member-author,
     .members .member-right .member-body {
@@ -1117,6 +1095,7 @@ img.picture-edit {
         padding-bottom:0.3em;
     }
     .members .member-right .member-author span {
+        display:block;
         font-style:italic;
         font-size:0.9em;
         color:#999;

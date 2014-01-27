@@ -16,7 +16,7 @@
 
     <div data-entity="message" data-type="private-message" data-recipient="{{ member.id }}" class="hidden">
         <div data-entity="friends-list" class="write-pm">
-            <ul data-role="listview" data-inset="true" data-filter="true" data-filter-reveal="true" data-filter-placeholder="Select a friend">
+            <ul data-role="listview" data-inset="true" data-filter="true" data-filter-reveal="true" data-filter-placeholder="Type your friend's name">
                 {% for friend in friends %}
                     <li><a href="#" data-entity="recipient" data-id="{{ friend.id }}">{{ friend.name }}</a></li>
                 {% endfor %}

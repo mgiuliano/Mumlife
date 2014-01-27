@@ -60,12 +60,12 @@
                     <div class="ui-grid-a">
                         <div class="ui-block-a">
                             <label>Starts</label>
-                            <input type="date" class="message-time" value="{{ form.eventdate.value|date:"H:i" }}"
+                            <input type="time" class="message-time" value="{{ form.eventdate.value|date:"H:i" }}"
                                    placeholder="{% now "H:i" %}">
                         </div>
                         <div class="ui-block-b">
                             <label>Ends</label>
-                            <input type="date" class="message-endtime" value="{{ form.eventenddate.value|date:"H:i" }}"
+                            <input type="time" class="message-endtime" value="{{ form.eventenddate.value|date:"H:i" }}"
                                    placeholder="{% now "H:i" %}">
                         </div>
                     </div>
@@ -145,26 +145,29 @@
 {% block extrajs %}{{ block.super }}
 <script type="text/javascript">
     $(document).on('ml.Ready', function () {
-        // Event Date Picker
-        $('[name="eventdate"]').datepicker({
-            dateFormat: "yy-mm-dd",
-            minDate: "+1d",
-            beforeShow: function() {
-                setTimeout(function() {
-                    $('.ui-datepicker').css('z-index', 99999999999999);
-                }, 0);
-            }
-        });
-        // Event End Date Picker
-        $('[name="eventenddate"]').datepicker({
-            dateFormat: "yy-mm-dd",
-            minDate: "+2d",
-            beforeShow: function() {
-                setTimeout(function() {
-                    $('.ui-datepicker').css('z-index', 99999999999999);
-                }, 0);
-            }
-        });
+        // iOS has a built-in date picker
+        if (platform.os.family != 'iOS') {
+            // Event Date Picker
+            $('[name="eventdate"]').datepicker({
+                dateFormat: "yy-mm-dd",
+                minDate: "+1d",
+                beforeShow: function() {
+                    setTimeout(function() {
+                        $('.ui-datepicker').css('z-index', 99999999999999);
+                    }, 0);
+                }
+            });
+            // Event End Date Picker
+            $('[name="eventenddate"]').datepicker({
+                dateFormat: "yy-mm-dd",
+                minDate: "+2d",
+                beforeShow: function() {
+                    setTimeout(function() {
+                        $('.ui-datepicker').css('z-index', 99999999999999);
+                    }, 0);
+                }
+            });
+        }
 
         $('.message-name').focus();
         new ML.Messages({

@@ -277,7 +277,7 @@
 }
 .ui-widget-header {
     border: 1px solid #dddddd;
-    background: #9BC2B3;
+    background: #64b0b3;
     color: #ffffff;
     font-weight: bold;
 }
@@ -301,16 +301,16 @@
 .ui-state-focus,
 .ui-widget-content .ui-state-focus,
 .ui-widget-header .ui-state-focus {
-    border: 1px solid #9BC2B3;
-    background: #D8F3C9;
+    border: 1px solid #64b0b3;
+    background: #fae7be;
     font-weight: bold;
     color: #222;
 }
 .ui-state-active,
 .ui-widget-content .ui-state-active,
 .ui-widget-header .ui-state-active {
-    border: 1px solid #9BC2B3;
-    background: #9BC2B3;
+    border: 1px solid #64b0b3;
+    background: #64b0b3;
     color: #fff;
     font-weight:normal;
 }
