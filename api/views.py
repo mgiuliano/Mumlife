@@ -196,9 +196,7 @@ class MessageListView(views.APIView):
             show_events = True
             if request.GET.has_key('range'):
                 try:
-                    distance_range = int(request.GET['range'])
-                    if distance_range == 0:
-                        distance_range = 9999 # Nationwide
+                    distance_range = float(request.GET['range'])
                 except ValueError:
                     # the value passed was not an integer
                     pass
@@ -217,14 +215,13 @@ class MessageListView(views.APIView):
 
         # Return range according to page
         total = len(messages)
-        logger.debug(total)
         start = (page - 1) * settings.PAGING
         end = start + settings.PAGING
         results = [m.format(account) for m in messages[start:end]]
 
         # Record the last result's last message,
         # this result will be None for the first page.
-        if start <= settings.PAGING:
+        if page == 1:
             last_message = None
         else:
             try:
@@ -248,7 +245,7 @@ class MessageListView(views.APIView):
 
         # Format results
         html_content = ''
-        previous_day = None
+        previous_day = None if not last_message else last_message['eventdate']
         template = 'tags/event.html' if show_events else 'tags/message.html'
         for message in results:
             if show_events:
