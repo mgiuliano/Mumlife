@@ -114,9 +114,44 @@ class MessageIsEventListFilter(admin.SimpleListFilter):
         return queryset
 
 
+class MessageHasValidPostcodeListFilter(admin.SimpleListFilter):
+    # Human-readable title which will be displayed in the
+    # right admin sidebar just above the filter options.
+    title = 'has valid postcode'
+
+    # Parameter for the filter that will be used in the URL query.
+    parameter_name = 'hasvalidpostcode'
+
+    def lookups(self, request, model_admin):
+        """
+        Returns a list of tuples. The first element in each
+        tuple is the coded value for the option that will
+        appear in the URL query. The second element is the
+        human-readable name for the option that will appear
+        in the right sidebar.
+        """
+        return (
+            ('yes', 'Yes'),
+            ('no', 'No'),
+        )
+
+    def queryset(self, request, queryset):
+        """
+        Returns the filtered queryset based on the value
+        provided in the query string and retrievable via
+        `self.value()`.
+        """
+        if self.value() in ('yes', 'no'):
+            if self.value() == 'yes':
+                return queryset.exclude(geocode='0.0,0.0')
+            else:
+                return queryset.filter(geocode='0.0,0.0')
+        return queryset
+
+
 class MessageAdmin(admin.ModelAdmin):
     list_display = ('title', 'area', 'postcode', 'member', 'timestamp', 'visibility', 'eventdate', 'tags', 'is_reply', 'is_event')
-    list_filter = ('area', 'is_reply', MessageIsEventListFilter)
+    list_filter = ('area', 'is_reply', MessageIsEventListFilter, MessageHasValidPostcodeListFilter)
     search_fields = ('name', 'body', 'tags')
     inlines = (MessageAdminInline,)
     

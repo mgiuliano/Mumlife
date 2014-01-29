@@ -1,7 +1,7 @@
 /**
  * Mumlife - Common Scripts.
  *
- * @version     2014-01-25 1.0.1
+ * @version     2014-01-28 1.0.2
  * @author      Michael Giuliano <michael@beatscope.co.uk>
  * @copyright   2014 Beatscope Limited | http://www.beatscope.co.uk/
  */
@@ -613,7 +613,7 @@ ML.Feed.prototype.slide = function (distance) {
     //
     // if an empty range is provided (i.e. range=),
     // the range used will be the one saved in the cookie, if any.
-    var pattern = new RegExp(/\?range=(\d*)/g);
+    var pattern = new RegExp(/\?range=.+/g);
     var loc = location.href;
     if (pattern.exec(loc)) {
         loc = loc.replace(pattern, '?range='+distance);
