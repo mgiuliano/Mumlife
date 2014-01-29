@@ -42,7 +42,6 @@ class RegistrationView(BaseRegistrationView):
         member.fullname = ' '.join([first_name, last_name])
         member.postcode = cleaned_data["postcode"]
         member.save()
-        member.generate_slug()
 
         signals.user_registered.send(sender=self.__class__,
                                      user=new_user,
