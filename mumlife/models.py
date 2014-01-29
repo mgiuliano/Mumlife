@@ -51,6 +51,7 @@ class Member(models.Model):
     about = models.TextField("About", null=True, blank=True)
     spouse = models.ForeignKey('self', related_name='partner', null=True, blank=True, help_text="Spouse or Partner")
     interests = TagField("Interests")
+    geocode = models.CharField("Geocode", max_length=255, null=True, blank=True)
     units = models.IntegerField("Units", choices=(
         (0, 'Kilometers'),
         (1, 'Miles'),
@@ -60,15 +61,45 @@ class Member(models.Model):
                                          symmetrical=False, related_name='friends_with+')
 
     def save(self, *args, **kwargs):
+        self.set_slug()
         if self.postcode:
             self.postcode = self.postcode.upper()
+            self.set_geocode()
         else:
             self.postcode = 'N/A'
         super(Member, self).save(*args, **kwargs)
-        self.generate_slug()
 
     def __unicode__(self):
         return self.name
+
+    def get_distance(self, viewer=None):
+        if not viewer or not viewer.geocode or not self.geocode:
+            return {
+                'units': 'N/A',
+                'distance': 'N/A',
+                'distance-key': 99999999999
+            }
+        else:
+            units = viewer.units
+            units_display = viewer.get_units_display()
+            member_geocode = self.geocode.split(',')
+            viewer_geocode = viewer.geocode.split(',')
+            distance = utils.get_distance(float(member_geocode[0]),
+                                          float(member_geocode[1]),
+                                          float(viewer_geocode[0]),
+                                          float(viewer_geocode[1]))
+            if round(distance[units], 1) < 0.5:
+                distance_display = 'less than half a {}'.format(units_display.lower()[:-1])
+            elif round(distance[units], 1) <= 1.1:
+                distance_display = '{} {}'.format(round(distance[units], 1), units_display.lower()[:-1])
+            else:
+                distance_display = '{} {}'.format(round(distance[units], 1), units_display.lower())
+            distance_key = distance[units]
+        return {
+            'units': units_display,
+            'distance': distance_display,
+            'distance-key': distance_key
+        }
 
     def format(self, viewer=None):
         member = {}
@@ -86,22 +117,8 @@ class Member(models.Model):
             member['friend_status'] = False
         member['area'] = self.area
         member['picture'] = self.picture.url if self.picture else ''
-        if not viewer or (not self.geocode.latitude and not self.geocode.longitude):
-            member['units'] = viewer.get_units_display()
-            member['distance'] = 'N/A'
-            member['distance-key'] = 99999999999
-        else:
-            distance = utils.get_distance(self.geocode.latitude,
-                                          self.geocode.longitude,
-                                          viewer.geocode.latitude,
-                                          viewer.geocode.longitude)
-            if round(distance[viewer.units], 1) < 0.5:
-                member['distance'] = 'less than half a {}'.format(viewer.get_units_display().lower()[:-1])
-            elif round(distance[viewer.units], 1) <= 1.1:
-                member['distance'] = '{} {}'.format(round(distance[viewer.units], 1), viewer.get_units_display().lower()[:-1])
-            else:
-                member['distance'] = '{} {}'.format(round(distance[viewer.units], 1), viewer.get_units_display().lower())
-            member['distance-key'] = distance[viewer.units]
+        # distance
+        member.update(self.get_distance(viewer))
         member['tags'] = self.tags
         member['kids'] = self.get_kids(viewer=viewer)
         return member
@@ -147,22 +164,6 @@ class Member(models.Model):
         tags = utils.Extractor(','.join([t.name for t in tags])).extract_tags()
         return [{'key': tag[0], 'value': tag[1]} for tag in tags.items()]
 
-    @property
-    def geocode(self):
-        try:
-            geocode = Geocode.objects.get(code=self.postcode)
-        except Geocode.DoesNotExist:
-            # If the geocode for this postcode has not yet been stored,
-            # fetch it
-            try:
-                point = utils.get_postcode_point(self.postcode)
-            except:
-                # The function raises an Exception when the postcode does not exist
-                # we store the resulst as (0, 0) to avoid fetching the API every time
-                point = (0.0, 0.0)
-            geocode = Geocode.objects.create(code=self.postcode, latitude=point[0], longitude=point[1])
-        return geocode
-
     def add_friend(self, member, status):
         friend, created = Friendships.objects.get_or_create(
             from_member=self,
@@ -198,7 +199,7 @@ class Member(models.Model):
                 return 'Requesting'
             return False
 
-    def generate_slug(self):
+    def set_slug(self):
         if not self.slug:
             # Slug format: hyphenise(fullname)/random(1-999)/(1+count(fullname)/random(1-999)*(1+count(fullname))
             initials = ''.join(['{}.'.format(n[0]) for n in self.fullname.split()])
@@ -206,7 +207,23 @@ class Member(models.Model):
             count = Member.objects.filter(slug__contains=hyphenized).count()
             slug = '{}/{}/{}/{}'.format(hyphenized, random.randint(1, 999), count+1, (count+1) * random.randint(1, 999))
             self.slug = slug
-            self.save()
+
+    def set_geocode(self):
+        if not self.geocode:
+            try:
+                geocode = Geocode.objects.get(code=self.postcode)
+            except Geocode.DoesNotExist:
+                # If the geocode for this postcode has not yet been stored,
+                # fetch it
+                try:
+                    point = utils.get_postcode_point(self.postcode)
+                except:
+                    # The function raises an Exception when the postcode does not exist
+                    # we store the resulst as (0, 0) to avoid fetching the API every time
+                    point = (0.0, 0.0)
+                geocode = Geocode.objects.create(code=self.postcode, latitude=point[0], longitude=point[1])
+            self.geocode = str(geocode)
+
 
 def create_member(sender, instance, created, **kwargs):
     # Only create associated Member on creation,
@@ -308,6 +325,7 @@ class Message(models.Model):
     name = models.CharField(max_length=200, blank=True, null=True)
     body = models.TextField()
     location = models.TextField(blank=True, null=True)
+    geocode = models.CharField(max_length=255, null=True, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     eventdate = models.DateTimeField(null=True, blank=True)
     eventenddate = models.DateTimeField(null=True, blank=True)
@@ -321,6 +339,10 @@ class Message(models.Model):
 
     def __unicode__(self):
         return u'{}'.format(self.body)
+
+    def save(self, *args, **kwargs):
+        self.set_geocode()
+        super(Message, self).save(*args, **kwargs)
 
     @property
     def replies(self):
@@ -345,24 +367,32 @@ class Message(models.Model):
             return None
         return postcode.upper()
 
-    @property
-    def geocode(self):
-        try:
-            postcode = self.postcode
-            if not postcode:
-                postcode = 'N/A'
-            geocode = Geocode.objects.get(code=postcode)
-        except Geocode.DoesNotExist:
-            # If the geocode for this postcode has not yet been stored,
-            # fetch it
-            try:
-                point = utils.get_postcode_point(postcode)
-            except:
-                # The function raises an Exception when the postcode does not exist
-                # we store the resulst as (0, 0) to avoid fetching the API every time
-                point = (0.0, 0.0)
-            geocode = Geocode.objects.create(code=postcode, latitude=point[0], longitude=point[1])
-        return geocode
+    def get_distance(self, viewer=None):
+        if not viewer or not viewer.geocode or not self.geocode:
+            return {
+                'units': 'N/A',
+                'distance': 'N/A',
+                'distance-key': 99999999999
+            }
+        else:
+            units = viewer.units
+            units_display = viewer.get_units_display()
+            message_geocode = self.geocode.split(',')
+            viewer_geocode = viewer.geocode.split(',')
+            distance = utils.get_distance(float(message_geocode[0]),
+                                          float(message_geocode[1]),
+                                          float(viewer_geocode[0]),
+                                          float(viewer_geocode[1]))
+            if round(distance[units], 1) <= 1:
+                distance_display = '{} {}'.format(round(distance[units], 1), units_display.lower()[:-1])
+            else:
+                distance_display = '{} {}'.format(round(distance[units], 1), units_display.lower())
+            distance_key = distance[units]
+        return {
+            'units': units_display,
+            'distance': distance_display,
+            'distance-key': distance_key
+        }
 
     def format(self, viewer=None):
         message = dict([(f.name, getattr(self, f.name)) for f in self._meta.fields])
@@ -391,21 +421,8 @@ class Message(models.Model):
             # we therefore override it by the event location postcode area
             if self.postcode:
                 message['area'] = self.postcode.split()[0]
-            # distance details
-            if not viewer or (not self.geocode.latitude and not self.geocode.longitude):
-                message['units'] = viewer.get_units_display()
-                message['distance'] = 'N/A'
-                message['distance-key'] = 99999999999
-            else:
-                distance = utils.get_distance(self.geocode.latitude,
-                                              self.geocode.longitude,
-                                              viewer.geocode.latitude,
-                                              viewer.geocode.longitude)
-                if round(distance[viewer.units], 1) <= 1:
-                    message['distance'] = '{} {}'.format(round(distance[viewer.units], 1), viewer.get_units_display().lower()[:-1])
-                else:
-                    message['distance'] = '{} {}'.format(round(distance[viewer.units], 1), viewer.get_units_display().lower())
-                message['distance-key'] = distance[viewer.units]
+            # distance
+            message.update(self.get_distance(viewer))
         message['age'] = self.get_age()
         message['member'] = self.member.format(viewer=viewer)
         if message.has_key('recipient') and message['recipient']:
@@ -431,6 +448,24 @@ class Message(models.Model):
                 # inline tags only
                 tags = utils.Extractor(self.body).extract_tags()
         return [{'key': tag[0], 'value': tag[1]} for tag in tags.items()]
+
+    def set_geocode(self):
+        try:
+            postcode = self.postcode
+            if not postcode:
+                postcode = 'N/A'
+            geocode = Geocode.objects.get(code=postcode)
+        except Geocode.DoesNotExist:
+            # If the geocode for this postcode has not yet been stored,
+            # fetch it
+            try:
+                point = utils.get_postcode_point(postcode)
+            except:
+                # The function raises an Exception when the postcode does not exist
+                # we store the resulst as (0, 0) to avoid fetching the API every time
+                point = (0.0, 0.0)
+            geocode = Geocode.objects.create(code=postcode, latitude=point[0], longitude=point[1])
+        self.geocode = str(geocode)
 
 
 class Notifications(models.Model):

@@ -186,7 +186,7 @@ class MessageListView(views.APIView):
 
         account = self.request.user.get_profile()
         se = SearchEngine(account=account)
-        
+
         # Adding 'events' as a query parameter tells us to return events only.
         show_events = False
         distance_range = 9999 # Nationwide
@@ -207,17 +207,20 @@ class MessageListView(views.APIView):
             all_results = se.search_messages(terms)
 
         # Pre-process results
-        messages = [m.format(viewer=account) for m in all_results]
-
-        # Event-only: exclude out-of-range events
+        messages = []
         if show_events:
-            messages = [m for m in messages if m['distance-key'] <= distance_range]
+            # Events only: exclude out-of-range events    
+            messages = [m for m in all_results \
+                          if m.get_distance(account)['distance-key'] <= distance_range]
+        else:
+            messages = list(all_results)
 
         # Return range according to page
         total = len(messages)
+        logger.debug(total)
         start = (page - 1) * settings.PAGING
         end = start + settings.PAGING
-        results = messages[start:end]
+        results = [m.format(account) for m in messages[start:end]]
 
         # Record the last result's last message,
         # this result will be None for the first page.
@@ -225,7 +228,7 @@ class MessageListView(views.APIView):
             last_message = None
         else:
             try:
-                last_message = messages[start-1]
+                last_message = messages[start-1].format(account)
             except AssertionError:
                 # AssertionError is raise when using negative indexing
                 last_message = None
