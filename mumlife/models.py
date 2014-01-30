@@ -61,12 +61,17 @@ class Member(models.Model):
                                          symmetrical=False, related_name='friends_with+')
 
     def save(self, *args, **kwargs):
-        self.set_slug()
-        if self.postcode:
-            self.postcode = self.postcode.upper()
-            self.set_geocode()
-        else:
-            self.postcode = 'N/A'
+        if self.id is not None:
+            # The profile is created after user creation,
+            # therefore no data will be associated with it then.
+            # It only makes sense to process data when it is updated,
+            # i.e. when the data is there
+            self.set_slug()
+            if self.postcode:
+                self.postcode = self.postcode.upper()
+                self.set_geocode()
+            else:
+                self.postcode = 'N/A'
         super(Member, self).save(*args, **kwargs)
 
     def __unicode__(self):
@@ -131,10 +136,13 @@ class Member(models.Model):
         if self == viewer:
             return self.fullname
         else:
-            # show lastame initials
-            name = self.fullname.split()
-            return '{} {}'.format(name[0], 
-                                  ''.join(['{}.'.format(n[0].upper()) for n in name[1:]]))
+            try:
+                # show lastame initials
+                name = self.fullname.split()
+                return '{} {}'.format(name[0], 
+                                      ''.join(['{}.'.format(n[0].upper()) for n in name[1:]]))
+            except IndexError:
+                return 'N/A'
     
     @property
     def age(self):
@@ -202,6 +210,7 @@ class Member(models.Model):
     def set_slug(self):
         if not self.slug:
             # Slug format: hyphenise(fullname)/random(1-999)/(1+count(fullname)/random(1-999)*(1+count(fullname))
+            logger.debug(self.fullname)
             initials = ''.join(['{}.'.format(n[0]) for n in self.fullname.split()])
             hyphenized = re.sub(r'\s\s*', '-', initials.lower())
             count = Member.objects.filter(slug__contains=hyphenized).count()
