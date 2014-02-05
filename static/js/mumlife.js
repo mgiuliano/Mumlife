@@ -1,7 +1,7 @@
 /**
  * Mumlife - Common Scripts.
  *
- * @version     2014-01-28 1.0.2
+ * @version     2014-02-05 1.0.3
  * @author      Michael Giuliano <michael@beatscope.co.uk>
  * @copyright   2014 Beatscope Limited | http://www.beatscope.co.uk/
  */
@@ -327,7 +327,7 @@ ML.Application.prototype.init = function () {
         }
     }
 
-    // detect version
+    // Detect version
     if ($.cookie('version')) {
         this.version = $.cookie('version');
     }
@@ -340,43 +340,10 @@ ML.Application.prototype.init = function () {
         }
     }
 
-    // add CSS
-    if (this.version == 'mobile') {
-        $('head').append('<link rel="stylesheet" href="' + ML.settings.get('static_url') + 'css/m.mumlife.css">');
-    } else {
-        $('head').append('<link rel="stylesheet" href="' + ML.settings.get('static_url') + 'css/d.mumlife.css">');
-    }
-
-    // load JS
-    this.load();
-
     // Initialize Menu
     new ML.Menu();
 
-};
-
-ML.Application.prototype.load = function () {
-    // Add jQuery Mobile framework if not already on the page
-    // The framework is added by default for both desktop and mobile versions,
-    // as some of its methods are used by the Mumlife App
-    var self = this;
-    $(document).bind("mobileinit", function () {
-        $.mobile.ajaxEnabled = false;
-        $.mobile.linkBindingEnabled = false;
-    });
-    if ($('head').find('script[src="' + ML.settings.get('static_url') + 'js/jquery.mobile-1.3.2.min.js"]').length == 0) {
-        $.getScript(ML.settings.get('static_url') + "js/jquery.mobile-1.3.2.min.js", function () {
-            self.ready();
-        });
-    } else {
-        this.ready();
-    }
-};
-
-ML.Application.prototype.ready = function () {
-    $(document.body).show();
-    
-    // Initialize common widgets
+    // Initialize Notifications
     // we wait a fraction of a second to make sure the DOM has the CSS files added to it.
     // this issue has been seen on Windows Phone 8.
     setTimeout(function () {

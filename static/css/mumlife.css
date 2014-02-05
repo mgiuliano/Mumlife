@@ -1,7 +1,7 @@
 /** 
  * Mumlife Styles.
  * 
- * @version     2014-01-25 2.0.0
+ * @version     2014-02-05 2.0.1
  * @author      Michael Giuliano <michael@beatscope.co.uk>
  * @copyright   2014 Beatscope Limited | http://www.beatscope.co.uk/
  */
@@ -11,7 +11,6 @@
     padding:0;
 }
 html { background:#f5f0ec; }
-body { display:none; }
 
 html,
 button,
@@ -190,10 +189,8 @@ textarea.message-body {
 
 img.avatar {
     display:block;
-    border:solid 5px transparent;
     border-radius:0.5em;
 }
-.ui-mobile a img.avatar { border-width:5px; }
 
 
 /* ========
@@ -627,7 +624,6 @@ img.picture-edit {
 }
     .message-left .message-picture img.avatar {
         margin:0 auto;
-        border-color:#fff;
         border-radius:48px;
     }
     .message-left .message-visibility,
@@ -765,7 +761,6 @@ body.fullmessage .header-pic-small {
 }
     body.fullmessage .header-pic-small img.avatar {
         margin:0 auto;
-        border-color:#fff;
         border-radius:150px;
     }
 
@@ -846,7 +841,6 @@ body.fullmessage .header-pic-small {
             width:25%;
         }
             .message-full .message-replies .message-reply .picture img.avatar {
-                border-color:#fff;
                 border-radius:48px;
                 margin:0 auto;
             }
@@ -874,8 +868,8 @@ body.profile .header-pic {
     top:0;
 }
     body.profile .header-pic img.avatar {
+        position:relative;
         margin:0 auto;
-        border-color:#fff;
         border-radius:150px;
     }
 body.profile .member-profile {
@@ -1081,7 +1075,6 @@ body.profile .kids {
         margin:0 auto;
     }
     .members .member-left .picture img.avatar {
-        border-color:#fff;
         border-radius:48px;
     }
 .members .member-right {
