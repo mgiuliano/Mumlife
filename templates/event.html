@@ -141,7 +141,7 @@
             // Event Date Picker
             $('[name="eventdate"]').datepicker({
                 dateFormat: "yy-mm-dd",
-                minDate: "+1d",
+                minDate: "0",
                 beforeShow: function() {
                     setTimeout(function() {
                         $('.ui-datepicker').css('z-index', 99999999999999);
@@ -151,7 +151,7 @@
             // Event End Date Picker
             $('[name="eventenddate"]').datepicker({
                 dateFormat: "yy-mm-dd",
-                minDate: "+2d",
+                minDate: "+7d",
                 beforeShow: function() {
                     setTimeout(function() {
                         $('.ui-datepicker').css('z-index', 99999999999999);
