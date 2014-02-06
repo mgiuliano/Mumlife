@@ -3,12 +3,14 @@ from django.conf.urls import patterns, include, url
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from mumlife.admin import site
+from mumlife.models import Page
 from mumlife.uploads import FileUploader
 #from mumlife.forms import PassResetForm
 
 urlpatterns = patterns('',
 
     url(r'^$', 'mumlife.views.home'),
+    url(Page.REGEX(), 'mumlife.views.page'),
     url(r'^s/(?P<tagstring>.*)', 'mumlife.views.feed'),
     url(r'^events/(?P<tagstring>.*)', 'mumlife.views.events'),
     url(r'^messages/$', 'mumlife.views.messages'),
@@ -61,7 +63,4 @@ urlpatterns = patterns('',
     url(r'^grappelli/', include('grappelli.urls')),
     url(r'^back-office/', include(site.urls)),
     url(r'^markitup/', include('markitup.urls'))
-
-    #url(r'^back-office/', include(site.urls)),
-
 )

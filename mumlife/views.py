@@ -15,7 +15,7 @@ from django.utils import timezone
 from tagging.models import Tag, TaggedItem
 from longerusername.forms import AuthenticationForm
 from mumlife import utils
-from mumlife.models import Member, Kid, Message, Friendships
+from mumlife.models import Page, Member, Kid, Message, Friendships
 from mumlife.forms import SignUpForm, MemberForm, KidForm, MessageForm
 
 logger = logging.getLogger('mumlife.views')
@@ -47,6 +47,16 @@ def home(request):
         return HttpResponse(t.render(c))
     else:
         return HttpResponseRedirect('/s/')
+
+
+def page(request, page):
+    p = get_object_or_404(Page, slug=page)
+    t = loader.get_template('page.html')
+    c = RequestContext(request, {
+        'title': p.title,
+        'body': p.body
+    })
+    return HttpResponse(t.render(c))
 
 
 """

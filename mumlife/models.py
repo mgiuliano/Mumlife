@@ -9,9 +9,25 @@ from django.utils import timezone
 from django.utils.timesince import timesince
 from tagging.fields import TagField
 from tagging.models import Tag
+from markitup.fields import MarkupField
 from mumlife import utils
 
 logger = logging.getLogger('mumlife.models')
+
+
+class Page(models.Model):
+    title = models.CharField(max_length=64, unique=True)
+    slug = models.CharField(max_length=64, unique=True)
+    body = MarkupField()
+    status = models.BooleanField("Publish Status", default=False)
+
+    def __unicode__(self):
+        return self.title
+    
+    @staticmethod
+    def REGEX():
+        """ Static pages regular expression used by the URL resolver """
+        return r'^(?P<page>{})$'.format('|'.join([p['slug'] for p in Page.objects.filter(status=True).values('slug')]))
 
 
 class Geocode(models.Model):
