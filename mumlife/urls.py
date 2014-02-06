@@ -58,6 +58,10 @@ urlpatterns = patterns('',
     url(r'^1/', include('api.urls')),
 
     # Back Office
+    url(r'^grappelli/', include('grappelli.urls')),
     url(r'^back-office/', include(site.urls)),
+    url(r'^markitup/', include('markitup.urls'))
+
+    #url(r'^back-office/', include(site.urls)),
 
 )

@@ -122,14 +122,17 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.sites',
     'django.contrib.staticfiles',
+    'grappelli',
     'django.contrib.admin',
     'registration',
     'south',
     'rest_framework',
     'tagging',
+    'markitup',
     'mumlife',
 )
 
+### REGISTRATION
 ACCOUNT_ACTIVATION_DAYS = 7
 
 ### REST FRAMEWORK
@@ -143,6 +146,14 @@ REST_FRAMEWORK = {
     ),
 }
 
+### ADMIN SITE
+GRAPPELLI_ADMIN_TITLE = 'Mumlife Back Office'
+MARKITUP_FILTER = ('markdown.markdown', {'safe_mode': False})
+MARKITUP_SET = 'markitup/sets/markdown'
+MARKITUP_AUTO_PREVIEW = True
+JQUERY_URL='js/jquery-1.9.1.min.js'
+
+### LOGGING
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,

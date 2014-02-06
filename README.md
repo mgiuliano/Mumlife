@@ -10,6 +10,8 @@ djangorestframework [http://django-rest-framework.org/]
 django-registration [https://django-registration.readthedocs.org/en/latest/index.html]
 django-tagging [http://code.google.com/p/django-tagging/]
 django-longer-username [https://github.com/GoodCloud/django-longer-username]
+django-grappelli [http://django-grappelli.readthedocs.org/en/latest/index.html]
+markdown
 
 ## Javascript
 **jQuery Mobile**
