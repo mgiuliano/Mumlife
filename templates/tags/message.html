@@ -8,6 +8,14 @@
                          alt="{{ member.name }}" width="48" height="48" />
                 </a>
             </div>
+        {% elif member.id == account.id %}
+            <div class="message-picture">
+                <a href="{{ SITE_URL }}profile/{{ recipient.slug }}">
+                    <img class="avatar"
+                         src="{% if recipient.picture %}{{ recipient.picture }}{% else %}{{ STATIC_URL }}img/picture-default.png{% endif %}"
+                         alt="{{ recipient.name }}" width="48" height="48" />
+                </a>
+            </div>
         {% else %}
             <div class="message-picture">
                 <a href="{{ SITE_URL}}profile/{{ member.slug }}">
@@ -24,8 +32,10 @@
         <div class="message-author">
             {% if member.is_admin %}
                 <a href="{{ SITE_URL }}message/{{ id }}">{{ member.name }}</a>
+            {% elif member.id == account.id %}
+                <a href="{{ SITE_URL }}profile/{{ recipient.slug }}">{{ recipient.name }}</a>
             {% else %}
-                <a href="{{ SITE_URL}}profile/{{ member.slug }}">{{ member.name }}</a>
+                <a href="{{ SITE_URL }}profile/{{ member.slug }}">{{ member.name }}</a>
             {% endif %}
         </div>
         <div class="message-body">

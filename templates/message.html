@@ -15,11 +15,18 @@
 
 {% block heading %}<h1>{% if result.eventdate  %}{{ result.eventmonth }} {{ result.eventday }}{% else %}&nbsp;
     <div class="header-pic-small">
-        {% if result.member.is_admin %}<img
+        {% if result.member.is_admin %}
+        <img
             class="avatar"
             src="{% if result.member.picture %}{{ result.member.picture }}{% else %}{{ STATIC_URL }}img/picture-default.png{% endif %}"
             alt="{{ result.member.name }}" width="48" height="48" />
-        {% else %}<a href="{{ SITE_URL }}profile/{{ result.member.slug }}"><img
+        {% elif account.id == result.member.id %}
+        <a href="{{ SITE_URL }}profile/{{ result.recipient.slug }}"><img
+            class="avatar"
+            src="{% if result.recipient.picture %}{{ result.recipient.picture }}{% else %}{{ STATIC_URL }}img/picture-default.png{% endif %}"
+            alt="{{ result.recipient.name }}" width="48" height="48" /></a>
+        {% else %}
+        <a href="{{ SITE_URL }}profile/{{ result.member.slug }}"><img
             class="avatar"
             src="{% if result.member.picture %}{{ result.member.picture }}{% else %}{{ STATIC_URL }}img/picture-default.png{% endif %}"
             alt="{{ result.member.name }}" width="48" height="48" /></a>
@@ -35,9 +42,11 @@
         {{ result.name }}
     {% else %}
         {% if result.member.is_admin %}
-        {{ result.member.name }}
+            {{ result.member.name }}
+        {% elif account.id == result.member.id %}
+            <a href="{{ SITE_URL }}profile/{{ result.recipient.slug }}">{{ result.recipient.name }}</a>
         {% else %}
-        <a href="{{ SITE_URL }}profile/{{ result.member.slug }}">{{ result.member.name }}</a>
+            <a href="{{ SITE_URL }}profile/{{ result.member.slug }}">{{ result.member.name }}</a>
         {% endif %}
     {% endif %}</h2>
 

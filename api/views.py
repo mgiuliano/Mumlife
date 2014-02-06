@@ -259,6 +259,7 @@ class MessageListView(views.APIView):
                 previous_day = day
             message['STATIC_URL'] = settings.STATIC_URL
             message['SITE_URL'] = settings.SITE_URL
+            message['account'] = account.format()
             html_content += loader.render_to_string(template, message)
 
         response = {
