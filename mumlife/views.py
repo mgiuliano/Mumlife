@@ -96,6 +96,14 @@ def feed(request, tagstring=''):
         context['total'] = 0
         context['results'] = ''
         context['next'] = ''
+
+    # Format empty results message
+    if not context['total']:
+        data = {
+            'STATIC_URL': settings.STATIC_URL
+        }
+        content = loader.render_to_string('tags/message-noresults.html', data)
+        context['noresults'] = content
         
     t = loader.get_template('feed.html')
     c = RequestContext(request, context)
@@ -178,6 +186,14 @@ def messages(request):
         context['total'] = 0
         context['results'] = ''
         context['next'] = ''
+
+    # Format empty results message
+    if not context['total']:
+        data = {
+            'STATIC_URL': settings.STATIC_URL
+        }
+        content = loader.render_to_string('tags/message-noprivates.html', data)
+        context['noresults'] = content
 
     t = loader.get_template('messages.html')
     c = RequestContext(request, context)

@@ -13,7 +13,7 @@
 
 {% block content %}
     <div class="feed">
-        {{ results|safe }}
+        {% if noresults %}{{ noresults }}{% else %}{{ results|safe }}{% endif %}
         <button data-icon="plus">More</button>
     </div>
 {% endblock %}
