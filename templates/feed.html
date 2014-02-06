@@ -4,7 +4,7 @@
 
 {% block header %}
 <div class="search-form">
-    <form method="post" action="{{ SITE_URL }}s/">
+    <form method="post" action="{{ SITE_URL }}local/">
         {% csrf_token %}
         <input type="text" data-clear-btn="true" name="terms" placeholder="Search for #topics" value="{% if tagstring %}{{ tagstring }}{% else %}{% endif %}" />
     </form>

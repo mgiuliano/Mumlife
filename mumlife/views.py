@@ -38,7 +38,7 @@ def home(request):
                 login(request, form.get_user())
                 if request.GET.has_key('next'):
                     return HttpResponseRedirect(request.GET['next'])
-                return HttpResponseRedirect('/s/')
+                return HttpResponseRedirect('/local/')
         else:
             form = AuthenticationForm()
         context['form'] = form
@@ -46,7 +46,7 @@ def home(request):
         c = RequestContext(request, context)
         return HttpResponse(t.render(c))
     else:
-        return HttpResponseRedirect('/s/')
+        return HttpResponseRedirect('/local/')
 
 
 def page(request, page):
@@ -70,7 +70,7 @@ def feed(request, tagstring=''):
     context = {}
     if request.method == 'POST' and request.POST.has_key('terms'):
         tagstring = urllib.quote(request.POST['terms'])
-        return HttpResponseRedirect('/s/{}'.format(tagstring))
+        return HttpResponseRedirect('/local/{}'.format(tagstring))
 
     if not tagstring:
         tagstring = ''
@@ -268,23 +268,27 @@ def edit_event(request, event_id):
 
 
 @login_required
-def message(request, mid):
+def message(request, mid, eventmonth=None, eventday=None):
     account = request.user.get_profile()
     message = get_object_or_404(Message, pk=mid)
+    formatted_message = message.format(viewer=request.user.get_profile())
+    if eventmonth and eventday:
+        formatted_message['eventmonth'] = eventmonth
+        formatted_message['eventday'] = eventday
     context = {
         'account': account,
-        'result': message.format(viewer=request.user.get_profile())
+        'result': formatted_message
     }
     # back button
-    backlink = 's/'
+    backlink = 'local/'
     if message.eventdate:
         backlink = 'events/'
     elif message.visibility == Message.PRIVATE:
         backlink = 'messages/'
     elif message.visibility == Message.FRIENDS:
-        backlink = 's/@friends'
+        backlink = 'local/@friends'
     elif message.area != account.area:
-        backlink = 's/@global'
+        backlink = 'local/@global'
     context['back'] = '{}{}'.format(settings.SITE_URL, backlink)
 
     t = loader.get_template('message.html')

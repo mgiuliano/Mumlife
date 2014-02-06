@@ -33,7 +33,7 @@ class Extractor(object):
 
     def replace_with_links(self, matchobj):
         hashtag = matchobj.group(0)
-        return '<a href="{}s/%23{}">{}</a>'.format(settings.SITE_URL, hashtag[1:], hashtag)
+        return '<a href="{}local/%23{}">{}</a>'.format(settings.SITE_URL, hashtag[1:], hashtag)
 
     def extract_tags(self):
         """

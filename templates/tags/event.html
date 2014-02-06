@@ -3,7 +3,7 @@
 {% endif %}
 <div class="message clearfix">
     <div class="message-left">
-        <a href="{{ SITE_URL }}message/{{ id }}" class="message-event-link">
+        <a href="{{ SITE_URL }}message/{{ id }}/{{ eventmonth }}/{{ eventday }}/" class="message-event-link">
             <span class="message-time">{{ eventtime }}</span>
             <span class="message-picture">
                 <img class="avatar"
@@ -18,10 +18,10 @@
     </div>
     <div class="message-right">
         <div class="message-author">
-            <a href="{{ SITE_URL }}message/{{ id }}">{{ name }}</a>
+            <a href="{{ SITE_URL }}message/{{ id }}/{{ eventmonth }}/{{ eventday }}/">{{ name }}</a>
         </div>
         <div class="message-body">
-            <a href="{{ SITE_URL }}message/{{ id }}" class="message-body-link">
+            <a href="{{ SITE_URL }}message/{{ id }}/{{ eventmonth }}/{{ eventday }}/" class="message-body-link">
                 {{ location }}
                 <span class="message-tags">{% for tag in tags %}{{ tag.value }} {% endfor %}</span>
                 <span class="message-age" title="{{ timestamp }}">{{ age }}</span>
@@ -29,7 +29,7 @@
         </div>
         <div class="message-tools">
             {% if replies %}
-                <a href="{{ SITE_URL }}message/{{ id }}" class="message-tools-link">
+                <a href="{{ SITE_URL }}message/{{ id }}/{{ eventmonth }}/{{ eventday }}/" class="message-tools-link">
                     <span class="message-replies-count">{{ replies|length }}</span>
                 </a>
             {% endif %}

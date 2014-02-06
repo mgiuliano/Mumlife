@@ -2,7 +2,7 @@
     <div class="message-left">
         {% if member.is_admin %}
             <div class="message-picture">
-                <a href="{{ SITE_URL}}message/{{ id }}">
+                <a href="{{ SITE_URL}}message/{{ id }}/">
                     <img class="avatar"
                          src="{% if member.picture %}{{ member.picture }}{% else %}{{ STATIC_URL }}img/picture-default.png{% endif %}"
                          alt="{{ member.name }}" width="48" height="48" />
@@ -31,7 +31,7 @@
     <div class="message-right">
         <div class="message-author">
             {% if member.is_admin %}
-                <a href="{{ SITE_URL }}message/{{ id }}">{{ member.name }}</a>
+                <a href="{{ SITE_URL }}message/{{ id }}/">{{ member.name }}</a>
             {% elif member.id == account.id %}
                 <a href="{{ SITE_URL }}profile/{{ recipient.slug }}">{{ recipient.name }}</a>
             {% else %}
@@ -39,7 +39,7 @@
             {% endif %}
         </div>
         <div class="message-body">
-            <a href="{{ SITE_URL }}message/{{ id }}" class="message-body-link">
+            <a href="{{ SITE_URL }}message/{{ id }}/" class="message-body-link">
                 {{ body|safe }}
                 {% for tag in tags_item %}<span>{{ tag.value }}</span> {% endfor %}
                 <span class="message-age" title="{{ timestamp }}">{{ age }}</span>
@@ -47,7 +47,7 @@
         </div>
         <div class="message-tools">
             {% if replies %}
-                <a href="{{ SITE_URL }}message/{{ id }}" class="message-tools-link">
+                <a href="{{ SITE_URL }}message/{{ id }}/" class="message-tools-link">
                     <span class="message-replies-count">{{ replies|length }}</span>
                 </a>
             {% endif %}

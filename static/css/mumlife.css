@@ -190,6 +190,7 @@ textarea.message-body {
 img.avatar {
     display:block;
     border-radius:0.5em;
+    padding:4px;
 }
 
 
