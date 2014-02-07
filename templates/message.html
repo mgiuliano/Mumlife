@@ -141,7 +141,6 @@
     <div class="message-body">
         {{ result.body_with_links|safe }}
         <div class="message-tags">{% for tag in result.tags_item %}<a href="{{ SITE_URL}}s/%23{{ tag.key }}">{{ tag.value }}</a> {% endfor %}</div>
-        {% if result.eventdate  %}
         <p class="message-event-creator">
             {% if result.member.is_admin %}
             {{ result.member.name }}
@@ -149,7 +148,6 @@
             <a href="{{ SITE_URL }}profile/{{ result.member.slug }}">{{ result.member.name }}</a>
             {% endif %}
         </p>
-        {% endif %}
         <p class="message-age" title="{{ result.timestamp }}">{{ result.age }}</p>
     </div>
 
