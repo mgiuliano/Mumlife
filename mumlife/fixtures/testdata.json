@@ -363,6 +363,78 @@
     "pk": 31, 
     "model": "auth.permission", 
     "fields": {
+        "codename": "add_registrationprofile", 
+        "name": "Can add registration profile", 
+        "content_type": [
+            "registration", 
+            "registrationprofile"
+        ]
+    }
+},
+{
+    "pk": 32, 
+    "model": "auth.permission", 
+    "fields": {
+        "codename": "change_registrationprofile", 
+        "name": "Can change registration profile", 
+        "content_type": [
+            "registration", 
+            "registrationprofile"
+        ]
+    }
+},
+{
+    "pk": 33, 
+    "model": "auth.permission", 
+    "fields": {
+        "codename": "delete_registrationprofile", 
+        "name": "Can delete registration profile", 
+        "content_type": [
+            "registration", 
+            "registrationprofile"
+        ]
+    }
+},
+{
+    "pk": 34, 
+    "model": "auth.permission", 
+    "fields": {
+        "codename": "add_page", 
+        "name": "Can add page", 
+        "content_type": [
+            "mumlife", 
+            "page"
+        ]
+    }
+},
+{
+    "pk": 35, 
+    "model": "auth.permission", 
+    "fields": {
+        "codename": "change_page", 
+        "name": "Can change page", 
+        "content_type": [
+            "mumlife", 
+            "page"
+        ]
+    }
+},
+{
+    "pk": 36, 
+    "model": "auth.permission", 
+    "fields": {
+        "codename": "delete_page", 
+        "name": "Can delete page", 
+        "content_type": [
+            "mumlife", 
+            "page"
+        ]
+    }
+},
+{
+    "pk": 37, 
+    "model": "auth.permission", 
+    "fields": {
         "codename": "add_geocode", 
         "name": "Can add geocode", 
         "content_type": [
@@ -372,7 +444,7 @@
     }
 },
 {
-    "pk": 32, 
+    "pk": 38, 
     "model": "auth.permission", 
     "fields": {
         "codename": "change_geocode", 
@@ -384,7 +456,7 @@
     }
 },
 {
-    "pk": 33, 
+    "pk": 39, 
     "model": "auth.permission", 
     "fields": {
         "codename": "delete_geocode", 
@@ -396,7 +468,7 @@
     }
 },
 {
-    "pk": 34, 
+    "pk": 40, 
     "model": "auth.permission", 
     "fields": {
         "codename": "add_member", 
@@ -408,7 +480,7 @@
     }
 },
 {
-    "pk": 35, 
+    "pk": 41, 
     "model": "auth.permission", 
     "fields": {
         "codename": "change_member", 
@@ -420,7 +492,7 @@
     }
 },
 {
-    "pk": 36, 
+    "pk": 42, 
     "model": "auth.permission", 
     "fields": {
         "codename": "delete_member", 
@@ -432,7 +504,7 @@
     }
 },
 {
-    "pk": 37, 
+    "pk": 43, 
     "model": "auth.permission", 
     "fields": {
         "codename": "add_kid", 
@@ -444,7 +516,7 @@
     }
 },
 {
-    "pk": 38, 
+    "pk": 44, 
     "model": "auth.permission", 
     "fields": {
         "codename": "change_kid", 
@@ -456,7 +528,7 @@
     }
 },
 {
-    "pk": 39, 
+    "pk": 45, 
     "model": "auth.permission", 
     "fields": {
         "codename": "delete_kid", 
@@ -468,7 +540,7 @@
     }
 },
 {
-    "pk": 40, 
+    "pk": 46, 
     "model": "auth.permission", 
     "fields": {
         "codename": "add_friendships", 
@@ -480,7 +552,7 @@
     }
 },
 {
-    "pk": 41, 
+    "pk": 47, 
     "model": "auth.permission", 
     "fields": {
         "codename": "change_friendships", 
@@ -492,7 +564,7 @@
     }
 },
 {
-    "pk": 42, 
+    "pk": 48, 
     "model": "auth.permission", 
     "fields": {
         "codename": "delete_friendships", 
@@ -504,7 +576,7 @@
     }
 },
 {
-    "pk": 43, 
+    "pk": 49, 
     "model": "auth.permission", 
     "fields": {
         "codename": "add_message", 
@@ -516,7 +588,7 @@
     }
 },
 {
-    "pk": 44, 
+    "pk": 50, 
     "model": "auth.permission", 
     "fields": {
         "codename": "change_message", 
@@ -528,7 +600,7 @@
     }
 },
 {
-    "pk": 45, 
+    "pk": 51, 
     "model": "auth.permission", 
     "fields": {
         "codename": "delete_message", 
@@ -540,19 +612,343 @@
     }
 },
 {
+    "pk": 52, 
+    "model": "auth.permission", 
+    "fields": {
+        "codename": "add_notifications", 
+        "name": "Can add notifications", 
+        "content_type": [
+            "mumlife", 
+            "notifications"
+        ]
+    }
+},
+{
+    "pk": 53, 
+    "model": "auth.permission", 
+    "fields": {
+        "codename": "change_notifications", 
+        "name": "Can change notifications", 
+        "content_type": [
+            "mumlife", 
+            "notifications"
+        ]
+    }
+},
+{
+    "pk": 54, 
+    "model": "auth.permission", 
+    "fields": {
+        "codename": "delete_notifications", 
+        "name": "Can delete notifications", 
+        "content_type": [
+            "mumlife", 
+            "notifications"
+        ]
+    }
+},
+{
+    "pk": 1, 
+    "model": "auth.group", 
+    "fields": {
+        "name": "Administrators", 
+        "permissions": [
+            [
+                "add_friendships", 
+                "mumlife", 
+                "friendships"
+            ], 
+            [
+                "change_friendships", 
+                "mumlife", 
+                "friendships"
+            ], 
+            [
+                "delete_friendships", 
+                "mumlife", 
+                "friendships"
+            ], 
+            [
+                "add_geocode", 
+                "mumlife", 
+                "geocode"
+            ], 
+            [
+                "change_geocode", 
+                "mumlife", 
+                "geocode"
+            ], 
+            [
+                "delete_geocode", 
+                "mumlife", 
+                "geocode"
+            ], 
+            [
+                "add_kid", 
+                "mumlife", 
+                "kid"
+            ], 
+            [
+                "change_kid", 
+                "mumlife", 
+                "kid"
+            ], 
+            [
+                "delete_kid", 
+                "mumlife", 
+                "kid"
+            ], 
+            [
+                "add_member", 
+                "mumlife", 
+                "member"
+            ], 
+            [
+                "change_member", 
+                "mumlife", 
+                "member"
+            ], 
+            [
+                "delete_member", 
+                "mumlife", 
+                "member"
+            ], 
+            [
+                "add_message", 
+                "mumlife", 
+                "message"
+            ], 
+            [
+                "change_message", 
+                "mumlife", 
+                "message"
+            ], 
+            [
+                "delete_message", 
+                "mumlife", 
+                "message"
+            ], 
+            [
+                "add_notifications", 
+                "mumlife", 
+                "notifications"
+            ], 
+            [
+                "change_notifications", 
+                "mumlife", 
+                "notifications"
+            ], 
+            [
+                "delete_notifications", 
+                "mumlife", 
+                "notifications"
+            ], 
+            [
+                "add_page", 
+                "mumlife", 
+                "page"
+            ], 
+            [
+                "change_page", 
+                "mumlife", 
+                "page"
+            ], 
+            [
+                "delete_page", 
+                "mumlife", 
+                "page"
+            ], 
+            [
+                "add_tag", 
+                "tagging", 
+                "tag"
+            ], 
+            [
+                "change_tag", 
+                "tagging", 
+                "tag"
+            ], 
+            [
+                "delete_tag", 
+                "tagging", 
+                "tag"
+            ], 
+            [
+                "add_taggeditem", 
+                "tagging", 
+                "taggeditem"
+            ], 
+            [
+                "change_taggeditem", 
+                "tagging", 
+                "taggeditem"
+            ], 
+            [
+                "delete_taggeditem", 
+                "tagging", 
+                "taggeditem"
+            ]
+        ]
+    }
+},
+{
+    "pk": 2, 
+    "model": "auth.group", 
+    "fields": {
+        "name": "Moderators", 
+        "permissions": [
+            [
+                "add_friendships", 
+                "mumlife", 
+                "friendships"
+            ], 
+            [
+                "change_friendships", 
+                "mumlife", 
+                "friendships"
+            ], 
+            [
+                "delete_friendships", 
+                "mumlife", 
+                "friendships"
+            ], 
+            [
+                "add_geocode", 
+                "mumlife", 
+                "geocode"
+            ], 
+            [
+                "change_geocode", 
+                "mumlife", 
+                "geocode"
+            ], 
+            [
+                "delete_geocode", 
+                "mumlife", 
+                "geocode"
+            ], 
+            [
+                "add_kid", 
+                "mumlife", 
+                "kid"
+            ], 
+            [
+                "change_kid", 
+                "mumlife", 
+                "kid"
+            ], 
+            [
+                "delete_kid", 
+                "mumlife", 
+                "kid"
+            ], 
+            [
+                "add_member", 
+                "mumlife", 
+                "member"
+            ], 
+            [
+                "change_member", 
+                "mumlife", 
+                "member"
+            ], 
+            [
+                "delete_member", 
+                "mumlife", 
+                "member"
+            ], 
+            [
+                "add_message", 
+                "mumlife", 
+                "message"
+            ], 
+            [
+                "change_message", 
+                "mumlife", 
+                "message"
+            ], 
+            [
+                "delete_message", 
+                "mumlife", 
+                "message"
+            ], 
+            [
+                "add_notifications", 
+                "mumlife", 
+                "notifications"
+            ], 
+            [
+                "change_notifications", 
+                "mumlife", 
+                "notifications"
+            ], 
+            [
+                "delete_notifications", 
+                "mumlife", 
+                "notifications"
+            ], 
+            [
+                "add_page", 
+                "mumlife", 
+                "page"
+            ], 
+            [
+                "change_page", 
+                "mumlife", 
+                "page"
+            ], 
+            [
+                "delete_page", 
+                "mumlife", 
+                "page"
+            ], 
+            [
+                "add_tag", 
+                "tagging", 
+                "tag"
+            ], 
+            [
+                "change_tag", 
+                "tagging", 
+                "tag"
+            ], 
+            [
+                "delete_tag", 
+                "tagging", 
+                "tag"
+            ], 
+            [
+                "add_taggeditem", 
+                "tagging", 
+                "taggeditem"
+            ], 
+            [
+                "change_taggeditem", 
+                "tagging", 
+                "taggeditem"
+            ], 
+            [
+                "delete_taggeditem", 
+                "tagging", 
+                "taggeditem"
+            ]
+        ]
+    }
+},
+{
     "pk": 1, 
     "model": "auth.user", 
     "fields": {
         "username": "michael@beatscope.co.uk", 
-        "first_name": "", 
-        "last_name": "", 
+        "first_name": "Michael", 
+        "last_name": "Giuliano", 
         "is_active": true, 
         "is_superuser": true, 
         "is_staff": true, 
-        "last_login": "2013-10-28T10:26:57Z", 
+        "last_login": "2014-02-07T04:38:32Z", 
         "groups": [], 
         "user_permissions": [], 
-        "password": "pbkdf2_sha256$10000$UPE1HKJRcL4r$86f9zWJ+RnbCFmzENWlCprjjJ0t6XkTkONkOEG50f28=", 
+        "password": "pbkdf2_sha256$12000$EBmnvbpPeb7B$krvCJNE0XRWu7oLn3fzd27/BSFLD0i61iiCR8dtnDp4=", 
         "email": "michael@beatscope.co.uk", 
         "date_joined": "2013-10-24T11:15:46Z"
     }
@@ -562,8 +958,8 @@
     "model": "auth.user", 
     "fields": {
         "username": "freya.hum@mumlife.co.uk", 
-        "first_name": "", 
-        "last_name": "", 
+        "first_name": "Freya", 
+        "last_name": "Hum", 
         "is_active": true, 
         "is_superuser": false, 
         "is_staff": false, 
@@ -580,15 +976,15 @@
     "model": "auth.user", 
     "fields": {
         "username": "suzanna.cole@mumlife.co.uk", 
-        "first_name": "", 
-        "last_name": "", 
+        "first_name": "Suzanna", 
+        "last_name": "Cole", 
         "is_active": true, 
         "is_superuser": false, 
         "is_staff": false, 
-        "last_login": "2013-10-28T11:04:05Z", 
+        "last_login": "2014-02-07T04:36:59Z", 
         "groups": [], 
         "user_permissions": [], 
-        "password": "pbkdf2_sha256$10000$UlVD0ezPrUyU$FfllYe+rlpVGst5nexJUL4VJH3zR5jPVOOIhoxzZuwg=", 
+        "password": "pbkdf2_sha256$12000$qDjm9gzMjgYB$BQeQSUo7rdHTTuLqrQSfybRIqa1slzxzJCllcJUdA9w=", 
         "email": "suzanna.cole@mumlife.co.uk", 
         "date_joined": "2013-10-24T11:34:44Z"
     }
@@ -598,15 +994,15 @@
     "model": "auth.user", 
     "fields": {
         "username": "amanda.poke@mumlife.co.uk", 
-        "first_name": "", 
-        "last_name": "", 
+        "first_name": "Amanda", 
+        "last_name": "Poke", 
         "is_active": true, 
         "is_superuser": false, 
         "is_staff": false, 
-        "last_login": "2013-10-28T10:22:36Z", 
+        "last_login": "2014-02-07T04:35:40Z", 
         "groups": [], 
         "user_permissions": [], 
-        "password": "pbkdf2_sha256$10000$Xlv4K0vntSYG$nP/L7vnmCxlgmiaNeE1zMBv7528WdDD5DpDlVTqPaH4=", 
+        "password": "pbkdf2_sha256$12000$x4kBWNtZtiiH$dMVM3cHaUS8qTXzX0PTTsR7uv4JOMScoLWCyvRRL5B8=", 
         "email": "amanda.poke@mumlife.co.uk", 
         "date_joined": "2013-10-24T11:35:14Z"
     }
@@ -616,8 +1012,8 @@
     "model": "auth.user", 
     "fields": {
         "username": "rachel.chatter@mumlife.co.uk", 
-        "first_name": "", 
-        "last_name": "", 
+        "first_name": "Rachel", 
+        "last_name": "Chatter", 
         "is_active": true, 
         "is_superuser": false, 
         "is_staff": false, 
@@ -634,15 +1030,15 @@
     "model": "auth.user", 
     "fields": {
         "username": "sarah.parker@mumlife.co.uk", 
-        "first_name": "", 
-        "last_name": "", 
+        "first_name": "Sarah", 
+        "last_name": "Parker", 
         "is_active": true, 
         "is_superuser": false, 
         "is_staff": false, 
-        "last_login": "2013-10-28T11:26:36Z", 
+        "last_login": "2014-02-07T04:34:56Z", 
         "groups": [], 
         "user_permissions": [], 
-        "password": "pbkdf2_sha256$10000$jUtzbwjR8YE7$KPC6id4IY8JphCAV5PjYWCTYOZWarom7IODdBkIDKHY=", 
+        "password": "pbkdf2_sha256$12000$Hemyh03J5BRE$zjgVhsFffEj9eFcJHt5vPuab9gZuH/leBskKC4eBqYE=", 
         "email": "sarah.parker@mumlife.co.uk", 
         "date_joined": "2013-10-24T11:35:50Z"
     }
@@ -653,6 +1049,30 @@
     "fields": {
         "expire_date": "2013-11-11T10:26:57Z", 
         "session_data": "NjJlOGMxNWI3ZDIyNWMzOGU1YWEzMmJhNDUwMzQwNmQ4ODQxZWJiYTqAAn1xAShVEl9hdXRoX3VzZXJfYmFja2VuZHECVRltdW1saWZlLmF1dGguRW1haWxCYWNrZW5kcQNVDV9hdXRoX3VzZXJfaWRxBIoBAXUu"
+    }
+},
+{
+    "pk": "9k5vyyckq5swo4g8c0b1yapw7n0o8e32", 
+    "model": "sessions.session", 
+    "fields": {
+        "expire_date": "2014-02-21T04:36:59.680Z", 
+        "session_data": "ZDZhZDA4MjczNDg2ZmQzMThlMWU1NTZlZDllZGM1MzQyM2EwM2EzNDp7Il9hdXRoX3VzZXJfYmFja2VuZCI6Im11bWxpZmUuYXV0aC5FbWFpbEJhY2tlbmQiLCJfYXV0aF91c2VyX2lkIjo0fQ=="
+    }
+},
+{
+    "pk": "cvnuq19u730f4477hl4su8uwso8nkfzv", 
+    "model": "sessions.session", 
+    "fields": {
+        "expire_date": "2014-02-21T04:34:56.870Z", 
+        "session_data": "ZDA2OGRlYzE3NmE0NzJjOWU4MTI0ODUwZDgxNDIzOTYxNjcwYjEyOTp7Il9hdXRoX3VzZXJfYmFja2VuZCI6Im11bWxpZmUuYXV0aC5FbWFpbEJhY2tlbmQiLCJfYXV0aF91c2VyX2lkIjo3fQ=="
+    }
+},
+{
+    "pk": "dnt22k7jol4y3pvmeyjlpjanyf5bgi1t", 
+    "model": "sessions.session", 
+    "fields": {
+        "expire_date": "2014-02-21T04:38:32.425Z", 
+        "session_data": "MDc3N2VhNzhlODQ4YTVkNTdjZDYzMzU4ZThiM2I1NzI0ZGUyYWZkMTp7Il9hdXRoX3VzZXJfYmFja2VuZCI6Im11bWxpZmUuYXV0aC5FbWFpbEJhY2tlbmQiLCJfYXV0aF91c2VyX2lkIjoxfQ=="
     }
 },
 {
@@ -1598,12 +2018,336 @@
     }
 },
 {
+    "pk": 52, 
+    "model": "admin.logentry", 
+    "fields": {
+        "action_flag": 2, 
+        "action_time": "2014-02-07T04:39:07.498Z", 
+        "object_repr": "suzanna.cole@mumlife.co.uk", 
+        "object_id": "4", 
+        "change_message": "Changed first_name and last_name.", 
+        "user": [
+            "michael@beatscope.co.uk"
+        ], 
+        "content_type": [
+            "auth", 
+            "user"
+        ]
+    }
+},
+{
+    "pk": 53, 
+    "model": "admin.logentry", 
+    "fields": {
+        "action_flag": 2, 
+        "action_time": "2014-02-07T04:39:30.452Z", 
+        "object_repr": "Suzanna C.", 
+        "object_id": "4", 
+        "change_message": "No fields changed.", 
+        "user": [
+            "michael@beatscope.co.uk"
+        ], 
+        "content_type": [
+            "mumlife", 
+            "geocode"
+        ]
+    }
+},
+{
+    "pk": 54, 
+    "model": "admin.logentry", 
+    "fields": {
+        "action_flag": 2, 
+        "action_time": "2014-02-07T04:41:04.412Z", 
+        "object_repr": "amanda.poke@mumlife.co.uk", 
+        "object_id": "5", 
+        "change_message": "Changed first_name and last_name.", 
+        "user": [
+            "michael@beatscope.co.uk"
+        ], 
+        "content_type": [
+            "auth", 
+            "user"
+        ]
+    }
+},
+{
+    "pk": 55, 
+    "model": "admin.logentry", 
+    "fields": {
+        "action_flag": 2, 
+        "action_time": "2014-02-07T04:41:13.650Z", 
+        "object_repr": "freya.hum@mumlife.co.uk", 
+        "object_id": "3", 
+        "change_message": "Changed first_name and last_name.", 
+        "user": [
+            "michael@beatscope.co.uk"
+        ], 
+        "content_type": [
+            "auth", 
+            "user"
+        ]
+    }
+},
+{
+    "pk": 56, 
+    "model": "admin.logentry", 
+    "fields": {
+        "action_flag": 2, 
+        "action_time": "2014-02-07T04:41:22.205Z", 
+        "object_repr": "michael@beatscope.co.uk", 
+        "object_id": "1", 
+        "change_message": "Changed first_name and last_name.", 
+        "user": [
+            "michael@beatscope.co.uk"
+        ], 
+        "content_type": [
+            "auth", 
+            "user"
+        ]
+    }
+},
+{
+    "pk": 57, 
+    "model": "admin.logentry", 
+    "fields": {
+        "action_flag": 2, 
+        "action_time": "2014-02-07T04:41:31.568Z", 
+        "object_repr": "rachel.chatter@mumlife.co.uk", 
+        "object_id": "6", 
+        "change_message": "Changed first_name and last_name.", 
+        "user": [
+            "michael@beatscope.co.uk"
+        ], 
+        "content_type": [
+            "auth", 
+            "user"
+        ]
+    }
+},
+{
+    "pk": 58, 
+    "model": "admin.logentry", 
+    "fields": {
+        "action_flag": 2, 
+        "action_time": "2014-02-07T04:41:39.968Z", 
+        "object_repr": "sarah.parker@mumlife.co.uk", 
+        "object_id": "7", 
+        "change_message": "Changed first_name and last_name.", 
+        "user": [
+            "michael@beatscope.co.uk"
+        ], 
+        "content_type": [
+            "auth", 
+            "user"
+        ]
+    }
+},
+{
+    "pk": 59, 
+    "model": "admin.logentry", 
+    "fields": {
+        "action_flag": 2, 
+        "action_time": "2014-02-07T04:41:55.142Z", 
+        "object_repr": "Sarah P.", 
+        "object_id": "7", 
+        "change_message": "No fields changed.", 
+        "user": [
+            "michael@beatscope.co.uk"
+        ], 
+        "content_type": [
+            "mumlife", 
+            "geocode"
+        ]
+    }
+},
+{
+    "pk": 60, 
+    "model": "admin.logentry", 
+    "fields": {
+        "action_flag": 2, 
+        "action_time": "2014-02-07T04:41:58.440Z", 
+        "object_repr": "Rachel C.", 
+        "object_id": "6", 
+        "change_message": "No fields changed.", 
+        "user": [
+            "michael@beatscope.co.uk"
+        ], 
+        "content_type": [
+            "mumlife", 
+            "geocode"
+        ]
+    }
+},
+{
+    "pk": 61, 
+    "model": "admin.logentry", 
+    "fields": {
+        "action_flag": 2, 
+        "action_time": "2014-02-07T04:42:00.875Z", 
+        "object_repr": "Amanda P.", 
+        "object_id": "5", 
+        "change_message": "No fields changed.", 
+        "user": [
+            "michael@beatscope.co.uk"
+        ], 
+        "content_type": [
+            "mumlife", 
+            "geocode"
+        ]
+    }
+},
+{
+    "pk": 62, 
+    "model": "admin.logentry", 
+    "fields": {
+        "action_flag": 2, 
+        "action_time": "2014-02-07T04:42:04.187Z", 
+        "object_repr": "Freya H.", 
+        "object_id": "3", 
+        "change_message": "No fields changed.", 
+        "user": [
+            "michael@beatscope.co.uk"
+        ], 
+        "content_type": [
+            "mumlife", 
+            "geocode"
+        ]
+    }
+},
+{
+    "pk": 63, 
+    "model": "admin.logentry", 
+    "fields": {
+        "action_flag": 2, 
+        "action_time": "2014-02-07T04:42:06.975Z", 
+        "object_repr": "Michael G.", 
+        "object_id": "1", 
+        "change_message": "No fields changed.", 
+        "user": [
+            "michael@beatscope.co.uk"
+        ], 
+        "content_type": [
+            "mumlife", 
+            "geocode"
+        ]
+    }
+},
+{
+    "pk": 64, 
+    "model": "admin.logentry", 
+    "fields": {
+        "action_flag": 1, 
+        "action_time": "2014-02-07T04:43:08.545Z", 
+        "object_repr": "Administrators", 
+        "object_id": "1", 
+        "change_message": "", 
+        "user": [
+            "michael@beatscope.co.uk"
+        ], 
+        "content_type": [
+            "auth", 
+            "group"
+        ]
+    }
+},
+{
+    "pk": 65, 
+    "model": "admin.logentry", 
+    "fields": {
+        "action_flag": 2, 
+        "action_time": "2014-02-07T04:44:35.376Z", 
+        "object_repr": "Administrators", 
+        "object_id": "1", 
+        "change_message": "Changed permissions.", 
+        "user": [
+            "michael@beatscope.co.uk"
+        ], 
+        "content_type": [
+            "auth", 
+            "group"
+        ]
+    }
+},
+{
+    "pk": 66, 
+    "model": "admin.logentry", 
+    "fields": {
+        "action_flag": 1, 
+        "action_time": "2014-02-07T04:45:03.694Z", 
+        "object_repr": "Moderators", 
+        "object_id": "2", 
+        "change_message": "", 
+        "user": [
+            "michael@beatscope.co.uk"
+        ], 
+        "content_type": [
+            "auth", 
+            "group"
+        ]
+    }
+},
+{
+    "pk": 67, 
+    "model": "admin.logentry", 
+    "fields": {
+        "action_flag": 2, 
+        "action_time": "2014-02-07T04:45:31.974Z", 
+        "object_repr": "M8 (#se16, @private)", 
+        "object_id": "8", 
+        "change_message": "No fields changed.", 
+        "user": [
+            "michael@beatscope.co.uk"
+        ], 
+        "content_type": [
+            "mumlife", 
+            "friendships"
+        ]
+    }
+},
+{
     "pk": 1, 
     "model": "south.migrationhistory", 
     "fields": {
         "applied": "2013-10-24T11:15:53Z", 
         "app_name": "longerusername", 
         "migration": "0001_initial"
+    }
+},
+{
+    "pk": 2, 
+    "model": "south.migrationhistory", 
+    "fields": {
+        "applied": "2014-02-07T04:34:42.019Z", 
+        "app_name": "mumlife", 
+        "migration": "0001_initial"
+    }
+},
+{
+    "pk": 3, 
+    "model": "south.migrationhistory", 
+    "fields": {
+        "applied": "2014-02-07T04:34:42.048Z", 
+        "app_name": "mumlife", 
+        "migration": "0002_auto__add_field_member_geocode"
+    }
+},
+{
+    "pk": 4, 
+    "model": "south.migrationhistory", 
+    "fields": {
+        "applied": "2014-02-07T04:34:42.076Z", 
+        "app_name": "mumlife", 
+        "migration": "0003_auto__add_field_message_geocode"
+    }
+},
+{
+    "pk": 5, 
+    "model": "south.migrationhistory", 
+    "fields": {
+        "applied": "2014-02-07T04:34:42.115Z", 
+        "app_name": "mumlife", 
+        "migration": "0004_auto__add_page"
     }
 },
 {
@@ -1729,6 +2473,18 @@
     }
 },
 {
+    "pk": 10, 
+    "model": "tagging.taggeditem", 
+    "fields": {
+        "tag": 1, 
+        "object_id": 8, 
+        "content_type": [
+            "mumlife", 
+            "friendships"
+        ]
+    }
+},
+{
     "pk": 1, 
     "model": "mumlife.geocode", 
     "fields": {
@@ -1792,6 +2548,15 @@
     }
 },
 {
+    "pk": 8, 
+    "model": "mumlife.geocode", 
+    "fields": {
+        "latitude": 0.0, 
+        "code": "N/A", 
+        "longitude": 0.0
+    }
+},
+{
     "pk": 1, 
     "model": "mumlife.member", 
     "fields": {
@@ -1801,7 +2566,10 @@
         "interests": "", 
         "dob": "1978-11-24", 
         "gender": 1, 
+        "max_range": 5, 
+        "geocode": "51.5012893677,-0.0546487122774", 
         "postcode": "SE16 4JX", 
+        "units": 1, 
         "fullname": "Michael Giuliano", 
         "spouse": null, 
         "slug": "m.g./637/1/531", 
@@ -1820,7 +2588,10 @@
         "interests": "", 
         "dob": "1984-06-22", 
         "gender": 0, 
+        "max_range": 5, 
+        "geocode": "51.5053443909,-0.0387839525938", 
         "postcode": "SE16 6NN", 
+        "units": 1, 
         "fullname": "Freya Hum", 
         "spouse": null, 
         "slug": "f.h./511/1/442", 
@@ -1839,7 +2610,10 @@
         "interests": "", 
         "dob": "1976-04-12", 
         "gender": 0, 
+        "max_range": 5, 
+        "geocode": "51.498664856,-0.0545732751489", 
         "postcode": "SE16 2XB", 
+        "units": 1, 
         "fullname": "Suzanna Cole", 
         "spouse": null, 
         "slug": "s.c./635/1/582", 
@@ -1858,7 +2632,10 @@
         "interests": "", 
         "dob": "1972-09-02", 
         "gender": 0, 
+        "max_range": 5, 
+        "geocode": "51.4954528809,-0.0665089637041", 
         "postcode": "SE16 4RA", 
+        "units": 1, 
         "fullname": "Amanda Poke", 
         "spouse": null, 
         "slug": "a.p./657/1/996", 
@@ -1877,7 +2654,10 @@
         "interests": "", 
         "dob": "1978-10-17", 
         "gender": 0, 
+        "max_range": 5, 
+        "geocode": "51.4530067444,-0.0631789192557", 
         "postcode": "SE22 0HN", 
+        "units": 1, 
         "fullname": "Rachel Chatter", 
         "spouse": null, 
         "slug": "r.c./945/1/569", 
@@ -1896,7 +2676,10 @@
         "interests": "", 
         "dob": "1976-04-27", 
         "gender": 0, 
+        "max_range": 5, 
+        "geocode": "51.4526367188,-0.0582864880562", 
         "postcode": "SE22 0NH", 
+        "units": 1, 
         "fullname": "Sarah Parker", 
         "spouse": null, 
         "slug": "s.p./286/1/567", 
@@ -1946,15 +2729,21 @@
     "model": "mumlife.message", 
     "fields": {
         "body": "M1 (#se16 @local)", 
+        "name": null, 
         "area": "SE16", 
         "timestamp": "2013-10-24T11:52:42Z", 
+        "occurs_until": null, 
         "tags": "#se16", 
         "visibility": 2, 
         "member": 4, 
-        "is_reply": false, 
+        "geocode": null, 
+        "location": null, 
+        "eventenddate": null, 
         "reply_to": null, 
+        "is_reply": false, 
         "recipient": null, 
-        "eventdate": null
+        "eventdate": null, 
+        "occurrence": 0
     }
 },
 {
@@ -1962,15 +2751,21 @@
     "model": "mumlife.message", 
     "fields": {
         "body": "M2 (#se16 @global)", 
+        "name": null, 
         "area": "SE16", 
         "timestamp": "2013-10-24T11:53:05Z", 
+        "occurs_until": null, 
         "tags": "#se16", 
         "visibility": 3, 
         "member": 4, 
-        "is_reply": false, 
+        "geocode": null, 
+        "location": null, 
+        "eventenddate": null, 
         "reply_to": null, 
+        "is_reply": false, 
         "recipient": null, 
-        "eventdate": null
+        "eventdate": null, 
+        "occurrence": 0
     }
 },
 {
@@ -1978,15 +2773,21 @@
     "model": "mumlife.message", 
     "fields": {
         "body": "M3 (#se16 @friends)", 
+        "name": null, 
         "area": "SE16", 
         "timestamp": "2013-10-24T11:54:32Z", 
+        "occurs_until": null, 
         "tags": "#se16", 
         "visibility": 1, 
         "member": 4, 
-        "is_reply": false, 
+        "geocode": null, 
+        "location": null, 
+        "eventenddate": null, 
         "reply_to": null, 
+        "is_reply": false, 
         "recipient": null, 
-        "eventdate": null
+        "eventdate": null, 
+        "occurrence": 0
     }
 },
 {
@@ -1994,15 +2795,21 @@
     "model": "mumlife.message", 
     "fields": {
         "body": "M4 (#se22 @local)", 
+        "name": null, 
         "area": "SE22", 
         "timestamp": "2013-10-24T11:55:21Z", 
+        "occurs_until": null, 
         "tags": "#se22", 
         "visibility": 2, 
         "member": 7, 
-        "is_reply": false, 
+        "geocode": null, 
+        "location": null, 
+        "eventenddate": null, 
         "reply_to": null, 
+        "is_reply": false, 
         "recipient": null, 
-        "eventdate": null
+        "eventdate": null, 
+        "occurrence": 0
     }
 },
 {
@@ -2010,15 +2817,21 @@
     "model": "mumlife.message", 
     "fields": {
         "body": "M5 (#se22 @global)", 
+        "name": null, 
         "area": "SE22", 
         "timestamp": "2013-10-24T11:56:18Z", 
+        "occurs_until": null, 
         "tags": "#se22", 
         "visibility": 3, 
         "member": 7, 
-        "is_reply": false, 
+        "geocode": null, 
+        "location": null, 
+        "eventenddate": null, 
         "reply_to": null, 
+        "is_reply": false, 
         "recipient": null, 
-        "eventdate": null
+        "eventdate": null, 
+        "occurrence": 0
     }
 },
 {
@@ -2026,15 +2839,21 @@
     "model": "mumlife.message", 
     "fields": {
         "body": "M6 (#se22 @friends)", 
+        "name": null, 
         "area": "SE22", 
         "timestamp": "2013-10-24T11:56:47Z", 
+        "occurs_until": null, 
         "tags": "#se22", 
         "visibility": 1, 
         "member": 7, 
-        "is_reply": false, 
+        "geocode": null, 
+        "location": null, 
+        "eventenddate": null, 
         "reply_to": null, 
+        "is_reply": false, 
         "recipient": null, 
-        "eventdate": null
+        "eventdate": null, 
+        "occurrence": 0
     }
 },
 {
@@ -2042,15 +2861,21 @@
     "model": "mumlife.message", 
     "fields": {
         "body": "M7 (#se22 @private)", 
+        "name": null, 
         "area": "SE22", 
         "timestamp": "2013-10-24T12:39:00Z", 
+        "occurs_until": null, 
         "tags": "#se22", 
         "visibility": 0, 
         "member": 7, 
-        "is_reply": false, 
+        "geocode": null, 
+        "location": null, 
+        "eventenddate": null, 
         "reply_to": null, 
+        "is_reply": false, 
         "recipient": 4, 
-        "eventdate": null
+        "eventdate": null, 
+        "occurrence": 0
     }
 },
 {
@@ -2058,15 +2883,21 @@
     "model": "mumlife.message", 
     "fields": {
         "body": "M8 (#se16, @private)", 
+        "name": "", 
         "area": "SE16", 
         "timestamp": "2013-10-28T11:26:17Z", 
+        "occurs_until": null, 
         "tags": "#se16 ", 
         "visibility": 0, 
         "member": 3, 
-        "is_reply": false, 
+        "geocode": "0.0,0.0", 
+        "location": "", 
+        "eventenddate": null, 
         "reply_to": null, 
+        "is_reply": false, 
         "recipient": 7, 
-        "eventdate": null
+        "eventdate": null, 
+        "occurrence": 0
     }
 }
 ]
