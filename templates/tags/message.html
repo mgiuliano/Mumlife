@@ -8,7 +8,8 @@
                          alt="{{ member.name }}" width="48" height="48" />
                 </a>
             </div>
-        {% elif member.id == account.id %}
+        {% elif recipient and member.id == account.id %}
+            {{ member.id }}
             <div class="message-picture">
                 <a href="{{ SITE_URL }}profile/{{ recipient.slug }}">
                     <img class="avatar"
@@ -32,7 +33,7 @@
         <div class="message-author">
             {% if member.is_admin %}
                 <a href="{{ SITE_URL }}message/{{ id }}/">{{ member.name }}</a>
-            {% elif member.id == account.id %}
+            {% elif recipient and member.id == account.id %}
                 <a href="{{ SITE_URL }}profile/{{ recipient.slug }}">{{ recipient.name }}</a>
             {% else %}
                 <a href="{{ SITE_URL }}profile/{{ member.slug }}">{{ member.name }}</a>

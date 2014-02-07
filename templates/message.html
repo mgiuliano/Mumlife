@@ -20,7 +20,7 @@
             class="avatar"
             src="{% if result.member.picture %}{{ result.member.picture }}{% else %}{{ STATIC_URL }}img/picture-default.png{% endif %}"
             alt="{{ result.member.name }}" width="48" height="48" />
-        {% elif account.id == result.member.id %}
+        {% elif result.recipient and account.id == result.member.id %}
         <a href="{{ SITE_URL }}profile/{{ result.recipient.slug }}"><img
             class="avatar"
             src="{% if result.recipient.picture %}{{ result.recipient.picture }}{% else %}{{ STATIC_URL }}img/picture-default.png{% endif %}"
@@ -43,7 +43,7 @@
     {% else %}
         {% if result.member.is_admin %}
             {{ result.member.name }}
-        {% elif account.id == result.member.id %}
+        {% elif result.recipient and account.id == result.member.id %}
             <a href="{{ SITE_URL }}profile/{{ result.recipient.slug }}">{{ result.recipient.name }}</a>
         {% else %}
             <a href="{{ SITE_URL }}profile/{{ result.member.slug }}">{{ result.member.name }}</a>
