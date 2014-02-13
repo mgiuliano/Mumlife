@@ -162,6 +162,11 @@ class FileUploader(object):
         self.storage = UploadStorage()
 
     def __call__(self, request):
+        self.content_type = 'application/json; charset=utf-8'
+        # Some browsers (IE) do not accept JSON as an application,
+        # use plain text instead
+        if 'application/json' not in request.META.get('HTTP_ACCEPT'):
+            self.content_type = 'text/plain; charset=utf-8'
         try:
             response = self._ajax_upload(request)
             # save the object
@@ -176,7 +181,7 @@ class FileUploader(object):
                 member.picture = None
                 member.save()
             ret_json = {'success': True, 'filename': ''}
-            response = HttpResponse(json.dumps(ret_json, cls=DjangoJSONEncoder), content_type='application/json; charset=utf-8')
+            response = HttpResponse(json.dumps(ret_json, cls=DjangoJSONEncoder), content_type=self.content_type)
         return response
 
     def _ajax_upload(self, request):
@@ -239,7 +244,7 @@ class FileUploader(object):
             self.storage.setup(filename, upload_to)
             success = self.storage.upload(upload, is_raw)
             ret_json = {'success': success, 'filename': self.storage.filename}
-            return HttpResponse(json.dumps(ret_json, cls=DjangoJSONEncoder), content_type='application/json; charset=utf-8')
+            return HttpResponse(json.dumps(ret_json, cls=DjangoJSONEncoder), content_type=self.content_type)
         else:
             response = HttpResponseNotAllowed(['POST'])
             response.write("Only POST allowed")
