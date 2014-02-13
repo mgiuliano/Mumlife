@@ -2,12 +2,6 @@
 
 {% block bodyclass %}profile{% endblock %}
 
-{% block heading %}<h1>&nbsp;
-    <div class="header-pic"><img class="avatar"
-         src="{% if member.picture %}{{ member.picture }}{% else %}{{ STATIC_URL }}img/picture-default.png{% endif %}"
-         alt="{{ member.name }}" width="150" height="150" /></div>
-</h1>{% endblock %}
-
 {% block content %}
 <div class="member-profile">
     <div class="ui-content" id="errors"
@@ -20,6 +14,10 @@
         <a class="ui-btn-left" href="#" data-role="button" data-iconpos="notext" data-icon="delete" data-rel="back" data-theme="a">Close</a>
         <div id="errors-content"></div>
     </div>
+
+    <div class="header-pic"><img class="avatar"
+         src="{% if member.picture %}{{ member.picture }}{% else %}{{ STATIC_URL }}img/picture-default.png{% endif %}"
+         alt="{{ member.name }}" width="150" height="150" /></div>
 
     <h2>{% if member.gender %}{{ member.gender }} {% endif %}{{ member.name }}</h2>
 
@@ -38,14 +36,14 @@
         {% if member.about %}<div class="about">{{ member.about|linebreaks }}</div>{% endif %}
 
         {% if member.tags %}
-        <p class="interests">I enjoy {% for tag in member.tags %}<a href="{{ SITE_URL }}members/%23{{ tag.key }}">{{ tag.value }}</a> {% endfor %}</p>
+        <p class="interests">I enjoy {% for tag in member.tags %}<a href="/members/%23{{ tag.key }}">{{ tag.value }}</a> {% endfor %}</p>
         {% endif %}
 
         {% if member.kids|length %}
             <div class="kids">{% for kid in member.kids %}
                 <div class="kid {{ kid.gender|lower }}">
                     {{ kid.gender }} {{ kid.name }}
-                    <div class="kid-age">{{ kid.age }}{% if kid.visibility == 'Show exact age' %} year{{ kid.age|pluralize }}{% endif %}</div>
+                    <div class="kid-age">{{ kid.age }}</div>
                 </div>
             {% endfor %}</div>
         {% endif %}
@@ -54,37 +52,38 @@
 {% endblock %}
 
 {% block footermenu %}
+{% spaceless %}
 {% if member.id == account.id %}
-<li class="nav-edit">
-    <a class="icon-link" href="{{ SITE_URL }}profile/edit" title="Edit Profile"><img src="{{ STATIC_URL }}img/z.gif" class="icon icon-settings" alt="" /><span>Edit Profile</span></a>
+<li>
+    <a class="icon-link" href="/profile/edit" title="Edit profile">
+        <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-settings" alt="Edit profile" />
+    </a>
 </li>
 {% else %}
 
 {% comment %}Add to Friend{% endcomment %}
-{% if member.friend_status and member.friend_status == 'Approved' %}
-<li><img src="{{ STATIC_URL }}img/z.gif" class="icon icon-friend" alt="" /><span>Friend</span></li>
-{% elif member.friend_status and member.friend_status == 'Pending' %}
-<li><img src="{{ STATIC_URL }}img/z.gif" class="icon icon-pendingfriend" alt="" /><span>Requested</span></li>
+{% if not member.friend_status %}
+<li>
+    <a class="icon-link addtofriend" href="#{{ account.id }},{{ member.id }}">
+        <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-addfriend" alt="Add to friend" />
+    </a>
+</li>
 {% elif member.friend_status and member.friend_status == 'Requesting' %}
-<li><a class="icon-link addtofriend" href="#{{ account.id }},{{ member.id }}" rel="confirm">
-    <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-confirmfriend" alt="" /><span>Approve</span>
-</a></li>
-{% elif member.friend_status and member.friend_status == 'Blocked' %}
-    {% comment %}This member relationship is blocked{% endcomment %}
-{% else %}
-<li><a class="icon-link addtofriend" href="#{{ account.id }},{{ member.id }}">
-    <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-addtofriend" alt="" /><span>Add to friend</span>
-</a></li>
+<li>
+    <a class="icon-link addtofriend" href="#{{ account.id }},{{ member.id }}" rel="confirm">
+        <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-addfriend" alt="Approve" />
+    </a>
+</li>
 {% endif %}
 
 {% comment %}Write a Private Message{% endcomment %}
 <li>
     <a class="icon-link" href="#" data-entity="message" title="Post private message">
-        <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-write" alt="" />
-        <span>Post</span>
+        <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-post" alt="Post private message" />
     </a>
 </li>
 {% endif %}
+{% endspaceless %}
 {% endblock %}
 
 {% block extrajs %}{{ block.super }}
@@ -92,6 +91,9 @@
     $(document).on('ml.Ready', function () {
         new ML.AddToFriends({'class': 'addtofriend'});
         new ML.Messages();
+    });
+    mixpanel.track('Profile Page Loaded', {
+        'Profile ID': '{{ member.id }}'
     });
 </script>
 {% endblock %}

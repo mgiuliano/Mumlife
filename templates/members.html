@@ -2,11 +2,16 @@
 
 {% block bodyclass %}members{% endblock %}
 
-{% block heading %}<h1>Members</h1>{% endblock %}
+{% block heading %}
+{% spaceless %}
+<h1>Members</h1>
+{% if tagstring %}<h2>{{ tagstring }}</h2>{% endif %}
+{% endspaceless %}
+{% endblock %}
 
 {% block header %}
-<div class="search-form">
-    <form method="post" action="{{ SITE_URL }}members/">
+<div class="search-form" data-entity="search-form">
+    <form method="post" action="/members/">
         {% csrf_token %}
         <input type="text" data-clear-btn="true" name="terms" placeholder="search #interests" value="{% if tagstring %}{{ tagstring }}{% endif %}" />
     </form>
@@ -19,18 +24,18 @@
         {% for member in members %}
         <div class="member clearfix">
             <div class="member-left">
-                <div class="picture"><a href="{{ SITE_URL }}profile/{{ member.slug }}"><img
+                <div class="picture"><a href="/profile/{{ member.slug }}"><img
                     class="avatar"
                     src="{% if member.picture %}{{ member.picture }}{% else %}{{ STATIC_URL }}img/picture-default.png{% endif %}"
                     alt="{{ member.name }}" width="48" height="48" /></a></div>
             </div>
             <div class="member-right">
                 <div class="member-author">
-                    <a href="{{ SITE_URL }}profile/{{ member.slug }}">{{ member.name }}</a>
+                    <a href="/profile/{{ member.slug }}">{{ member.name }}</a>
                     <span>({{ member.distance }})</span>
                 </div>
                 <div class="member-body">
-                    {% for tag in member.tags %}<span><a href="{{ SITE_URL }}members/%23{{ tag.key }}">{{ tag.value }}</a></span> {% endfor %}
+                    {% for tag in member.tags %}<span><a href="/members/%23{{ tag.key }}">{{ tag.value }}</a></span> {% endfor %}
                 </div>
                 <div class="member-tools clearfix">
                     {% if member.friend_status and member.friend_status == 'Approved' %}
@@ -54,22 +59,18 @@
         </div>
         {% endfor %}
     {% else %}
-        <div class="feed">
-            <div class="message clearfix">
-                <div class="message-left">
-                    <div class="message-picture">
-                        <img class="avatar"
-                             src="{{ STATIC_URL }}img/picture-default.png"
-                             alt="No results" width="48" height="48" />
-                    </div>
+        <div class="member no-results clearfix">
+            <div class="member-left">
+                <div class="picture">
+                    <img class="avatar"
+                         src="{{ STATIC_URL }}img/picture-default.png"
+                         alt="No results" width="48" height="48" />
                 </div>
-                <div class="message-right">
-                    <div class="message-author">
-                        Oops! It's lonely in here.
-                    </div>
-                    <div class="message-body">
-                        It seems there are no mums or bumps matching these interests! Why don't you spread the word? The more the merrier they say :) 
-                    </div>
+            </div>
+            <div class="member-right">
+                <div class="member-body">
+                    <p><span class="bold">Oops! It's lonely in here.</span></p>
+                    <p>It seems there are no mums or bumps matching these interests! Why don't you spread the word? The more the merrier they say :) </p>
                 </div>
             </div>
         </div>
@@ -77,10 +78,21 @@
 </div>
 {% endblock %}
 
+{% block footermenu %}
+{% spaceless %}
+<li class="nav-search">
+    <a class="icon-link" href="" data-entity="search" title="Search">
+        <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-search" alt="Search" />
+    </a>
+</li>
+{% endspaceless %}
+{% endblock %}
+
 {% block extrajs %}{{ block.super }}
 <script type="text/javascript">
     $(document).on('ml.Ready', function () {
         new ML.AddToFriends({'class': 'addtofriend'});
     });
+    mixpanel.track('Members Page Loaded');
 </script>
 {% endblock %}

@@ -10,9 +10,11 @@ if __name__ == "__main__":
     from mumlife.engines import SearchEngine
 
     choices = [
+        'get-age',                  # Get age
         'get-age-bracket',          # Get age bracket from DoB
         'get-postcode-point',       # Get location point for postcode
         'get-postcodes-distance',   # Get distance between 2 postcodes
+        'parse-text',               # Parse and format hashtags, flags and links
         'extract-tags',             # Extract tag from string
         'extract-flags',            # Extract flags from string
     ]
@@ -21,16 +23,30 @@ if __name__ == "__main__":
     parser.add_argument('arguments', type=str, nargs='*', help='command arguments')
     args = parser.parse_args()
 
-    if args.command == 'get-age-bracket':
+    if args.command == 'get-age':
         try:
             dob = args.arguments[0]
         except IndexError:
-            print ' >> ERROR - date of birth required; format: DD/MM/YYYY (e.g. 24/11/1978)'
+            print ' >> ERROR - date of birth required; format: YYYY-MM-DD (e.g. 1978-11-24)'
             print
             parser.print_help()
         else:
             try:
-                description = utils.get_age_bracket(dob=dob)
+                age = utils.get_age(born=dob)
+                print 'Age :', age
+            except Exception as e:
+                print ' >> ERROR -', e
+
+    elif args.command == 'get-age-bracket':
+        try:
+            dob = args.arguments[0]
+        except IndexError:
+            print ' >> ERROR - date of birth required; format: YYYY-MM-DD (e.g. 1978-11-24)'
+            print
+            parser.print_help()
+        else:
+            try:
+                description = utils.get_age_bracket(born=dob)
                 print 'Age bracket:', description
             except Exception as e:
                 print ' >> ERROR -', e
@@ -78,6 +94,26 @@ if __name__ == "__main__":
             try:
                 tags = utils.Extractor(tagstring).extract_tags()
                 print 'Tags:', tags
+            except Exception as e:
+                print ' >> ERROR -', e
+
+    elif args.command == 'parse-text':
+        try:
+            text = args.arguments[0]
+        except IndexError:
+            text = None
+        if not text:
+            print ' >> ERROR - Missing text (string)'
+            print
+            parser.print_help()
+        else:
+            print 'Parsing:'
+            print '-------'
+            print text
+            try:
+                parsed_text = utils.Extractor(text).parse()
+                print '>'
+                print parsed_text
             except Exception as e:
                 print ' >> ERROR -', e
 

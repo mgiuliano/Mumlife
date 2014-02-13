@@ -11,12 +11,10 @@
 {% block content %}
     <section>
 
-        <a href="{{ SITE_URL }}profile/edit" data-role="button" data-icon="arrow-l" data-iconpos="left">Back</a>
-
         {% if account.kid_set.count %}
             <ul data-role="listview" data-inset="true">
             {% for kid in account.kid_set.all %}
-                <li><a href="{{ SITE_URL }}profile/edit/kids/{{ kid.id }}"><strong>{{ kid.name }}</strong>, {{ kid.get_gender_display }}, {{ kid.age }}</a></li>
+                <li><a href="/profile/edit/kids/{{ kid.id }}"><strong>{{ kid.name }}</strong>, {{ kid.get_gender_display }}, {{ kid.age }}</a></li>
             {% endfor %}
             </ul>
         {% endif %}
@@ -69,7 +67,7 @@
                     <div data-corners="true" data-shadow="true" data-iconshadow="true" data-wrapperels="span" data-icon="check" data-theme="a" data-disabled="false"
                          class="ui-submit ui-btn ui-shadow ui-btn-corner-all ui-btn-icon-left ui-btn-up-a" aria-disabled="false">
                         <span class="ui-btn-inner">
-                            <span class="ui-btn-text">Add Kid</span>
+                            <span class="ui-btn-text">Save</span>
                             <span class="ui-icon ui-icon-check ui-icon-shadow">&nbsp;</span>
                         </span>
                         <input type="submit" data-icon="check" data-role="button" value="Add Kid" class="ui-btn-hidden" data-disabled="false">
@@ -79,6 +77,21 @@
         </div>
     </section>
     <footer> </footer>
+{% endblock %}
+
+{% block footermenu %}
+{% spaceless %}
+<li>
+    <a class="icon-link" href="/profile/edit" title="Back">
+        <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-back" alt="Back" />
+    </a>
+</li>
+<li>
+    <a class="icon-link" href="/profile" title="Profile">
+        <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-profile" alt="Profile" />
+    </a>
+</li>
+{% endspaceless %}
 {% endblock %}
 
 {% block extrajs %}{{ super }}

@@ -22,7 +22,6 @@ EMAIL_FROM = 'Mumlife <support@mumlife.co.uk>'
 EMAIL_HOST = 'localhost'
 EMAIL_PORT = 1025
 
-SITE_URL = 'http://mumlife.bsc-dev.com/'
 API_URL = 'http://mumlife.bsc-dev.com/1/'
 
 DATABASES = {

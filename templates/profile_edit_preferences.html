@@ -7,8 +7,6 @@
 {% block content %}
     <section>
 
-        <a href="{{ SITE_URL }}profile/edit" data-role="button" data-icon="arrow-l" data-iconpos="left">Back</a>
-
         <div class="form-card box">
             <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
                 <div class="form-field">
@@ -36,6 +34,21 @@
 
     </section>
     <footer> </footer>
+{% endblock %}
+
+{% block footermenu %}
+{% spaceless %}
+<li>
+    <a class="icon-link" href="/profile/edit" title="Back">
+        <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-back" alt="Back" />
+    </a>
+</li>
+<li>
+    <a class="icon-link" href="/profile" title="Profile">
+        <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-profile" alt="Profile" />
+    </a>
+</li>
+{% endspaceless %}
 {% endblock %}
 
 {% block extrajs %}{{ block.super }}

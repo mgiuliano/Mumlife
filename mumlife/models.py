@@ -6,6 +6,8 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.utils.encoding import force_unicode
+from django.utils.html import strip_tags
 from django.utils.timesince import timesince
 from tagging.fields import TagField
 from tagging.models import Tag
@@ -56,7 +58,8 @@ class Member(models.Model):
     gender = models.IntegerField("Gender", choices=(
         (0, 'Mum'),
         (1, 'Dad'),
-        (2, 'Bump')
+        (2, 'Bump'),
+        (3, 'Organiser'),
     ), null=True, blank=True)
     dob = models.DateField("Date of Birth", null=True, blank=True)
     status = models.IntegerField("Verification Status", choices=STATUS_CHOICES, default=PENDING)
@@ -102,7 +105,7 @@ class Member(models.Model):
             }
         else:
             units = viewer.units
-            units_display = viewer.get_units_display()
+            units_display = 'Km' if units == 0 else viewer.get_units_display()
             member_geocode = self.geocode.split(',')
             viewer_geocode = viewer.geocode.split(',')
             distance = utils.get_distance(float(member_geocode[0]),
@@ -110,9 +113,11 @@ class Member(models.Model):
                                           float(viewer_geocode[0]),
                                           float(viewer_geocode[1]))
             if round(distance[units], 1) < 0.5:
-                distance_display = 'less than half a {}'.format(units_display.lower()[:-1])
+                units_display = 'kilometer' if units == 0 else units_display[:-1]
+                distance_display = 'less than half a {}'.format(units_display.lower())
             elif round(distance[units], 1) <= 1.1:
-                distance_display = '{} {}'.format(round(distance[units], 1), units_display.lower()[:-1])
+                units_display = units_display if units == 0 else units_display[:-1]
+                distance_display = '{} {}'.format(round(distance[units], 1), units_display.lower())
             else:
                 distance_display = '{} {}'.format(round(distance[units], 1), units_display.lower())
             distance_key = distance[units]
@@ -131,7 +136,8 @@ class Member(models.Model):
         member['name'] = self.get_name(viewer)
         member['age'] = self.age
         member['gender'] = self.get_gender_display()
-        member['about'] = self.about
+        # escape about to prevent script attacks
+        member['about'] = strip_tags(force_unicode(self.about)) if self.about else ''
         if viewer:
             member['friend_status'] = viewer.check_if_friend(self)
         else:
@@ -226,7 +232,6 @@ class Member(models.Model):
     def set_slug(self):
         if not self.slug:
             # Slug format: hyphenise(fullname)/random(1-999)/(1+count(fullname)/random(1-999)*(1+count(fullname))
-            logger.debug(self.fullname)
             initials = ''.join(['{}.'.format(n[0]) for n in self.fullname.split()])
             hyphenized = re.sub(r'\s\s*', '-', initials.lower())
             count = Member.objects.filter(slug__contains=hyphenized).count()
@@ -401,7 +406,7 @@ class Message(models.Model):
             }
         else:
             units = viewer.units
-            units_display = viewer.get_units_display()
+            units_display = 'Km' if units == 0 else viewer.get_units_display()
             message_geocode = self.geocode.split(',')
             viewer_geocode = viewer.geocode.split(',')
             distance = utils.get_distance(float(message_geocode[0]),
@@ -409,7 +414,8 @@ class Message(models.Model):
                                           float(viewer_geocode[0]),
                                           float(viewer_geocode[1]))
             if round(distance[units], 1) <= 1:
-                distance_display = '{} {}'.format(round(distance[units], 1), units_display.lower()[:-1])
+                units_display = units_display if units == 0 else units_display.lower()[:-1]
+                distance_display = '{} {}'.format(round(distance[units], 1), units_display)
             else:
                 distance_display = '{} {}'.format(round(distance[units], 1), units_display.lower())
             distance_key = distance[units]
@@ -427,12 +433,16 @@ class Message(models.Model):
             message['title'] = self.body
         else:
             message['title'] = self.name
+        # escape body to prevent script attacks
+        body = strip_tags(force_unicode(self.body))
         # parse body to display hashtag links
-        message['body'] = utils.Extractor(self.body).parse(with_links=False)
-        message['body_with_links'] = utils.Extractor(self.body).parse()
+        message['body'] = utils.Extractor(body).parse(with_links=False)
+        message['body_with_links'] = utils.Extractor(body).parse()
         message['date'] = self.timestamp.strftime('%c')
         # format event details
         if self.eventdate:
+            # escape location to prevent script attacks
+            message['location'] = strip_tags(force_unicode(self.location))
             message['eventdate'] = self.eventdate.strftime('%A, %b %d, %Y')
             message['eventtime'] = self.eventdate.strftime('%H:%M')
             message['eventyear'] = self.eventdate.strftime('%Y')

@@ -1,4 +1,4 @@
 <p class="notification event{% if not read %} unread{% endif %}">
-    <a href="{{ SITE_URL }}message/{{ event.id }}/{{ event.eventmonth }}/{{ event.eventday }}/">{{ event.name }} @{{ event.location }}</a>,
+    <a href="/message/{{ event.id }}/{{ event.eventmonth }}/{{ event.eventday }}/">{{ event.name }} @{{ event.location }}</a>,
     <em>{{ event.eventtime }}</em>, <strong>today</strong>
 </p>

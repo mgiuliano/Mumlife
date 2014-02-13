@@ -1,10 +1,8 @@
 {% extends "base.html" %}
 
-{% block heading %}<h1>&nbsp;</h1>{% endblock %}
-
 {% block content %}
-    <a data-role="button" href="{{ SITE_URL }}post">Write Post</a>
-    <a data-role="button" href="{{ SITE_URL }}post-event">Create Event</a>
+    <a data-role="button" href="/post">Write Post</a>
+    <a data-role="button" href="/post-event">Create Event</a>
 {% endblock %}
 
 {% block extrajs %}{{ block.super }}

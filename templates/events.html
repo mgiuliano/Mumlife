@@ -2,11 +2,16 @@
 
 {% block bodyclass %}activities{% endblock %}
 
-{% block heading %}<h1>Activities</h1>{% endblock %}
+{% block heading %}
+{% spaceless %}
+<h1>Activities</h1>
+{% if tagstring %}<h2>{{ tagstring }}</h2>{% endif %}
+{% endspaceless %}
+{% endblock %}
 
 {% block header %}
-<div class="search-form">
-    <form method="post" action="{{ SITE_URL }}events/">
+<div class="search-form" data-entity="search-form">
+    <form method="post" action="/events/">
         {% csrf_token %}
         <input type="text" data-clear-btn="true" name="terms" placeholder="Search for #topics" value="{% if tagstring %}{{ tagstring }}{% else %}{% endif %}" />
     </form>
@@ -17,20 +22,31 @@
 
 {% block content %}
     <div class="feed">
-        {{ results|safe }}
+        {% if noresults %}{{ noresults }}{% else %}{{ results|safe }}{% endif %}
         <button data-icon="plus">More</button>
     </div>
 {% endblock %}
 
 {% block footermenu %}
-<div class="slider-container">
+<div class="slider-container" data-entity="slider-form">
     <form>
         <label for="range" class="ui-hidden-accessible">Slider:</label>
         <input name="range" id="range" min="0.5" max="{{ account.max_range }}" step="0.5" value="{{ account.max_range }}" type="range" data-highlight="true">
     </form>
     <a id="filter" href="#" data-role="button" data-icon="check" data-iconpos="notext" data-inline="true">Check</a>
 </div>
-
+{% spaceless %}
+<li>
+    <a class="icon-link" href="#" data-entity="slider" title="Distance">
+        <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-target" alt="Distance" />
+    </a>
+</li>
+<li>
+    <a class="icon-link" href="#" data-entity="search" title="Search">
+        <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-search" alt="Search" />
+    </a>
+</li>
+{% endspaceless %}
 {% endblock %}
 
 {% block extrajs %}{{ block.super }}
@@ -38,5 +54,6 @@
     $(document).on('ml.Ready', function () {
         new ML.Feed({'results': {{ total }}, 'next': '{{ next }}', 'slider': true, 'events_only': true, 'autoscroll': true});
     });
+    mixpanel.track('Activities Page Loaded');
 </script>
 {% endblock %}

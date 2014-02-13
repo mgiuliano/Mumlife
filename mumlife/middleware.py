@@ -1,9 +1,11 @@
 # mumlife/middleware.py
 import logging
 import json
+import re
 import requests
 from django.conf import settings
 from django.middleware.csrf import get_token
+from django.contrib.sites.models import RequestSite
 from mumlife import views
 
 logger = logging.getLogger('mumlife.middleware')
@@ -16,8 +18,13 @@ class MumlifeMiddleware(object):
         # or we'll have ourself an infinite loop
         if request.user.is_authenticated() and view_func.__name__ in __processed_views:
             # Fetch notifications from the API using cookie authentication
-            protocol = 'https' if request.is_secure() else 'http'
-            url = '{}:{}notifications/'.format(protocol, settings.API_URL)
+            if re.search(r'http:|https:', settings.API_URL) is None:
+                site = RequestSite(request)        
+                protocol = 'https' if request.is_secure() else 'http'
+                url = '{}://{}{}notifications/'.format(protocol, site.domain, settings.API_URL)
+            else:
+                url = '{}notifications/'.format(settings.API_URL)
+            # Session authentication
             cookies = {
                 'sessionid': request.COOKIES[settings.SESSION_COOKIE_NAME],
                 'csrftoken': request.COOKIES[settings.CSRF_COOKIE_NAME]
@@ -33,7 +40,6 @@ class MumlifeMiddleware(object):
 
 def request(request):
     meta = {
-        'SITE_URL': settings.SITE_URL,
         'API_URL': settings.API_URL
     }
 
@@ -46,6 +52,7 @@ def request(request):
             read = 0
         if request.META.has_key("MUMLIFE_NOTIFICATIONS") and request.META["MUMLIFE_NOTIFICATIONS"]:
             total = request.META["MUMLIFE_NOTIFICATIONS"]['total']
+            meta['notifications'] = request.META["MUMLIFE_NOTIFICATIONS"]
         else:
             total = 0
         unread = total - read

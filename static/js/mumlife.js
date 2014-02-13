@@ -1,13 +1,13 @@
-/**
+/*!
  * Mumlife - Common Scripts.
  *
- * @version     2014-02-05 1.0.3
+ * @version     2014-02-10 1.0.4
  * @author      Michael Giuliano <michael@beatscope.co.uk>
  * @copyright   2014 Beatscope Limited | http://www.beatscope.co.uk/
  */
 
 
-/**
+/*!
  * jQuery Cookie plugin
  *
  * Copyright (c) 2010 Klaus Hartl (stilbuero.de)
@@ -45,7 +45,7 @@ jQuery.cookie = function (key, value, options) {
 };
 
 
-/**
+/*!
 *   @name                           Elastic
 *   @descripton                     Elastic is jQuery plugin that grow and shrink your textareas automatically
 *   @version                        1.6.11
@@ -194,7 +194,7 @@ jQuery.cookie = function (key, value, options) {
 })(jQuery);
 
 
-/**
+/*!
  * Mumlife - Common Scripts
  * (c) 2014 Beatscope Limited | http://www.beatscope.co.uk/
  */
@@ -340,8 +340,25 @@ ML.Application.prototype.init = function () {
         }
     }
 
+    // Cookie Control
+    if (!$.cookie('ck_allowed')) {
+        setTimeout(function () {
+            $('#mumlifecookies').slideDown();
+        }, 500);
+        $('#cookies-continue-button').click(function () {
+            $.cookie('ck_allowed', 1, {'expires': 365, 'path': '/'});
+            $('#mumlifecookies').slideUp();
+        });
+    }
+
     // Initialize Menu
     new ML.Menu();
+
+    // Initialize Search
+    new ML.Search();
+
+    // Initialize Distance Range Slider
+    new ML.Slider();
 
     // Initialize Notifications
     // we wait a fraction of a second to make sure the DOM has the CSS files added to it.
@@ -365,6 +382,36 @@ ML.Menu = function () {
             $('#menu').slideUp(250);
         } else {
             $('#menu').slideDown(250);
+        }
+        $(this).blur();
+        return false;
+    });
+};
+
+
+// Search
+ML.Search = function () {
+    $('[data-entity="search"]').click(function () {
+        if ($('[data-entity="search-form"]').is(':visible')) {
+            $('[data-entity="search-form"]').slideUp(250);
+        } else {
+            $('[data-entity="search-form"]').slideDown(250, function () {
+                $('[data-entity="search"]').blur();
+                $('[data-entity="search-form"] input[type="text"]').focus();
+            });
+        }
+        return false;
+    });
+};
+
+
+// Distance Range Slider
+ML.Slider = function () {
+    $('[data-entity="slider"]').click(function () {
+        if ($('[data-entity="slider-form"]').is(':visible')) {
+            $('[data-entity="slider-form"]').slideUp(250);
+        } else {
+            $('[data-entity="slider-form"]').slideDown(250);
         }
         $(this).blur();
         return false;
@@ -473,6 +520,37 @@ ML.Upload = function (settings) {
         }
     });
 
+};
+
+
+// Image Rotation Handler
+ML.ImageRotate = function (settings) {
+    var self = this;
+    var field = settings['field'];
+    var button = $('[data-entity="image-rotate"]');
+    button.on('click', function () {
+        $.ajax({
+            url: '/manipulate/rotate',
+            data: {'field': 'picture'},
+            type: 'POST',
+            contentType: "application/x-www-form-urlencoded;charset=utf-8",
+            dataType: "json",
+            success: function (response) {
+                // Add a timestamp to reload the rotated image
+                d = new Date();
+                $('.'+field).attr('src', response.filename+'?'+d.getTime());
+            },
+            error: function (e) {
+                try {
+                    console.log('FAILED -- ' + JSON.parse(e.responseText).detail);
+                } catch (err) {
+                    console.log('FAILED');
+                    console.log(e);
+                }
+            }
+        });
+        return false;
+    });
 };
 
 

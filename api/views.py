@@ -4,6 +4,7 @@ import copy
 import datetime
 import operator
 from django.conf import settings
+from django.core.exceptions import PermissionDenied
 from django.http import Http404
 from django.template import loader
 from django.utils import timezone
@@ -63,7 +64,7 @@ class MemberView(generics.RetrieveUpdateAPIView):
         obj = super(MemberView, self).get_object()
         if obj.user != self.request.user:
             # A user can only view/update its own account
-            raise Http404
+            raise PermissionDenied
         return obj
 
 
@@ -93,7 +94,7 @@ class KidView(generics.RetrieveUpdateAPIView):
         obj = super(KidView, self).get_object()
         if not self.request.user.get_profile() in obj.parents.all():
             # A user can only view/update its own kids
-            raise Http404
+            raise PermissionDenied
         return obj
 
 
@@ -176,7 +177,6 @@ class MessageListView(views.APIView):
     Results are paginated.
 
     """
-    permissions = (permissions.IsAuthenticated,)
 
     def get(self, request, page=1, terms='', format=None):
         try:
@@ -258,7 +258,6 @@ class MessageListView(views.APIView):
                         message['heading'] = message['eventdate']
                 previous_day = day
             message['STATIC_URL'] = settings.STATIC_URL
-            message['SITE_URL'] = settings.SITE_URL
             message['account'] = account.format()
             html_content += loader.render_to_string(template, message)
 
@@ -373,7 +372,7 @@ class MessagePostView(APIView):
 
         if message.member != request.user.get_profile():
             # only the creator can edit its own events
-            raise Http404
+            raise PermissionDenied
 
         for key, value in request.DATA.items():
             if value is None or key in ('id',):
@@ -413,10 +412,16 @@ class MessagePostView(APIView):
         return Response(serializer.data)
 
 
-class MessageView(generics.RetrieveUpdateAPIView):
+class MessageView(generics.RetrieveUpdateDestroyAPIView):
     model = Message
     serializer_class = MessageSerializer
-    permissions = (permissions.IsAdminUser,)
+
+    def get_object(self):
+        obj = super(MessageView, self).get_object()
+        if obj.member != self.request.user.get_profile():
+            # A user can only view/update/destroy its own messages
+            raise PermissionDenied
+        return obj
 
 
 class NotificationListView(views.APIView):
@@ -452,7 +457,6 @@ class NotificationListView(views.APIView):
             html_data = copy.deepcopy(result)
             html_data['read'] = read
             html_data['STATIC_URL'] = settings.STATIC_URL
-            html_data['SITE_URL'] = settings.SITE_URL
             html_content += loader.render_to_string(template, html_data)
 
         response = {

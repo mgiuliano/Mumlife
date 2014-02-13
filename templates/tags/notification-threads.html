@@ -3,8 +3,8 @@
     {% elif forloop.counter == thread.messages|length %}and
     {% else %},
     {% endif %}
-    {% if message.member.is_admin %}{{ message.member.name }}{% else %}<a href="{{ SITE_URL }}profile/{{ message.member.slug }}">{{ message.member.name }}</a>{% endif %}{% endfor %}
+    {% if message.member.is_admin %}{{ message.member.name }}{% else %}<a href="/profile/{{ message.member.slug }}">{{ message.member.name }}</a>{% endif %}{% endfor %}
     <strong>replied to</strong>
-    <em><a href="{{ SITE_URL }}message/{{ thread.parent.id }}/">{{ thread.parent.title|truncatechars:48 }}</a></em>
+    <em><a href="/message/{{ thread.parent.id }}/">{{ thread.parent.title|truncatechars:48 }}</a></em>
     <span>{{ age }}</span>
 </p>

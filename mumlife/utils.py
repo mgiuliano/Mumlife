@@ -10,30 +10,64 @@ import math
 import re
 import requests
 from django.conf import settings
+from dateutil.relativedelta import relativedelta
 
 logger = logging.getLogger('mumlife.utils')
 
+REGEX_TAGS = re.compile(r'(#[_\w-]+)')
+REGEX_FLAGS = re.compile(r'(@[_\w-]+)')
+
+# URLs
+# @see https://github.com/ianozsvald/twitter-text-python
+UTF_CHARS = ur'a-z0-9_\u00c0-\u00d6\u00d8-\u00f6\u00f8-\u00ff'
+PRE_CHARS = ur'(?:[^/"\':!=]|^|\:)'
+DOMAIN_CHARS = ur'([\.-]|[^\s_\!\.\/])+\.[a-z]{2,}(?::[0-9]+)?'
+PATH_CHARS = ur'(?:[\.,]?[%s!\*\'\(\);:=\+\$/%s#\[\]\-_,~@])' % (UTF_CHARS, '%')
+QUERY_CHARS = ur'[a-z0-9!\*\'\(\);:&=\+\$/%#\[\]\-_\.,~]'
+# Valid end-of-path chracters (so /foo. does not gobble the period).
+# 1. Allow ) for Wikipedia URLs.
+# 2. Allow =&# for empty URL parameters and other URL-join artifacts
+PATH_ENDING_CHARS = r'[%s\)=#/]' % UTF_CHARS
+QUERY_ENDING_CHARS = '[a-z0-9_&=#]'
+REGEX_URL = re.compile('((%s)((https?://|www\\.)(%s)(\/(%s*%s)?)?(\?%s*%s)?))'
+                       % (PRE_CHARS, DOMAIN_CHARS, PATH_CHARS,
+                          PATH_ENDING_CHARS, QUERY_CHARS, QUERY_ENDING_CHARS),
+                       re.IGNORECASE)
 
 class Extractor(object):
-    regex_tags = re.compile(r'(#[_\w-]+)')
-    regex_flags = re.compile(r'(@[_\w-]+)')
 
     def __init__(self, string):
         self.string = string
 
     def parse(self, with_links=True):
         if not with_links:
-            # Replace with span
-            return self.regex_tags.sub(self.replace_with_spans, self.string)
-        return self.regex_tags.sub(self.replace_with_links, self.string)
+            # replace hashtags and flags only, with spans
+            s = REGEX_TAGS.sub(self.replace_with_spans, self.string)
+            s = REGEX_FLAGS.sub(self.replace_with_spans, s)
+            return s
+        # parse hashtags, flags and links
+        s = REGEX_TAGS.sub(self.replace_with_hash, self.string)
+        s = REGEX_FLAGS.sub(self.replace_with_flag, s)
+        s = REGEX_URL.sub(self.replace_with_link, s)
+        return s
 
     def replace_with_spans(self, matchobj):
         hashtag = matchobj.group(0)
         return '<span>{}</span>'.format(hashtag)
 
-    def replace_with_links(self, matchobj):
+    def replace_with_hash(self, matchobj):
         hashtag = matchobj.group(0)
-        return '<a href="{}local/%23{}">{}</a>'.format(settings.SITE_URL, hashtag[1:], hashtag)
+        return '<a href="/local/%23{}">{}</a>'.format(hashtag[1:], hashtag)
+
+    def replace_with_flag(self, matchobj):
+        flagtag = matchobj.group(0)
+        if flagtag not in ('local', 'global', 'friends'):
+            return flagtag
+        return '<a href="/local/@{}">{}</a>'.format(flagtag[1:], flagtag)
+
+    def replace_with_link(self, matchobj):
+        link = matchobj.group(0)
+        return '<a href="{}" target="_blank">{}</a>'.format(link, link)
 
     def extract_tags(self):
         """
@@ -43,7 +77,7 @@ class Extractor(object):
 
         """
         tags = {}
-        for match in self.regex_tags.findall(self.string):
+        for match in REGEX_TAGS.findall(self.string):
             tags[re.sub(r'#', '', match)] = match
         return tags
 
@@ -54,7 +88,7 @@ class Extractor(object):
 
         """
         allowed = ['@local', '@global', '@friends', '@private']
-        matches = self.regex_flags.findall(self.string)
+        matches = REGEX_FLAGS.findall(self.string)
         return filter(lambda x: x in matches, allowed)
 
     def extract_postcode(self):
@@ -72,28 +106,42 @@ class Extractor(object):
             return postcode.group(1)
         return None
 
+
 def get_age(born):
     if not born:
         return 'N/A'
-    today = datetime.date.today()
-    try:
-        birthday = born.replace(year=today.year)
-    except ValueError: # raised when birth date is February 29 and the current year is not a leap year
-        birthday = born.replace(year=today.year, day=born.day-1)
-    if birthday > today:
-        return today.year - born.year - 1
-    else:
-        return today.year - born.year
-
-
-def get_age_bracket(dob):
-    if type(dob) is str:
+    if type(born) is str:
         # Attempt to convert string to date
         try:
-            dob = datetime.datetime.strptime(dob, '%d/%m/%Y').date()
+            born = datetime.datetime.strptime(born, '%Y-%m-%d').date()
         except:
             raise
-    age = get_age(dob)
+    today = datetime.date.today()
+    age = relativedelta(today, born)
+    # For babies and toddlers (i.e. age <= 24 months),
+    # we display the number of months, or weeks for small babies
+    months = (12 * age.years) + age.months + (.01 * age.days)
+    if months < 1:
+        weeks = int(age.days / 7)
+        return '{} week{}'.format(weeks, 's' if weeks > 1 else '')
+    if months <= 24:
+        months = int(months)
+        return '{} month{}'.format(months, 's' if months > 1 else '')
+    else:
+        return '{} years'.format(age.years)
+
+
+def get_age_bracket(born):
+    if not born:
+        return 'N/A'
+    if type(born) is str:
+        # Attempt to convert string to date
+        try:
+            born = datetime.datetime.strptime(born, '%Y-%m-%d').date()
+        except:
+            raise
+    today = datetime.date.today()
+    age = relativedelta(today, born).years
     if age <= 0:
         return 'Baby'
     elif age <= 2:

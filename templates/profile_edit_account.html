@@ -10,8 +10,6 @@
 {% block content %}
     <section>
 
-        <a href="{{ SITE_URL }}profile/edit" data-role="button" data-icon="arrow-l" data-iconpos="left">Back</a>
-
         <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
 
             {% if form.errors %}
@@ -23,13 +21,13 @@
             <div class="form-card box">
                 <div class="form-field">
                     <label>Email Address</label>
-                    <input type="text" disabled="disabled" value="{{ account.user.email }}" />
-                    <p class="description">Your email address cannot be changed here. Please contact us should you wish to do so.</p>
+                    <input type="email" disabled="disabled" value="{{ account.user.email }}" />
+                    <p class="description">Your email address cannot be changed here. Please <a href="javascript:void(0)" data-uv-lightbox="classic_widget" data-uv-mode="full" data-uv-primary-color="#64b0b3" data-uv-link-color="#a93e2e" data-uv-default-mode="support" data-uv-forum-id="240962">contact us</a> should you wish to do so.</p>
                 </div>
                 <div class="form-field">
                     <label>Password</label>
                     <input type="text" disabled="disabled" value="●●●●●●●●●●" />
-                    <p class="description">For security reasons, passwords are not stored, but you can it using <a href="{{ SITE_URL }}member/password/change/">this form</a>
+                    <p class="description">For security reasons, passwords are not stored, but you can it using <a href="/member/password/change/">this form</a>
                 </div>
                 <div class="form-field">
                     {{ form.fullname.label_tag }}
@@ -38,8 +36,8 @@
                 </div>
                 <div class="form-field">
                     {{ form.postcode.label_tag }}
-                    {{ form.postcode }}
-                    <p class="description">{{ form.postcode.help_text }}</p>
+                    <input type="text" disabled="disabled" value="{{ form.postcode.value }}" />
+                    <p class="description">Your postcode cannot be changed here. Please <a href="javascript:void(0)" data-uv-lightbox="classic_widget" data-uv-mode="full" data-uv-primary-color="#64b0b3" data-uv-link-color="#a93e2e" data-uv-default-mode="support" data-uv-forum-id="240962">contact us</a> should you wish to do so.</p>
                 </div>
                 <div class="form-field">
                     <fieldset data-role="controlgroup" id="id_gender" name="gender" data-value="{{ form.gender.value }}">
@@ -63,12 +61,20 @@
                     {% endlocalize %}
                     <p class="description">Your date of birth is, and always will be, private. We won't share it with anyone.</p>
                 </div>
-                <div class="form-field">
+                <div class="form-field picture">
                     {{ form.picture.label_tag }}
                     {{ form.picture }}
+                    {% if form.picture.value %}
+                    <div class="picture-rotate">
+                        <a href="" title="Roate picture" data-entity="image-rotate">
+                            <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-rotate" alt="Rotate picture" />
+                        </a>
+                    </div>
+                    {% endif %}
                     <p class="description">{{ form.picture.help_text }}</p>
                     <p class="description">The upload is known not to work on certain devices, including Windows Phones and older Android Phones.
                         You can still access your account from a computer to upload a picture.</p>
+                    <p class="description"><span class="bold">You will be able to rotate the picture after it is uploaded.</span></p>
                 </div>
                 <div class="form-field">
                     {{ form.about.label_tag }}
@@ -95,6 +101,21 @@
     <footer> </footer>
 {% endblock %}
 
+{% block footermenu %}
+{% spaceless %}
+<li>
+    <a class="icon-link" href="/profile/edit" title="Back">
+        <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-back" alt="Back" />
+    </a>
+</li>
+<li>
+    <a class="icon-link" href="/profile" title="Profile">
+        <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-profile" alt="Profile" />
+    </a>
+</li>
+{% endspaceless %}
+{% endblock %}
+
 {% block extrajs %}{{ block.super }}
 <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.ajaxfileupload.js"></script>
 <script type="text/javascript">
@@ -119,8 +140,11 @@
         // Expandable textareas
         $('#id_about').elastic();
 
-        // Upload Field
+        // Picture Upload Field
         new ML.Upload({'model': 'Member', 'field': 'picture', 'width': 150, 'height': 150});
+        new ML.ImageRotate({'field': 'picture-edit'})
     });
 </script>
+<!-- UserVoice JavaScript SDK (only needed once on a page) -->
+<script>(function(){var uv=document.createElement('script');uv.type='text/javascript';uv.async=true;uv.src='//widget.uservoice.com/Hl3osDsDgrXWdjJCdvPwng.js';var s=document.getElementsByTagName('script')[0];s.parentNode.insertBefore(uv,s)})()</script>
 {% endblock %}

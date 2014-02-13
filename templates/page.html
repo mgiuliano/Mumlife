@@ -2,12 +2,17 @@
 
 {% block title %}{{ block.super }} | {{ title }}{% endblock %}
 
-{% block heading %}<h1>{{ title }}</h1>{% endblock %}
+{% block bodyclass %}staticpage{% endblock %}
 
 {% block content %}
 <div class="content">
     <div class="page">
+        <h1>{{ title }}</h1>
         {{ body }}
     </div>
 </div>
+{% endblock %}
+
+{% block footer %}
+{% include "tags/footer.html" %}
 {% endblock %}

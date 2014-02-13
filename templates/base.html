@@ -10,9 +10,9 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
         <meta name="description" content="">
         <link rel="icon" href="/favicon.ico" type="image/x-icon">
-        <link rel="stylesheet" href="{{ STATIC_URL }}css/theme.css">
         <link rel="stylesheet" href="{{ STATIC_URL }}css/jquery.mobile.structure-1.3.2.min.css">
-        <link rel="stylesheet" href="{{ STATIC_URL }}css/mumlife-2.0.1.min.css">
+        <link rel="stylesheet" href="{{ STATIC_URL }}css/theme-2.0.0.min.css">
+        <link rel="stylesheet" href="{{ STATIC_URL }}css/mumlife-3.0.0.min.css">
         {% block extrastyle %}{% endblock %}
         <script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.9.1.min.js"></script>
         <script type="text/javascript">
@@ -24,9 +24,30 @@
         </script>
         <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.mobile-1.3.2.min.js"></script>
         <script type="text/javascript" src="{{ STATIC_URL }}js/platform.min.js"></script>
-        <script type="text/javascript" src="{{ STATIC_URL }}js/mumlife-1.0.3.min.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}js/mumlife-1.0.4.min.js"></script>
         {% block extrahead %}{% endblock %}
         {% block blockbots %}<meta name="robots" content="NONE,NOARCHIVE" />{% endblock %}
+        <!-- start Mixpanel --><script type="text/javascript">(function(e,b){if(!b.__SV){var a,f,i,g;window.mixpanel=b;a=e.createElement("script");a.type="text/javascript";a.async=!0;a.src=("https:"===e.location.protocol?"https:":"http:")+'//cdn.mxpnl.com/libs/mixpanel-2.2.min.js';f=e.getElementsByTagName("script")[0];f.parentNode.insertBefore(a,f);b._i=[];b.init=function(a,e,d){function f(b,h){var a=h.split(".");2==a.length&&(b=b[a[0]],h=a[1]);b[h]=function(){b.push([h].concat(Array.prototype.slice.call(arguments,0)))}}var c=b;"undefined"!==
+typeof d?c=b[d]=[]:d="mixpanel";c.people=c.people||[];c.toString=function(b){var a="mixpanel";"mixpanel"!==d&&(a+="."+d);b||(a+=" (stub)");return a};c.people.toString=function(){return c.toString(1)+".people (stub)"};i="disable track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config people.set people.set_once people.increment people.append people.track_charge people.clear_charges people.delete_user".split(" ");for(g=0;g<i.length;g++)f(c,i[g]);
+b._i.push([a,e,d])};b.__SV=1.2}})(document,window.mixpanel||[]);
+mixpanel.init("3728ce2d184bd36fcfad556d112db1ed");</script><!-- end Mixpanel -->
+        {% if user.is_authenticated and account %}
+        <script type="text/javascript">
+            mixpanel.identify('{{ account.id }}');
+            mixpanel.people.set('$email', '{{ account.user.email }}');
+            mixpanel.people.set('age', '{{ account.age }}');
+            mixpanel.people.set('gender', '{{ account.get_gender_display }}');
+            mixpanel.people.set('area', '{{ account.area }}');
+        </script>
+        {% endif %}
+        <script>
+          (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+          (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+          })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+          ga('create', 'UA-35898884-3', 'mumlife.co.uk');
+          ga('send', 'pageview');
+        </script>
     </head>
 
     <body class="{% block bodyclass %}{% endblock %}">
@@ -35,10 +56,24 @@
         <![endif]-->
         <div data-role="page" data-theme="{% block pagetheme %}a{% endblock %}">
 
+            <div id="mumlifecookies" class="banner">
+                <section class="container">
+                    <div>
+                        <h2 class="banner-title">Cookies on Mumlife</h2>
+                        <p class="banner-content">We use cookies to ensure that we give you the best experience.
+                            If you continue, we'll assume that you are happy to receive all cookies on Mumlife.</p>
+                        <ul class="banner-options">
+                            <li id="cookies-continue"><button type="button" id="cookies-continue-button">Continue</button></li>
+                            <li id="cookies-more"><a href="/cookies">Find out more</a></li>
+                        </ul>
+                    </div>
+                </section>
+            </div>
+
             {% if user.is_authenticated %}
-            <header data-role="header" data-theme="{% block headertheme %}a{% endblock %}" class="clearfix">
-                <div class="title">
-                    {% block heading %}{% endblock %}
+            <header data-role="header" data-position="fixed" data-tap-toggle="false" data-theme="{% block headertheme %}a{% endblock %}" class="clearfix">
+                <div class="main-logo">
+                    <a href="/"><img src="{{ STATIC_URL }}img/logo.png" alt="Mumlife" /></a>
                 </div>
                 <div class="buttons">
                     <a class="icon-link" href="#" data-entity="menu" title="Menu">
@@ -47,21 +82,30 @@
                     <a class="icon-link invisible{% if new_notifications %} active{% endif %}" href="#" data-entity="notifications" title="Notifications">
                         <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-flag" alt="Notifications" />
                     </a>
-                    <a class="icon-link" href="{{ SITE_URL }}{% block post_link %}write{% endblock %}" data-entity="write" title="Post">
+                    <a class="icon-link" href="/{% block post_link %}write{% endblock %}" data-entity="write" title="Post">
                         <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-write" alt="Post" />
                     </a>
                 </div>
                 <div id="menu">
                     <ul data-role="listview" data-inset="true">
-                        <li><a href="{{ SITE_URL }}local/">Local posts</a></li>
-                        <li><a href="{{ SITE_URL }}events/">Activities</a></li>
-                        <li><a href="{{ SITE_URL }}members/">Members</a></li>
-                        <li><a href="{{ SITE_URL }}messages/">Private messages</a></li>
-                        <li><a href="{{ SITE_URL }}profile/">My profile</a></li>
-                        <li><a href="{{ SITE_URL }}logout">Logout</a></li>
+                        <li><a href="/local/">Local posts</a></li>
+                        <li><a href="/events/">Activities</a></li>
+                        <li><a href="/members/">Members</a></li>
+                        <li><a href="/messages/">Private messages</a></li>
+                        <li><a href="/profile/">My profile</a></li>
+                        <li><a href="/logout">Logout</a></li>
                     </ul>
                 </div>
+                <div class="title">
+                    {% block heading %}{% endblock %}
+                </div>
                 {% block header %}{% endblock %}
+            </header>
+            {% else %}
+            <header>
+                <div class="main-logo">
+                    <a href="/"><img src="{{ STATIC_URL }}img/logo.png" alt="Mumlife" /></a>
+                </div>
             </header>
             {% endif %}
 
@@ -82,19 +126,26 @@
                     <article>
                         {% block content %}{% endblock %}
                     </article>
+                    {% if user.is_authenticated %}
+                    <sidebar>
+                        <h2>Notifications</h2>
+                        <div class="side-notifications">
+                            {{ notifications.html_content|safe }}
+                        </div>
+                    </sidebar>
+                    {% endif %}
                 </div>
             </div>
 
+            {% block footer %}{% endblock %}
+
             {% if user.is_authenticated %}
-            <footer data-role="footer" data-position="fixed" data-theme="{% block footertheme %}a{% endblock %}">
+            <footer data-role="footer" data-position="fixed" data-tap-toggle="false" data-theme="{% block footertheme %}a{% endblock %}">
                 <nav>
                     <ul class="clearfix">
                         {% block footermenu %}{% endblock %}
                     </ul>
                 </nav>
-                {% comment %}
-                <p><em>Powered by Beatscope Engineering</em>, &copy; 2008-{% now "Y" %} <a href="http://www.beatscope.co.uk/" target="_blank">Beatscope Limited</a></p>
-                {% endcomment %}
             </footer>
             {% endif %}
 
@@ -102,15 +153,9 @@
 
         <script type="text/javascript">
             $(document).ready(function () {
-                new ML.Application({'site_url': '{{ SITE_URL }}', 'static_url': '{{ STATIC_URL }}', 'api_url': '{{ API_URL }}'});
+                new ML.Application({'site_url': '/', 'static_url': '{{ STATIC_URL }}', 'api_url': '{{ API_URL }}'});
             });
         </script>
         {% block extrajs %}{% endblock %}
-        {% comment %}<script>
-            var _gaq=[['_setAccount','UA-XXXXX-X'],['_trackPageview']];
-            (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
-            g.src='//www.google-analytics.com/ga.js';
-            s.parentNode.insertBefore(g,s)}(document,'script'));
-        </script>{% endcomment %}
     </body>
 </html>

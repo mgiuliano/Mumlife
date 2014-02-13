@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.contrib.sites.models import RequestSite
-from django.contrib.sites.models import Site
 
 from registration import signals
 from registration.models import RegistrationProfile
@@ -27,10 +26,7 @@ class RegistrationView(BaseRegistrationView):
         username, email = cleaned_data['email'], cleaned_data['email']
         password = cleaned_data['password']
         first_name, last_name = cleaned_data["first_name"], cleaned_data["last_name"]
-        if Site._meta.installed:
-            site = Site.objects.get_current()
-        else:
-            site = RequestSite(request)
+        site = RequestSite(request)
         new_user = RegistrationProfile.objects.create_inactive_user(username, email,
                                                                     password, site)
 

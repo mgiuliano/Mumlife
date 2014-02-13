@@ -5,11 +5,13 @@ import operator
 import re
 import requests
 import urllib
+from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import get_object_or_404
 from django.template import RequestContext, loader
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
+from django.contrib.sites.models import RequestSite
 from django.conf import settings
 from django.utils import timezone
 from tagging.models import Tag, TaggedItem
@@ -79,9 +81,14 @@ def feed(request, tagstring=''):
     account = request.user.get_profile()
     context['account'] = account
 
-    # Fetch 1st page of results from the API using cookie authentication
-    protocol = 'https' if request.is_secure() else 'http'
-    url = '{}:{}messages/1/{}'.format(protocol, settings.API_URL, urllib.quote(tagstring))
+    # Fetch 1st page of results from the API
+    if re.search(r'http:|https:', settings.API_URL) is None:
+        site = RequestSite(request)
+        protocol = 'https' if request.is_secure() else 'http'
+        url = '{}://{}{}messages/1/{}'.format(protocol, site.domain, settings.API_URL, urllib.quote(tagstring))
+    else:
+        url = '{}messages/1/{}'.format(settings.API_URL, urllib.quote(tagstring))
+    # Session authentication
     cookies = {
         'sessionid': request.COOKIES[settings.SESSION_COOKIE_NAME],
         'csrftoken': request.COOKIES[settings.CSRF_COOKIE_NAME]
@@ -124,9 +131,14 @@ def events(request, tagstring=''):
     account = request.user.get_profile()
     context['account'] = account
 
-    # Fetch 1st page of results from the API using cookie authentication
-    protocol = 'https' if request.is_secure() else 'http'
-    url = '{}:{}messages/1/{}'.format(protocol, settings.API_URL, urllib.quote(tagstring))
+    # Fetch 1st page of results from the API
+    if re.search(r'http:|https:', settings.API_URL) is None:
+        site = RequestSite(request)
+        protocol = 'https' if request.is_secure() else 'http'
+        url = '{}://{}{}messages/1/{}'.format(protocol, site.domain, settings.API_URL, urllib.quote(tagstring))
+    else:
+        url = '{}messages/1/{}'.format(settings.API_URL, urllib.quote(tagstring))
+    # Session authentication
     cookies = {
         'sessionid': request.COOKIES[settings.SESSION_COOKIE_NAME],
         'csrftoken': request.COOKIES[settings.CSRF_COOKIE_NAME]
@@ -156,6 +168,14 @@ def events(request, tagstring=''):
         context['results'] = ''
         context['next'] = ''
 
+    # Format empty results message
+    if not context['total']:
+        data = {
+            'STATIC_URL': settings.STATIC_URL
+        }
+        content = loader.render_to_string('tags/event-noresults.html', data)
+        context['noresults'] = content
+
     t = loader.get_template('events.html')
     c = RequestContext(request, context)
     return HttpResponse(t.render(c))
@@ -169,9 +189,14 @@ def messages(request):
     context['account'] = account
     context['friends'] = account.get_friends(Friendships.APPROVED)
 
-    # Fetch 1st page of results from the API using cookie authentication
-    protocol = 'https' if request.is_secure() else 'http'
-    url = '{}:{}messages/1/{}'.format(protocol, settings.API_URL, '@private')
+    # Fetch 1st page of results from the API
+    if re.search(r'http:|https:', settings.API_URL) is None:
+        site = RequestSite(request)
+        protocol = 'https' if request.is_secure() else 'http'
+        url = '{}://{}{}messages/1/{}'.format(protocol, site.domain, settings.API_URL, '@private')
+    else:
+        url = '{}messages/1/{}'.format(settings.API_URL, '@private')
+    # Session authentication
     cookies = {
         'sessionid': request.COOKIES[settings.SESSION_COOKIE_NAME],
         'csrftoken': request.COOKIES[settings.CSRF_COOKIE_NAME]
@@ -264,7 +289,7 @@ def edit_event(request, event_id):
     message = get_object_or_404(Message, pk=event_id)
     if message.member != request.user.get_profile():
         # Only the creator can edit its own events
-        raise Http404
+        raise PermissionDenied
     if not message.eventdate:
         # Only events can be edited
         raise Http404
@@ -284,6 +309,36 @@ def edit_event(request, event_id):
 
 
 @login_required
+def delete_event(request, event_id):
+    message = get_object_or_404(Message, pk=event_id)
+    if message.member != request.user.get_profile():
+        # Only the creator can edit its own events
+        raise PermissionDenied
+    if not message.eventdate:
+        # Only events can be deleted
+        raise Http404
+    # Delete the message
+    if re.search(r'http:|https:', settings.API_URL) is None:
+        site = RequestSite(request)
+        protocol = 'https' if request.is_secure() else 'http'
+        url = '{}://{}{}message/{}/'.format(protocol, site.domain,  settings.API_URL, message.id)
+    else:
+        url = '{}message/{}/'.format(settings.API_URL, message.id)
+    # Session authentication
+    cookies = {
+        'sessionid': request.COOKIES[settings.SESSION_COOKIE_NAME],
+        'csrftoken': request.COOKIES[settings.CSRF_COOKIE_NAME]
+    }
+    # POST request also requires 'X-CSRFToken' header
+    headers = {
+        'X-CSRFToken': request.COOKIES[settings.CSRF_COOKIE_NAME]
+    }
+    r = requests.delete(url, verify=False, headers=headers, cookies=cookies, params={'format': 'json'})
+    # And redirect to Events/Activities page
+    return HttpResponseRedirect('/events/')
+
+
+@login_required
 def message(request, mid, eventmonth=None, eventday=None):
     account = request.user.get_profile()
     message = get_object_or_404(Message, pk=mid)
@@ -296,16 +351,16 @@ def message(request, mid, eventmonth=None, eventday=None):
         'result': formatted_message
     }
     # back button
-    backlink = 'local/'
+    backlink = '/local/'
     if message.eventdate:
-        backlink = 'events/'
+        backlink = '/events/'
     elif message.visibility == Message.PRIVATE:
-        backlink = 'messages/'
+        backlink = '/messages/'
     elif message.visibility == Message.FRIENDS:
-        backlink = 'local/@friends'
+        backlink = '/local/@friends'
     elif message.area != account.area:
-        backlink = 'local/@global'
-    context['back'] = '{}{}'.format(settings.SITE_URL, backlink)
+        backlink = '/local/@global'
+    context['back'] = backlink
 
     t = loader.get_template('message.html')
     c = RequestContext(request, context)
@@ -406,7 +461,7 @@ def profile_edit(request, section=None, kid=None):
         try:
             kid = Kid.objects.get(pk=kid)
             if account not in kid.parents.all():
-                raise Http404
+                raise PermissionDenied
             context['kid'] = kid
             if request.method == 'POST':
                 form = KidForm(request.POST, instance=kid)

@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from mumlife.admin import site
 from mumlife.models import Page
 from mumlife.uploads import FileUploader
+from mumlife.images import ImageRotater
 #from mumlife.forms import PassResetForm
 
 urlpatterns = patterns('',
@@ -20,6 +21,7 @@ urlpatterns = patterns('',
     url(r'^post$', 'mumlife.views.post'),
     url(r'^post-event$', 'mumlife.views.post_event'),
     url(r'^edit-event/(?P<event_id>[0-9]+)/$', 'mumlife.views.edit_event'),
+    url(r'^delete-event/(?P<event_id>[0-9]+)/$', 'mumlife.views.delete_event'),
     url(r'^message/(?P<mid>[0-9]+)/$', 'mumlife.views.message'),
     url(r'^message/(?P<mid>[0-9]+)/(?P<eventmonth>\w{3})/(?P<eventday>\d*)/$', 'mumlife.views.message'),
     url(r'^members/(?P<tagstring>.*)', 'mumlife.views.members'),
@@ -46,6 +48,7 @@ urlpatterns = patterns('',
     url(r'^logout', 'django.contrib.auth.views.logout_then_login'),
 
     url(r'^upload$', login_required(FileUploader())),
+    url(r'^manipulate/rotate$', login_required(ImageRotater())),
     url(r'^profile/edit$', 'mumlife.views.profile_edit'),
     url(r'^profile/edit/account$', 'mumlife.views.profile_edit', {'section': 'account'}),
     url(r'^profile/edit/kids$', 'mumlife.views.profile_edit', {'section': 'kids'}),

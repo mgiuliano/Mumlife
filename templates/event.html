@@ -15,15 +15,6 @@
 <div class="write-message">
     <div data-entity="message" data-type="message">
 
-        {% if edit_mode %}
-            <a data-role="button"
-               data-icon="arrow-l"
-               data-iconpos="left"
-               href="{{ SITE_URL }}message/{{ event_id }}/">Back</a>
-        {% else %}
-            <a data-role="button" data-icon="arrow-l" data-iconpos="left" href="{{ SITE_URL }}write">Back</a>
-        {% endif %}
-
         <div class="box">
             <div class="form-card">
                 <div class="ui-content" id="errors"
@@ -131,6 +122,29 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block footermenu %}
+{% spaceless %}
+    {% if edit_mode %}
+    <li>
+        <a class="icon-link" href="/message/{{ event_id }}/" title="Back">
+            <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-back" alt="Back" />
+        </a>
+    </li>
+    <li>
+        <a class="icon-link" href="/delete-event/{{ event_id }}/" title="Delete">
+            <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-delete" alt="Delete" />
+        </a>
+    </li>
+    {% else %}
+    <li>
+        <a class="icon-link" href="/write" title="Back">
+            <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-back" alt="Back" />
+        </a>
+    </li>
+    {% endif %}
+{% endspaceless %}
 {% endblock %}
 
 {% block extrajs %}{{ block.super }}

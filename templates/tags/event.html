@@ -1,10 +1,9 @@
 {% if heading %}
     <h3>{{ heading }}</h3>
 {% endif %}
-<div class="message clearfix">
+<div class="message">
     <div class="message-left">
-        <a href="{{ SITE_URL }}message/{{ id }}/{{ eventmonth }}/{{ eventday }}/" class="message-event-link">
-            <span class="message-time">{{ eventtime }}</span>
+        <a href="/message/{{ id }}/{{ eventmonth }}/{{ eventday }}/" class="message-event-link">
             <span class="message-picture">
                 <img class="avatar"
                      src="{{ STATIC_URL }}img/calendar.png"
@@ -12,27 +11,28 @@
                 <span class="message-eventmonth">{{ eventmonth }}</span>
                 <span class="message-eventday">{{ eventday }}</span>
             </span>
-            {% if postcode %}<span class="message-distance">{{ distance }}</span>{% endif %}
             <span class="message-area">{{ area }}</span>
+            {% if postcode %}<span class="message-distance">{{ distance }}</span>{% endif %}
         </a>
     </div>
-    <div class="message-right">
-        <div class="message-author">
-            <a href="{{ SITE_URL }}message/{{ id }}/{{ eventmonth }}/{{ eventday }}/">{{ name }}</a>
-        </div>
-        <div class="message-body">
-            <a href="{{ SITE_URL }}message/{{ id }}/{{ eventmonth }}/{{ eventday }}/" class="message-body-link">
-                {{ location }}
-                <span class="message-tags">{% for tag in tags %}{{ tag.value }} {% endfor %}</span>
-                <span class="message-age" title="{{ timestamp }}">{{ age }}</span>
-            </a>
-        </div>
-        <div class="message-tools">
+    <a href="/message/{{ id }}/{{ eventmonth }}/{{ eventday }}/" class="message-right">
+        <span class="message-author">{{ name }}</span>
+        <span class="message-time">{{ eventtime }}</span>
+        <span class="message-body">
+            {{ location }}
+            <span>{% for tag in tags %}{{ tag.value }} {% endfor %}</span>
+        </span>
+    </a>
+    <div class="message-content clearfix">
+        <a href="/message/{{ id }}/{{ eventmonth }}/{{ eventday }}/" class="message-tools clearfix">
             {% if replies %}
-                <a href="{{ SITE_URL }}message/{{ id }}/{{ eventmonth }}/{{ eventday }}/" class="message-tools-link">
-                    <span class="message-replies-count">{{ replies|length }}</span>
-                </a>
+                <span class="message-replies">
+                    {{ replies|length }}
+                    <span class="icon icon-comment"></span>
+                </span>
             {% endif %}
-        </div>
+            <span class="message-age" title="{{ timestamp }}">{{ age }}</span>
+        </a>
     </div>
 </div>
+

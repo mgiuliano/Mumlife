@@ -6,13 +6,22 @@
 
 {% block content %}
     <section>
-        <a href="{{ SITE_URL }}profile" data-role="button" data-icon="arrow-l" data-iconpos="left">Back</a>
-        <a href="{{ SITE_URL }}profile/edit/account" data-role="button" data-icon="arrow-r" data-iconpos="right">Account settings</a>
-        <a href="{{ SITE_URL }}profile/edit/kids" data-role="button" data-icon="arrow-r" data-iconpos="right">My kids</a>
-        <a href="{{ SITE_URL }}profile/edit/interests" data-role="button" data-icon="arrow-r" data-iconpos="right">My interests</a>
-        <a href="{{ SITE_URL }}profile/edit/friends" data-role="button" data-icon="arrow-r" data-iconpos="right">My friends</a>
-        <a href="{{ SITE_URL }}profile/edit/preferences" data-role="button" data-icon="arrow-r" data-iconpos="right">Preferences</a>
-        <a href="{{ SITE_URL }}logout" data-role="button" data-icon="delete" data-iconpos="left">Logout</a>
+        <a href="/profile/edit/account" data-role="button" data-icon="arrow-r" data-iconpos="right">Account settings</a>
+        <a href="/profile/edit/kids" data-role="button" data-icon="arrow-r" data-iconpos="right">My kids</a>
+        <a href="/profile/edit/interests" data-role="button" data-icon="arrow-r" data-iconpos="right">My interests</a>
+        <a href="/profile/edit/friends" data-role="button" data-icon="arrow-r" data-iconpos="right">My friends</a>
+        <a href="/profile/edit/preferences" data-role="button" data-icon="arrow-r" data-iconpos="right">Preferences</a>
+        <a href="/logout" data-role="button" data-icon="delete" data-iconpos="left">Logout</a>
     </section>
-    <footer> </footer>
+    <footer>{% include "tags/footer.html" %}</footer>
+{% endblock %}
+
+{% block footermenu %}
+{% spaceless %}
+<li>
+    <a class="icon-link" href="/profile" title="Back">
+        <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-profile" alt="Back" />
+    </a>
+</li>
+{% endspaceless %}
 {% endblock %}

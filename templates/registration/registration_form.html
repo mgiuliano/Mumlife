@@ -7,7 +7,7 @@
 
 {% block content %}
 <div class="intro">
-    <a href="{{ SITE_URL }}"><img src="{{ STATIC_URL }}img/logo-bigger.png" width="150" height="55" alt="Mumlife" /></a>
+    <a href="/"><img src="{{ STATIC_URL }}img/logo-bigger.png" width="150" height="55" alt="Mumlife" /></a>
 </div>
 
 <div class="login-box edit-mode">
@@ -15,7 +15,7 @@
     <form class="form-card" action="" method="post">
         {% csrf_token %}
         <div class="form-field">
-            {{ form.email }}
+            <input type="email" placeholder="Email address" name="email" id="id_email">
             {% if form.email.errors %}
                 <div class="form-errors">{{ form.email.errors }}</div>
             {% endif %}
@@ -59,7 +59,7 @@
         <div class="form-field agreed">
             <label>
                 {{ form.agreed }}
-                I agree to the <a href="/terms-of-use" target="_blank">Terms of Use</a> and <a href="/privacy-policy" target="_blank">Privacy Policy</a>
+                I agree to the <span class="bold">Terms of Use</span> and <span class="bold">Privacy Policy</span>
             </label>
             {% if form.agreed.errors %}
                 <div class="form-errors">{{ form.agreed.errors }}</div>
