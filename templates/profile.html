@@ -65,14 +65,20 @@
 {% if not member.friend_status %}
 <li>
     <a class="icon-link addtofriend" href="#{{ account.id }},{{ member.id }}">
-        <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-addfriend" alt="Add to friend" />
+        <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-addtofriend" alt="Add to friend" />
     </a>
 </li>
 {% elif member.friend_status and member.friend_status == 'Requesting' %}
 <li>
     <a class="icon-link addtofriend" href="#{{ account.id }},{{ member.id }}" rel="confirm">
-        <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-addfriend" alt="Approve" />
+        <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-addtofriend" alt="Approve" />
     </a>
+</li>
+{% elif member.friend_status and member.friend_status == 'Approved' %}
+<li>
+    <span>
+        <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-friend disabled" alt="Friends" />
+    </span>
 </li>
 {% endif %}
 

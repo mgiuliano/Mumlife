@@ -156,6 +156,9 @@
             {{ result.body_with_links|safe|linebreaks }}
             <div class="message-tags">{% for tag in result.tags_item %}<a href="/local/%23{{ tag.key }}">{{ tag.value }}</a> {% endfor %}</div>
         </div>
+        {% if result.picture %}<div class="message-image">
+            <img class="fullonclick" src="{{ result.picture }}" alt="" width="auto" height="auto" />
+        </div>{% endif %}
         <div class="message-tools clearfix">
             <span class="message-age" title="{{ result.timestamp }}">{{ result.age }}</span>
         </div>

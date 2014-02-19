@@ -1,7 +1,7 @@
 /*! 
  * Mumlife Styles.
  * 
- * @version     2014-02-07 3.0.0
+ * @version     2014-02-13 3.0.1
  * @author      Michael Giuliano <michael@beatscope.co.uk>
  * @copyright   2014 Beatscope Limited | http://www.beatscope.co.uk/
  */
@@ -113,6 +113,9 @@ div.ui-input-has-clear {
 .ui-input-search.ui-focus {
     box-shadow: 0 0 3px #A93E2E;
 }
+.ui-loading .ui-loader {
+    background:#000;
+}
 h2 {
     font-size:1.2em;
     color:#a93e2e;
@@ -158,6 +161,9 @@ a.icon-link {
     height:32px;
     background:transparent url(../img/icons-20140212.png) no-repeat;
 }
+.icon.disabled {
+    opacity:0.5;
+}
 
 .icon.icon-menu { background-position: -160px 0; }
 .icon.icon-menu:hover { background-position: -160px -32px; }
@@ -184,27 +190,23 @@ a.icon-link {
 .icon.icon-edit:hover { background-position: -128px -128px; }
 .icon.icon-delete { background-position: -256px -96px; }
 .icon.icon-delete:hover { background-position: -256px -128px; }
-.icon.icon-addfriend { background-position: -192px -96px; }
-.icon.icon-addfriend:hover { background-position: -192px -128px; }
-.icon.icon-addfriend.icon-pendingfriend { background-position: -224px -96px; }
-.icon.icon-addfriend.icon-pendingfriend:hover { background-position: -224px -128px; }
+.icon.icon-addtofriend,
+.icon.icon-confirmfriend { background-position: -192px -96px; }
+.icon.icon-addtofriend:hover,
+.icon.icon-confirmfriend:hover { background-position: -192px -128px; }
+.icon.icon-pendingfriend,
+.icon.icon-pendingfriend:hover { background-position: -192px -128px; }
 .icon.icon-local { background-position: 0 -96px; }
 .icon.icon-local:hover,
 a.active .icon.icon-local { background-position: 0 -128px; }
-.icon.icon-friends { background-position: -288px -96px; }
+.icon.icon-friends,
+.icon.icon-friend,
+.icon.icon-friend:hover { background-position: -288px -96px; }
 .icon.icon-friends:hover,
 a.active .icon.icon-friends { background-position: -288px -128px; }
 .icon.icon-flag { background-position: -128px 0; }
 .icon.icon-flag:hover { background-position: -128px -32px; }
 a.active .icon.icon-flag { background-position: -128px -64px; }
-
-.icon.icon-addtofriend,
-.icon.icon-confirmfriend { background-position: -64px -32px; }
-.icon.icon-addtofriend:hover,
-.icon.icon-confirmfriend:hover { background-position: -64px -64px; }
-.icon.icon-pendingfriend { background-position: -64px -64px; }
-.icon.icon-friend,
-.icon.icon-friend:hover { background-position: 0 -64px; }
 
 .box {
     margin-bottom:5px;
@@ -438,29 +440,103 @@ footer nav li a.icon-link:hover {
     Home / Registration
    ===================== */
 
+body.home .main-container {
+    background-color:#62989a;
+}
+
+body.home .banner {
+    margin:0;
+}
+body.home .home-screen {
+    padding-bottom:10px;
+    background-repeat:no-repeat;
+    background-position:0 0;
+    background-size:100% auto;
+    background-attachment:scroll;
+    background-image:url(../creative/6999917.jpg);
+}
+body.home .intro {
+    padding:5px;
+    margin-bottom:55px;
+}
+body.home #login-links .ui-grid-a .ui-btn-text {
+    font-size:0.9em;
+}
+body.home #login-links a {
+    text-decoration:none;
+}
+body.home #login-links a.home-forgot {
+    display:block;
+    margin-left:10px;
+    color:#fff;
+    font-size:0.9em;
+    text-shadow:1px 1px 0 #000;
+}
+body.home .home-features {
+    padding:10px 0 0;
+    border-top:solid 3px #fff;
+    background:#64b0b3;
+}
+    body.home .home-features ul {
+        list-style-type:none;
+        padding-left:1%;
+    }
+    body.home .home-features ul li {
+        display:block;
+        margin:10px auto;
+        width:180px;
+        height:180px;
+        background:#f58821;
+        color:#fff;
+        border-radius:50%;
+        text-align:center;
+        text-shadow:1px 1px 0 #666;
+    }
+    body.home .home-features strong {
+        display:block;
+        line-height:50px;
+        
+        text-transform:uppercase;
+    }
+    body.home .home-features p {
+        line-height:20px;
+        padding:0 20px;
+    }
+    body.home .home-organisers {
+        margin-top:25px;
+        border-top:solid 3px #fff;
+        background:#f58821;
+    }
+    body.home .home-organisers h3 {
+        position:relative;
+        top:-15px;
+        background:#fff;
+        width:70%;
+        padding:5px 10px;
+        margin:0 auto;
+        text-align:center;
+        border-radius:0.3em;
+    }
+    body.home .home-organisers p {
+        text-align:center;
+        padding:1em 10% 0.3em;
+    }
+    body.home #mc_embed_signup {
+        width:70%;
+        padding:5px;
+        max-width:480px;
+        margin:0 auto;
+    }
+
 body.anon header .main-logo {
     display:none;
 }
 body.anon .ui-body-a {
     background:none;
 }
-body.anon .ui-page {
-    background-repeat:no-repeat;
-    background-position:0 0;
-    background-size:100% auto;
-    background-attachment:scroll;
-}
 
-body.home .ui-page {
-    background-color:#64b0b3;
-    background-image:url(../creative/6999917.jpg);
-}
 body.register .ui-page {
     background-color:#64b0b3;
-}
-
-body.home .intro {
-    margin-bottom:55px;
 }
 body.register .intro {
     margin-bottom:5px;
@@ -538,14 +614,14 @@ body.anon div.ui-input-text {
     border-radius:0.3em;
     box-shadow:none;
 }
+body.home .home-organisers input {
+    color:#fff;
+}
     body.anon input.ui-input-text::-webkit-input-placeholder { color:#fff; opacity:0.6; }
     body.anon input.ui-input-text::-moz-placeholder { color:#fff; opacity:0.6; } /* firefox 19+ */
     body.anon input.ui-input-text:-ms-input-placeholder { color:#fff; opacity:0.6; } /* ie */
     body.anon input.ui-input-text:-moz-placeholder { color:#fff; opacity:0.6; }
 
-body.home .ui-grid-solo {
-    margin-bottom:65px;
-}
 body.anon .ui-btn {
     color:#222;
     text-shadow:0 1px 0 #fff;
@@ -555,21 +631,10 @@ body.anon .ui-btn {
     box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
 }
 
-body.home #login-links .ui-grid-a .ui-btn-text {
-    font-size:0.9em;
-}
-    body.home #login-links .ui-block-a {
-        width:60%;
-    }
-    body.home #login-links .ui-block-b {
-        width:40%;
-    }
-
 .legal-footer {
     display:none;
-    margin:30px 5px 0;
+    margin:5px 0 0;
     padding:5px;
-    border-radius:.3em;
     background:rgba(0,0,0,.6);
 }
     .legal-footer ul {
@@ -628,7 +693,6 @@ body.staticpage .main-container {
 }
 body.staticpage .legal-footer {
     display:block;
-    margin:10px 5px;
 }
 body.staticpage .main-logo {
     text-align:left;
@@ -732,7 +796,12 @@ body.edit-mode .legal-footer {
 }
 img.picture-edit {
     display:block;
-    border-radius:150px;
+    margin-top:5px;
+    width:100%;
+    height:auto;
+}
+body.edit-account img.picture-edit {
+    width:150px;
 }
 .form-field.picture {
     position:relative;
@@ -823,7 +892,7 @@ img.picture-edit {
     }
     .notifications .notification a,
     .side-notifications .notification a {
-        font-weight: bold;
+        font-weight: normal;
         text-decoration:none;
     }
     .notifications .notification span,
@@ -831,7 +900,11 @@ img.picture-edit {
         display:block;
         font-size:0.9em;
         color:#999;
-        font-style:italic
+        font-style:italic;
+    }
+    .notifications .notification strong,
+    .side-notifications .notification strong {
+        font-weight:normal;
     }
 
 
@@ -860,7 +933,18 @@ img.picture-edit {
     padding:0.5em 0;
     color:#306663;
 }
-
+.message .message-image {
+    padding:10px;
+    border-top:solid 1px #ececec;
+}
+.message .message-image img { 
+    display:block;
+    margin:0 auto;
+    width:100%;
+    height:auto;
+    max-width:403px;
+    max-height:403px;
+}
 .message-left {
     float:left;
     width:15%;
@@ -1137,7 +1221,8 @@ body.profile .member-profile {
 body.profile .header-pic {
     width:100%;
     position:relative;
-    top:-15px;
+    top:-5px;
+    margin-bottom:10px;
 }
     body.profile .header-pic img.avatar {
         position:relative;
@@ -1208,6 +1293,9 @@ body.profile .kids {}
 }
 .write-message .form-card p.description {
     line-height:1em;
+}
+.write-message .form-field.picture {
+    margin-top:1em;
 }
 .write-message .edit-eventdate {}
     .write-message .edit-eventdate .ui-block-a {
@@ -1366,6 +1454,14 @@ body.profile .kids {}
         text-decoration:none;
     }
     .members .member-right .member-tools {}
+    .members .member-right .member-tools .icon.icon-addtofriend,
+    .members .member-right .member-tools .icon.icon-confirmfriend { background-position: -64px -32px; }
+    .members .member-right .member-tools .icon.icon-addtofriend:hover,
+    .members .member-right .member-tools .icon.icon-confirmfriend:hover { background-position: -64px -64px; }
+    .members .member-right .member-tools .icon.icon-pendingfriend { background-position: -64px -64px; }
+    .members .member-right .member-tools .icon.icon-friend,
+    .members .member-right .member-tools .icon.icon-friend:hover { background-position: 0 -64px; }
+
 
 
 /* ==========================================================================
@@ -1377,6 +1473,18 @@ body.profile .kids {}
    ============== */
 @media only screen and (min-width: 480px) {
 
+    body.home .main-container {
+        background-image:url(../img/pattern.png);
+    }
+    body.home .home-screen {
+        width: 480px;
+        margin: 0 auto;
+        border-radius:0.3em;
+    }
+    body.home .home-screen .form-card {
+        margin-left:10px;
+        margin-right:10px;
+    }
     .message-body {
         padding-left:25%;
     }
@@ -1399,10 +1507,23 @@ body.profile .kids {}
     .main-container {
         padding:10px 0 0;
     }
+    body.home .main-container {
+        padding:0;
+        border-left:solid 1px #fff;
+        border-right:solid 1px #fff;
+    }
+    body.home .home-features ul {
+        text-align:center;
+    }
+    body.home .home-features ul li {
+        display:inline-block;
+        vertical-align:top;
+        margin:10px 5%;
+    }
     article {
         width:63%;
         margin:0 1%;
-        padding-right:5%;
+        margin-right:5%;
         float:left;
     }
     sidebar {
@@ -1442,6 +1563,12 @@ body.profile .kids {}
         border-radius:0;
         box-shadow:none;
         border-bottom:1px solid #b3b3b3;
+    }
+    .message .message-image {
+        padding-left:0;
+    }
+    .message .message-image img {
+        margin-left:25%;
     }
     .members {
         margin:5px 0 10px;

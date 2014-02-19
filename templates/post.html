@@ -19,6 +19,25 @@
                     <div id="errors-content"></div>
                 </div>
                 {{ form.body }}
+
+                <div class="form-field picture">
+                    <label>Upload a picture</label>
+                    {{ form.picture }}
+                    <div class="button hidden" data-entity="picture-clear_id">
+                        <input type="checkbox" name="picture-clear" id="picture-clear_id">
+                        <label for="picture-clear_id">Remove</label>
+                    </div>
+
+                    <p class="description">{{ form.picture.help_text }}</p>
+                    <p class="description">The upload is known not to work on certain devices, including Windows Phones and older Android Phones.</p>
+                    {% comment %}{% if form.picture.value %}
+                    <div class="picture-rotate">
+                        <a href="" title="Roate picture" data-entity="image-rotate" rel="{{ form.picture.value }}">
+                            <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-rotate" alt="Rotate picture" />
+                        </a>
+                    </div>
+                    {% endif %}{% endcomment %}
+                </div>
             </div>
 
             <div class="form-visibility">
@@ -62,10 +81,15 @@
 
 
 {% block extrajs %}{{ block.super }}
+<script type="text/javascript" src="{{ STATIC_URL }}js/jquery.ajaxfileupload.js"></script>
 <script type="text/javascript">
     $(document).on('ml.Ready', function () {
         $('.message-body').focus();
         new ML.Messages();
+
+        // Picture Upload Field
+        new ML.Upload({'model': 'Message', 'field': 'picture', 'width': 403, 'height': 'auto'});
+        //new ML.ImageRotate({'field': 'picture-edit', 'attached': false})
     });
 </script>
 {% endblock %}

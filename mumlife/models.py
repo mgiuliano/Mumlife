@@ -50,17 +50,23 @@ class Member(models.Model):
         (VERIFIED, 'Verified'),
         (BANNED, 'Banned'),
     )
+    
+    IS_MUM = 0
+    IS_DAD = 1
+    IS_BUMP = 2
+    IS_ORGANISER = 3
+    GENDER_CHOICES = (
+        (IS_MUM, 'Mum'),
+        (IS_DAD, 'Dad'),
+        (IS_BUMP, 'Bump'),
+        (IS_ORGANISER, 'Organiser'),
+    )
 
     user = models.OneToOneField(User, related_name='profile')
     fullname = models.CharField("Full Name", max_length=64)
     slug = models.CharField("Profile Slug", max_length=255, default='', blank=True)
     postcode = models.CharField("Postcode", max_length=8, help_text='Please include the gap (space) between the outward and inward codes')
-    gender = models.IntegerField("Gender", choices=(
-        (0, 'Mum'),
-        (1, 'Dad'),
-        (2, 'Bump'),
-        (3, 'Organiser'),
-    ), null=True, blank=True)
+    gender = models.IntegerField("Gender", choices=GENDER_CHOICES, null=True, blank=True)
     dob = models.DateField("Date of Birth", null=True, blank=True)
     status = models.IntegerField("Verification Status", choices=STATUS_CHOICES, default=PENDING)
 
@@ -354,6 +360,8 @@ class Message(models.Model):
     area = models.CharField(max_length=4)
     name = models.CharField(max_length=200, blank=True, null=True)
     body = models.TextField()
+    picture = models.ImageField("Picture", upload_to='./posts/%Y/%m/%d', null=True, blank=True, \
+                                help_text="PNG, JPEG, or GIF; max size 2 MB. Image must be 403 x 403 pixels or larger.")
     location = models.TextField(blank=True, null=True)
     geocode = models.CharField(max_length=255, null=True, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -439,6 +447,7 @@ class Message(models.Model):
         message['body'] = utils.Extractor(body).parse(with_links=False)
         message['body_with_links'] = utils.Extractor(body).parse()
         message['date'] = self.timestamp.strftime('%c')
+        message['picture'] = self.picture.url if self.picture else ''
         # format event details
         if self.eventdate:
             # escape location to prevent script attacks

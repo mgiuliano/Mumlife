@@ -45,6 +45,9 @@
                 {% for tag in tags_item %}<span>{{ tag.value }}</span> {% endfor %}
             </a>
         </div>
+        {% if picture %}<div class="message-image"><a href="/message/{{ id }}/">
+            <img src="{{ picture }}" alt="" width="auto" height="auto" />
+        </a></div>{% endif %}
         <a href="/message/{{ id }}/" class="message-tools clearfix">
             {% if replies %}
                 <span class="message-replies">

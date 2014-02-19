@@ -1,59 +1,159 @@
-{% extends "base.html" %}
+{% load static %}<!DOCTYPE HTML>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+    <head>
+        <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>{% block title %}Mumlife{% endblock %}</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+        <meta name="description" content="">
+        <link rel="icon" href="/favicon.ico" type="image/x-icon">
+        <link rel="stylesheet" href="{{ STATIC_URL }}css/jquery.mobile.structure-1.3.2.min.css">
+        <link rel="stylesheet" href="{{ STATIC_URL }}css/theme-2.0.0.min.css">
+        <link rel="stylesheet" href="{{ STATIC_URL }}css/mumlife-3.0.1.min.css">
+        <script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.9.1.min.js"></script>
+        <script type="text/javascript">
+            // jQuery Mobile framework default settings
+            $(document).bind("mobileinit", function () {
+                $.mobile.ajaxEnabled = false;
+                $.mobile.linkBindingEnabled = false;
+            });
+        </script>
+        <script type="text/javascript" src="{{ STATIC_URL }}js/platform.min.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.mobile-1.3.2.min.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}js/mumlife-1.0.5.min.js"></script>
+        <meta name="robots" content="NONE,NOARCHIVE" />
+        <!-- start Mixpanel --><script type="text/javascript">(function(e,b){if(!b.__SV){var a,f,i,g;window.mixpanel=b;a=e.createElement("script");a.type="text/javascript";a.async=!0;a.src=("https:"===e.location.protocol?"https:":"http:")+'//cdn.mxpnl.com/libs/mixpanel-2.2.min.js';f=e.getElementsByTagName("script")[0];f.parentNode.insertBefore(a,f);b._i=[];b.init=function(a,e,d){function f(b,h){var a=h.split(".");2==a.length&&(b=b[a[0]],h=a[1]);b[h]=function(){b.push([h].concat(Array.prototype.slice.call(arguments,0)))}}var c=b;"undefined"!==
+typeof d?c=b[d]=[]:d="mixpanel";c.people=c.people||[];c.toString=function(b){var a="mixpanel";"mixpanel"!==d&&(a+="."+d);b||(a+=" (stub)");return a};c.people.toString=function(){return c.toString(1)+".people (stub)"};i="disable track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config people.set people.set_once people.increment people.append people.track_charge people.clear_charges people.delete_user".split(" ");for(g=0;g<i.length;g++)f(c,i[g]);
+b._i.push([a,e,d])};b.__SV=1.2}})(document,window.mixpanel||[]);
+mixpanel.init("3728ce2d184bd36fcfad556d112db1ed");</script><!-- end Mixpanel -->
+        <script>
+          (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+          (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+          })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+          ga('create', 'UA-35898884-3', 'mumlife.co.uk');
+          ga('send', 'pageview');
+        </script>
+    </head>
 
-{% block bodyclass %}anon home{% endblock %}
-
-{% block content %}
-<div class="intro">
-    <img src="{{ STATIC_URL }}img/logo-bigger.png" width="150" height="55" alt="Mumlife" />
-    <p>Find activities</p>
-    <p>Meet mums locally</p>
-    <p>Grow the community</p>
-</div>
-
-<div class="login-box">
-    {% if form.errors %}
-    <div id="form-errors">
-        <p>Your email and password didn't match. Please try again.</p>
-    </div>
-    {% endif %}
-    <form method="post" action="" class="form-card">
-        {% csrf_token %}
-        <div class="form-field">
-            <input id="{{ form.username.id_for_label }}" name="username" type="email" placeholder="Email address" />
-        </div>
-        <div class="form-field">
-            <input id="{{ form.password.id_for_label }}" name="password" type="password" placeholder="Password" />
-        </div>
-        <input type="hidden" name="next" value="{{ next }}" />
-
-        <div id="login-links">
-            <div class="ui-grid-solo">
-                <input type="submit" class="button" value="login" />
-            </div>
-            <div class="ui-grid-a">
-                <div class="ui-block-a">
-                    <a href="/member/password/reset/" data-role="button">forgot password</a>
+    <body class="anon home">
+        <!--[if lt IE 7]>
+            <p class="chromeframe">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">activate Google Chrome Frame</a> to improve your experience.</p>
+        <![endif]-->
+        <div id="mumlifecookies" class="banner">
+            <section class="container">
+                <div>
+                    <h2 class="banner-title">Cookies on Mumlife</h2>
+                    <p class="banner-content">We use cookies to ensure that we give you the best experience.
+                        If you continue, we'll assume that you are happy to receive all cookies on Mumlife.</p>
+                    <ul class="banner-options">
+                        <li id="cookies-continue"><button type="button" id="cookies-continue-button">Continue</button></li>
+                        <li id="cookies-more"><a href="/cookies">Find out more</a></li>
+                    </ul>
                 </div>
-                <div class="ui-block-b">
-                    <a href="/member/register" data-role="button">sign-up</a>
+            </section>
+        </div>
+
+        <div class="main-container">
+
+            <div class="home-screen">
+
+                <header>
+                    <div class="main-logo">
+                        <a href="/"><img src="{{ STATIC_URL }}img/logo.png" alt="Mumlife" /></a>
+                    </div>
+                </header>
+
+                <div class="intro">
+                    <img src="{{ STATIC_URL }}img/logo-bigger.png" width="150" height="55" alt="Mumlife" />
+                    <p>Find activities</p>
+                    <p>Meet mums locally</p>
+                    <p>Grow the community</p>
+                </div>
+
+                <div class="home-login-box clearfix">
+                    {% if form.errors %}
+                    <div id="form-errors">
+                        <p>Your email and password didn't match. Please try again.</p>
+                    </div>
+                    {% endif %}
+                    <form method="post" action="" class="form-card">
+                        {% csrf_token %}
+                        <div class="form-field">
+                            <input id="{{ form.username.id_for_label }}" name="username" type="email" placeholder="Email address" />
+                        </div>
+                        <div class="form-field">
+                            <input id="{{ form.password.id_for_label }}" name="password" type="password" placeholder="Password" />
+                        </div>
+                        <input type="hidden" name="next" value="{{ next }}" />
+
+                        <div id="login-links">
+                            <div class="ui-grid-solo">
+                                <input type="submit" class="button" value="login" />
+                            </div>
+                            <div class="ui-grid-solo">
+                                <a href="/member/register" data-role="button">sign-up</a>
+                            </div>
+                            <a class="home-forgot" href="/member/password/reset/">Forgot your password?</a>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+    
+            <div class="home-features clearfix">
+                <ul class="clearfix">
+                    <li>
+                        <strong>Meet</strong>
+                        <p>Build friendships with mums in your area, organize playdates or nanny share.</p>
+                    </li>
+                    <li>
+                        <strong>Find</strong>
+                        <p>See upcoming events and activities close to you.</p>
+                    </li>
+                    <li>
+                        <strong>Grow</strong>
+                        <p>Bring the community closer by discussing local issues and sharing your knowledge.</p>
+                    </li>
+                </ul>
+                
+                <div class="home-organisers">
+                    <h3>Events and Activities Organizers</h3>
+                    <p>Whilst we are in beta, you have the opportunity to promote your playgroup or event to local mums on the Mumlife network.</p>
+                    <p>Please register as an Organizer to get started or subscribe to our mailing list to get more information about our future programme.</p>
+
+                    <!-- Begin MailChimp Signup Form -->
+                    <div id="mc_embed_signup">
+                    <form action="http://mumlife.us3.list-manage1.com/subscribe/post?u=0bd011cdd23139d53879b7566&amp;id=77dd3044d6"
+                          method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>
+                        <input type="email" value="" name="EMAIL" class="email" id="mce-EMAIL" placeholder="email address" required>
+                        <!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
+                        <div style="position: absolute; left: -5000px;"><input type="text" name="b_0bd011cdd23139d53879b7566_77dd3044d6" value=""></div>
+                        <div class="clear"><input type="submit" value="Subscribe" name="subscribe" id="mc-embedded-subscribe" class="button"></div>
+                    </form>
+                    </div>
+                    <!--End mc_embed_signup-->
                 </div>
             </div>
+            {% include "tags/footer.html" %}
+
         </div>
-    </form>
-</div>
 
-{% include "tags/footer.html" %}
-{% endblock %}
-
-{% block extrajs %}{{ super }}
-{% if form.errors %}
-<script type="text/javascript">
-    $(document).on('ml.Ready', function () {
-        setTimeout(function () {
-            $('#form-errors').slideUp();
-        }, 2000);
-    });
-    mixpanel.track('Landing Page Loaded');
-</script>
-{% endif %}
-{% endblock %}
+        <script type="text/javascript">
+            $(document).ready(function () {
+                new ML.Application({'site_url': '/', 'static_url': '{{ STATIC_URL }}', 'api_url': '{{ API_URL }}'});
+            });
+            {% if form.errors %}
+            $(document).on('ml.Ready', function () {
+                setTimeout(function () {
+                    $('#form-errors').slideUp();
+                }, 2000);
+            });
+            {% endif %}
+            mixpanel.track('Landing Page Loaded');
+        </script>
+    </body>
+</html>

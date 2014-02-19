@@ -1,7 +1,7 @@
 /*!
  * Mumlife - Common Scripts.
  *
- * @version     2014-02-10 1.0.4
+ * @version     2014-02-13 1.0.5
  * @author      Michael Giuliano <michael@beatscope.co.uk>
  * @copyright   2014 Beatscope Limited | http://www.beatscope.co.uk/
  */
@@ -243,11 +243,20 @@ ML.Utils = function () {};
 // Change the visibility of an Image field
 ML.Utils.prototype.set_image_visibility = function (field, visibility) {
     if (visibility) {
+        // Show image and field
         $('img.'+field+'-edit').slideDown(250).show();
         $('#'+field+'_change').show();
+        // As well as the rotate button
+        $('.picture-rotate').show();
     } else {
         $('img.'+field+'-edit').slideUp(250).hide();
         $('#'+field+'_change').hide();
+        $('.picture-rotate').hide();
+        // Clear the input field to make sure no file is sent
+        // @see http://stackoverflow.com/questions/1043957/clearing-input-type-file-using-jquery/13351234#13351234
+        // wrap the field in a form, reset the form, then unwrap
+        $('#id_'+field).wrap('<form>').closest('form').get(0).reset();
+        $('#id_'+field).unwrap();
     }
 };
 
@@ -351,14 +360,11 @@ ML.Application.prototype.init = function () {
         });
     }
 
-    // Initialize Menu
+    // Initialize Behaviours
     new ML.Menu();
-
-    // Initialize Search
     new ML.Search();
-
-    // Initialize Distance Range Slider
     new ML.Slider();
+    new ML.FullScreen();
 
     // Initialize Notifications
     // we wait a fraction of a second to make sure the DOM has the CSS files added to it.
@@ -418,6 +424,33 @@ ML.Slider = function () {
     });
 };
 
+
+// Open image in full screen on click
+// @TODO
+ML.FullScreen = function () {
+    /*$('.fullonclick').on('click', function () {
+        var panel = $('<div>');
+        panel.css({
+            'position': 'absolute',
+            'top': 0,
+            'left': 0,
+            'width': '100%',
+            'height': '100%',
+            'z-index': 999999,
+            'background': '#fff url('+$(this).attr('src')+') center center no-repeat',
+            'background-size': 'contain'
+        });
+        panel.on('click', function () {
+            $(this).remove();
+        });
+        console.log($(this).height());
+        $('body').css({
+            'height': $(this).height(),
+            'overflow': 'hidden'
+        }).append(panel);
+        return false;
+    });*/
+};
 
 // Notifications
 ML.Notifications = function () {
@@ -511,9 +544,13 @@ ML.Upload = function (settings) {
             input.attr('name', self.field);
             input.attr('id', "id_"+self.field+"_filepath");
             $('input#id_'+self.field).after(input);
+            $.mobile.loading("hide");
             ML.utils.set_image_visibility(self.field, true);
+            // Show 'Remove' button
+            $('[data-entity="'+self.field+'-clear_id"]').show();
         },
         'onStart': function() {
+            $.mobile.loading("show");
             if ($('img.'+self.field+'-edit').length > 0) {
                 ML.utils.set_image_visibility(self.field, false);
             }
@@ -793,8 +830,14 @@ ML.Messages.prototype.refresh = function () {
                 } else {
                     visibility = box.find('.message-visibility').find('option[selected="selected"]').val();
                 }
+                // Picture
+                var picture = null;
+                if ($('.picture-edit').size() > 0 && $('.picture-edit').is(':visible')) {
+                    picture = $('.picture-edit').attr('src');
+                }
                 var data = {
                     'body': body,
+                    'picture': picture,
                     'visibility': parseInt(visibility),
                     'mid': box.data('mid'),
                     'recipient': recipient

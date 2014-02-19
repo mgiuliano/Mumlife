@@ -108,6 +108,7 @@ class MessageForm(forms.ModelForm):
                 'cols': "70",
                 'required': "required",
             }),
+            'picture': ImageWidget(),
             'occurrence': forms.RadioSelect(),
             'visibility': forms.Select(attrs={
                 'class': "message-visibility hidden"

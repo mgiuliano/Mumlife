@@ -295,6 +295,9 @@ class MessagePostView(APIView):
         else:
             reply_to = None
 
+        # picture
+        picture = request.DATA['picture'] if request.DATA.has_key('picture') else None
+
         # visibility settings
         if reply_to:
             # replies inherit their parent's visibility
@@ -342,6 +345,7 @@ class MessagePostView(APIView):
                                          member=member,
                                          area=member.area,
                                          name=name,
+                                         picture=picture,
                                          location=location,
                                          eventdate=eventdate,
                                          eventenddate=eventenddate,

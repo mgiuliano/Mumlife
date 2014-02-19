@@ -64,5 +64,5 @@ class MessageSerializer(serializers.ModelSerializer):
                   'name', 'location', 'eventdate', 'eventenddate', \
                   'visibility', 'visibility_display', \
                   'occurrence', 'occurs_until', \
-                  'tags', 'body', \
+                  'tags', 'body', 'picture', \
                   'is_reply', 'replies')
