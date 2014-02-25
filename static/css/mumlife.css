@@ -1,7 +1,7 @@
 /*! 
  * Mumlife Styles.
  * 
- * @version     2014-02-13 3.0.1
+ * @version     2014-02-25 3.0.2
  * @author      Michael Giuliano <michael@beatscope.co.uk>
  * @copyright   2014 Beatscope Limited | http://www.beatscope.co.uk/
  */
@@ -796,9 +796,9 @@ body.edit-mode .legal-footer {
 }
 img.picture-edit {
     display:block;
-    margin-top:5px;
-    width:100%;
-    height:auto;
+    margin:5px auto;
+    width:403px;
+    height:403px;
 }
 body.edit-account img.picture-edit {
     width:150px;
