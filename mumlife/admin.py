@@ -15,13 +15,21 @@ class BackOffice(admin.sites.AdminSite):
 
 
 class UserAdmin(UserAdmin):
-    list_display = ('name', 'postcode', 'email', 'status', 'is_staff')
+    list_display = ('name', 'roles', 'postcode', 'email', 'status', 'is_active', 'is_staff')
 
     def name(self, obj):
         if obj.profile.fullname:
             return obj.profile.fullname
         else:
             return obj.username
+
+    def roles(self, obj):
+        # Concatenate roles and gender
+        roles = [u'{}'.format(o.name) for o in obj.groups.all()]
+        gender = obj.profile.get_gender_display()
+        if gender:
+            roles.append(gender)
+        return ', '.join(roles)
 
     def postcode(self, obj):
         return obj.profile.postcode

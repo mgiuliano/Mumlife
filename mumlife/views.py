@@ -391,6 +391,7 @@ def members(request, tagstring=''):
     # Exclude logged-in user & Administrators
     members = members.exclude(user=request.user) \
                      .exclude(user__groups__name='Administrators') \
+                     .exclude(user__is_active=False) \
                      .exclude(gender=Member.IS_ORGANISER)
 
     # Convert to list of dictionaries, so that we can order them by key
