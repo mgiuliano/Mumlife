@@ -1,13 +1,18 @@
 #!/usr/bin/env python
 import argparse
-import json
 import os
+import sys
 
 if __name__ == "__main__":
+    BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+    if not BASE_DIR:
+        APP_ROOT = os.path.abspath('..')
+        sys.path.append(APP_ROOT)
+    else:
+        sys.path.append(os.path.abspath(BASE_DIR))
     os.environ['DJANGO_SETTINGS_MODULE'] = 'conf.settings'
 
     from mumlife import utils
-    from mumlife.engines import SearchEngine
 
     choices = [
         'get-age',                  # Get age

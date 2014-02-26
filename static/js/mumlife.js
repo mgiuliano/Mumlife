@@ -1,7 +1,7 @@
 /*!
  * Mumlife - Common Scripts.
  *
- * @version     2014-02-13 1.0.5
+ * @version     2014-02-26 1.0.6
  * @author      Michael Giuliano <michael@beatscope.co.uk>
  * @copyright   2014 Beatscope Limited | http://www.beatscope.co.uk/
  */
@@ -240,25 +240,6 @@ function trim (str) {
  */
 ML.Utils = function () {};
 
-// Change the visibility of an Image field
-ML.Utils.prototype.set_image_visibility = function (field, visibility) {
-    if (visibility) {
-        // Show image and field
-        $('img.'+field+'-edit').slideDown(250).show();
-        $('#'+field+'_change').show();
-        // As well as the rotate button
-        $('.picture-rotate').show();
-    } else {
-        $('img.'+field+'-edit').slideUp(250).hide();
-        $('#'+field+'_change').hide();
-        $('.picture-rotate').hide();
-        // Clear the input field to make sure no file is sent
-        // @see http://stackoverflow.com/questions/1043957/clearing-input-type-file-using-jquery/13351234#13351234
-        // wrap the field in a form, reset the form, then unwrap
-        $('#id_'+field).wrap('<form>').closest('form').get(0).reset();
-        $('#id_'+field).unwrap();
-    }
-};
 
 // Prevents enter key press from submitting the form
 ML.Utils.prototype.preventEnterSubmit = function (e) {
@@ -510,8 +491,9 @@ ML.Upload = function (settings) {
 
     var self = this;
 
+    $('input#'+this.field+'-clear_id').attr('checked', false);
     $('input#'+this.field+'-clear_id').change(function () {
-        ML.utils.set_image_visibility(self.field, !$(this).is(':checked'));
+        self.set_image_visibility(self.field, !$(this).is(':checked'));
     });
 
     var post_params =  {
@@ -545,18 +527,35 @@ ML.Upload = function (settings) {
             input.attr('id', "id_"+self.field+"_filepath");
             $('input#id_'+self.field).after(input);
             $.mobile.loading("hide");
-            ML.utils.set_image_visibility(self.field, true);
+            self.set_image_visibility(self.field, true);
             // Show 'Remove' button
             $('[data-entity="'+self.field+'-clear_id"]').show();
         },
         'onStart': function() {
             $.mobile.loading("show");
             if ($('img.'+self.field+'-edit').length > 0) {
-                ML.utils.set_image_visibility(self.field, false);
+                self.set_image_visibility(self.field, false);
             }
         }
     });
 
+};
+
+// Change the visibility of an Upload field
+ML.Upload.prototype.set_image_visibility = function (field, visibility) {
+    if (visibility) {
+        // Show image and field
+        $('img.'+field+'-edit').slideDown(250).show();
+        $('#id_'+field).show();
+        $('#'+field+'_change').show();
+        // As well as the rotate button
+        $('.picture-rotate').show();
+    } else {
+        $('img.'+field+'-edit').slideUp(250).hide();
+        $('#id_'+field).hide();
+        $('#'+field+'_change').hide();
+        $('.picture-rotate').hide();
+    }
 };
 
 
