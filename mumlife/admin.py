@@ -48,10 +48,10 @@ class FriendAdminInline(admin.StackedInline):
     extra = 0
 
 class MemberAdmin(admin.ModelAdmin):
-    list_display = ('name', 'postcode', 'geocode', 'kids', 'friends', 'friend_requests', 'interests', 'status')
-    list_editable = ('postcode', 'interests', 'status')
-    list_filter = ('status',)
-    search_fields = ('fullname', 'user__email')
+    list_display = ('name', 'roles', 'postcode', 'geocode', 'area', 'is_active')
+    list_editable = ('postcode', 'geocode')
+    list_filter = ('user__groups', 'gender')
+    search_fields = ('fullname', 'user__email', 'postcode')
     inlines = (KidAdminInline, FriendAdminInline)
 
     def name(self, obj):
@@ -60,14 +60,17 @@ class MemberAdmin(admin.ModelAdmin):
         else:
             return obj.user.username
 
-    def friends(self, obj):
-        return obj.get_friends(Friendships.APPROVED).count()
+    def roles(self, obj):
+        # Concatenate roles and gender
+        roles = [u'{}'.format(o.name) for o in obj.user.groups.all()]
+        gender = obj.get_gender_display()
+        if gender:
+            roles.append(gender)
+        return ', '.join(roles)
 
-    def friend_requests(self, obj):
-        return obj.get_friend_requests().count()
-
-    def kids(self, obj):
-        return obj.kid_set.count()
+    def is_active(self, obj):
+        return obj.user.is_active
+    is_active.boolean = True
 
 
 class KidAdmin(admin.ModelAdmin):
