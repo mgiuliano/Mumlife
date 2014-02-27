@@ -118,8 +118,8 @@ class SearchEngine(object):
             # Administrators messages
             # i.e.: admins messages with no tags
             #     + admins messages in member area
-            _admins_notags = Q(member__user__groups__name='Administrators', tags='')
-            _admins_locals = Q(member__user__groups__name='Administrators', tags__contains='#{}'.format(self.account.area.lower()))
+            _admins_notags = Q(visibility=Message.LOCAL, member__user__groups__name='Administrators', tags='')
+            _admins_locals = Q(visibility=Message.LOCAL, member__user__groups__name='Administrators', tags__contains='#{}'.format(self.account.area.lower()))
             # LOCAL and GLOBAL messages within account area
             _locals = Q(visibility__in=[Message.LOCAL, Message.GLOBAL], area=self.account.area)
             if self.verbose:
