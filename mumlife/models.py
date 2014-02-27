@@ -93,7 +93,10 @@ class Member(models.Model):
             # i.e. when the data is there
             self.set_slug()
             if self.postcode:
-                self.postcode = self.postcode.upper()
+                # Make sure the gap is there
+                postcode = utils.Extractor(self.postcode.upper()).extract_postcode()
+                if postcode:
+                    self.postcode = postcode
                 self.set_geocode()
             else:
                 self.postcode = 'N/A'
@@ -245,7 +248,7 @@ class Member(models.Model):
             self.slug = slug
 
     def set_geocode(self):
-        if not self.geocode:
+        if not self.geocode or self.geocode == '(0.0, 0.0)':
             try:
                 geocode = Geocode.objects.get(code=self.postcode)
             except Geocode.DoesNotExist:
@@ -254,10 +257,12 @@ class Member(models.Model):
                 try:
                     point = utils.get_postcode_point(self.postcode)
                 except:
-                    # The function raises an Exception when the postcode does not exist
-                    # we store the resulst as (0, 0) to avoid fetching the API every time
-                    point = (0.0, 0.0)
-                geocode = Geocode.objects.create(code=self.postcode, latitude=point[0], longitude=point[1])
+                    # The function raises an Exception when the API call fails;
+                    # when this happens, do nothing
+                    logger.error('The Geocode retrieval for the postcode "{}" has failed.'.format(self.postcode))
+                    geocode = (0.0, 0.0)
+                else:
+                    geocode = Geocode.objects.create(code=self.postcode, latitude=point[0], longitude=point[1])
             self.geocode = str(geocode)
 
 
@@ -505,10 +510,12 @@ class Message(models.Model):
             try:
                 point = utils.get_postcode_point(postcode)
             except:
-                # The function raises an Exception when the postcode does not exist
-                # we store the resulst as (0, 0) to avoid fetching the API every time
-                point = (0.0, 0.0)
-            geocode = Geocode.objects.create(code=postcode, latitude=point[0], longitude=point[1])
+                # The function raises an Exception when the API call fails;
+                # when this happens, do nothing
+                logger.error('The Geocode retrieval for the postcode "{}" has failed.'.format(self.postcode))
+                geocode = (0.0, 0.0)
+            else:
+                geocode = Geocode.objects.create(code=postcode, latitude=point[0], longitude=point[1])
         self.geocode = str(geocode)
 
 
