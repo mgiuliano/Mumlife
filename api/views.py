@@ -313,12 +313,18 @@ class MessagePostView(APIView):
             except Member.DoesNotExist:
                 pass
 
-        # add tags to message
+        # add inline tags to tag list
         tags = utils.Extractor(request.DATA['body']).extract_tags()
-        tags = ' '.join(tags.values())
-        # include the member area as a tag
-        tags = '#{} {}'.format(member.area.lower(), tags)
-
+        tags = tags.values()
+        # additional tags can be specified.
+        # even when an empty string is posted, we do not add the default tag.
+        if request.DATA.has_key('tags'):
+            if request.DATA['tags']:
+                tags.extend(request.DATA['tags'].split())
+        else:
+            # when no tags are specified, we include the member area as a tag
+            tags.append('#{}'.format(member.area.lower()))
+    
         # optional event data
         name = request.DATA['name'] if request.DATA.has_key('name') else None
         eventdate = request.DATA['eventdate'] if request.DATA.has_key('eventdate') else None
@@ -330,14 +336,17 @@ class MessagePostView(APIView):
                 # the postcode will be a valid postcode at this stage,
                 # if one was provided.
                 # we add the postcode area to the list of tags
-                tags = '#{} {}'.format(postcode.split(' ')[0].lower(), tags)
+                postcode_area = postcode.split()[0].lower()
+                tags.append('#{}'.format(postcode_area))
         occurrence = request.DATA['occurrence'] if request.DATA.has_key('occurrence') else Message.OCCURS_ONCE
         occurs_until = request.DATA['occurs_until'] \
                        if request.DATA.has_key('occurs_until') and request.DATA['occurs_until'] \
                        else None
 
         # remove tags duplicates
-        tags = ' '.join(list(set(tags.split(' '))))
+        tags = list(set(tags))
+        tags = sorted(tags)
+        tags = ' '.join(tags)
 
         # create message
         try:
@@ -404,7 +413,7 @@ class MessagePostView(APIView):
         if message.location:
             postcode = utils.Extractor(message.location).extract_postcode()
             if postcode:
-                tags.append('#{}'.format(postcode.split(' ')[0].lower()))
+                tags.append('#{}'.format(postcode.split()[0].lower()))
         tags = list(set(tags))
         message.tags = ' '.join(tags)
 

@@ -38,27 +38,39 @@
                     </div>
                     {% endif %}{% endcomment %}
                 </div>
+
+                {% if account.is_admin %}
+                    <div class="form-field">
+                        <label>Enter areas to broadcast this message to</label>
+                        {{ form.tags }}
+                        <p class="description">Leave empty to reach all of Mumlife.</p>
+                        <p class="description">To reach specific areas, enter list with hashtags, separated with spaces.
+                                               e.g.: #se22 #se23</p>
+                    </div>
+                {% endif %}
             </div>
 
             <div class="form-visibility">
-                {{ form.visibility }}
-                <div class="message-types clearfix">
-                    {% for option in form.visibility.field.choices %}<div class="message-type">
-                        <a href="#" data-entity="message-type" class="message-option" data-type="{{ option.0 }}">
-                            <p>{{ option.1 }}</p>
-                            {% if option.1 == 'Friends' %}
-                            <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-friends" alt="" />
-                            <span>Only your friends will see this message</span>
-                            {% elif option.1 == 'Global' %}
-                            <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-global" alt="" />
-                            <span>Everyone on Mumlife will see this message</span>
-                            {% else %}
-                            <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-local" alt="" />
-                            <span>Everyone in your local area will see this message</span>
-                            {% endif %}
-                        </a>
-                    </div>{% endfor %}
-                </div>
+                {% if not account.is_admin %}
+                    {{ form.visibility }}
+                    <div class="message-types clearfix">
+                        {% for option in form.visibility.field.choices %}<div class="message-type">
+                            <a href="#" data-entity="message-type" class="message-option" data-type="{{ option.0 }}">
+                                <p>{{ option.1 }}</p>
+                                {% if option.1 == 'Friends' %}
+                                <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-friends" alt="" />
+                                <span>Only your friends will see this message</span>
+                                {% elif option.1 == 'Global' %}
+                                <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-global" alt="" />
+                                <span>Everyone on Mumlife will see this message</span>
+                                {% else %}
+                                <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-local" alt="" />
+                                <span>Everyone in your local area will see this message</span>
+                                {% endif %}
+                            </a>
+                        </div>{% endfor %}
+                    </div>
+                {% endif %}
             </div>
 
             <div class="submit-btn">

@@ -109,7 +109,11 @@ def feed(request, tagstring=''):
         data = {
             'STATIC_URL': settings.STATIC_URL
         }
-        content = loader.render_to_string('tags/message-noresults.html', data)
+        if re.search(r'@friends', tagstring) is not None:
+            template = 'tags/message-nofriendsresults.html'
+        else:
+            template = 'tags/message-noresults.html'
+        content = loader.render_to_string(template, data)
         context['noresults'] = content
         
     t = loader.get_template('feed.html')

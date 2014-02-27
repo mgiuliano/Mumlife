@@ -62,6 +62,7 @@ class SearchEngine(object):
             - search terms are matches against hashtags;
             - search for nothing returns local results;
             - @local (default) includes:
+                - Administrator messages (i.e. with no tags)
                 - LOCAL & GLOBAL messages within account area
                 - FRIENDS messages within account area, from account friends
                 (using @local is redundant, as it is the default);
@@ -114,6 +115,11 @@ class SearchEngine(object):
 
         # @local results
         else:
+            # Administrators messages
+            # i.e.: admins messages with no tags
+            #     + admins messages in member area
+            _admins_notags = Q(member__user__groups__name='Administrators', tags='')
+            _admins_locals = Q(member__user__groups__name='Administrators', tags__contains='#{}'.format(self.account.area.lower()))
             # LOCAL and GLOBAL messages within account area
             _locals = Q(visibility__in=[Message.LOCAL, Message.GLOBAL], area=self.account.area)
             if self.verbose:
@@ -125,7 +131,12 @@ class SearchEngine(object):
                          area=self.account.area)
             if self.verbose:
                 print ' ... Friends >>>', messages.filter(_friends)
-            messages = messages.filter(_locals | _friends)
+            messages = messages.filter(_admins_notags | _admins_locals | _locals | _friends)
+            # Administrators messages to non-local areas should not be included
+            _admins_nolocals = Q(member__user__groups__name='Administrators') \
+                             & ~Q(tags='') \
+                             & ~Q(tags__contains='#{}'.format(self.account.area.lower()))
+            messages = messages.exclude(_admins_nolocals)
 
         # order messages in reverse chronological order
         messages = messages.order_by('-timestamp')

@@ -1,7 +1,7 @@
 /*!
  * Mumlife - Common Scripts.
  *
- * @version     2014-02-26 1.0.6
+ * @version     2014-02-27 1.1.0
  * @author      Michael Giuliano <michael@beatscope.co.uk>
  * @copyright   2014 Beatscope Limited | http://www.beatscope.co.uk/
  */
@@ -827,7 +827,12 @@ ML.Messages.prototype.refresh = function () {
                         errors.push('<p>Please select a friend</p>');
                     }
                 } else {
-                    visibility = box.find('.message-visibility').find('option[selected="selected"]').val();
+                    var visibility_box = box.find('.message-visibility');
+                    if (visibility_box.size() > 0) {
+                        visibility = box.find('.message-visibility').find('option[selected="selected"]').val();
+                    } else {
+                        visibility = 2; // defaults to LOCAL
+                    }
                 }
                 // Picture
                 var picture = null;
@@ -843,6 +848,11 @@ ML.Messages.prototype.refresh = function () {
                 };
                 if (self.event_id) {
                     data['id'] = self.event_id
+                }
+                // Optional additional tags
+                var tags = $('#id_tags');
+                if (tags.size() > 0) {
+                    data['tags'] = tags.val();
                 }
                 // Events have extra parameters
                 // name*, start date*/time, end date/time, location*
@@ -888,16 +898,21 @@ ML.Messages.prototype.refresh = function () {
                         contentType: "application/json; charset=UTF-8",
                         dataType: "json",
                         success: function (response) {
-                            if (is_event) {
-                                // Redirect events posts to events calendar
-                                location = ML.settings.get('site_url') + 'events/';
-                            } else if (box.data('type') == 'message') {
-                                // Redirect posts to local feed
-                                location = ML.settings.get('site_url');
-                            } else {
-                                // Reload the current page for replies and private messages
-                                location.reload(true);
-                            }
+                            // Track event on Mixpanel
+                            mixpanel.track('Post Sent', {
+                                'Is Event': is_event
+                            }, function () {
+                                if (is_event) {
+                                    // Redirect events posts to events calendar
+                                    location = ML.settings.get('site_url') + 'events/';
+                                } else if (box.data('type') == 'message') {
+                                    // Redirect posts to local feed
+                                    location = ML.settings.get('site_url');
+                                } else {
+                                    // Reload the current page for replies and private messages
+                                    location.reload(true);
+                                }
+                            });
                         },
                         error: function (e) {
                             try {

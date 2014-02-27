@@ -105,6 +105,9 @@ class Member(models.Model):
     def __unicode__(self):
         return self.name
 
+    def is_admin(self):
+        return 'Administrators' in [g['name'] for g in self.user.groups.values('name')]
+
     def get_distance(self, viewer=None):
         if not viewer or not viewer.geocode or not self.geocode:
             return {
@@ -139,7 +142,7 @@ class Member(models.Model):
     def format(self, viewer=None):
         member = {}
         member['id'] = self.id
-        member['is_admin'] = 'Administrators' in [g['name'] for g in self.user.groups.values('name')]
+        member['is_admin'] = self.is_admin()
         member['user'] = self.user.id
         member['slug'] = self.slug
         member['name'] = self.get_name(viewer)
@@ -248,7 +251,7 @@ class Member(models.Model):
             self.slug = slug
 
     def set_geocode(self):
-        if not self.geocode or self.geocode == '(0.0, 0.0)':
+        if not self.geocode or self.geocode == '0.0, 0.0':
             try:
                 geocode = Geocode.objects.get(code=self.postcode)
             except Geocode.DoesNotExist:
@@ -260,7 +263,7 @@ class Member(models.Model):
                     # The function raises an Exception when the API call fails;
                     # when this happens, do nothing
                     logger.error('The Geocode retrieval for the postcode "{}" has failed.'.format(self.postcode))
-                    geocode = (0.0, 0.0)
+                    geocode = '0.0, 0.0'
                 else:
                     geocode = Geocode.objects.create(code=self.postcode, latitude=point[0], longitude=point[1])
             self.geocode = str(geocode)
@@ -513,7 +516,7 @@ class Message(models.Model):
                 # The function raises an Exception when the API call fails;
                 # when this happens, do nothing
                 logger.error('The Geocode retrieval for the postcode "{}" has failed.'.format(self.postcode))
-                geocode = (0.0, 0.0)
+                geocode = '0.0, 0.0'
             else:
                 geocode = Geocode.objects.create(code=postcode, latitude=point[0], longitude=point[1])
         self.geocode = str(geocode)

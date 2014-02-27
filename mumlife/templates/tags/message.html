@@ -49,12 +49,15 @@
             <img src="{{ picture }}" alt="" width="auto" height="auto" />
         </a></div>{% endif %}
         <a href="/message/{{ id }}/" class="message-tools clearfix">
-            {% if replies %}
-                <span class="message-replies">
-                    {{ replies|length }}
+            <span class="message-replies">
+                {% if replies %}
+                    <span class="message-replies-count">{{ replies|length }}</span>
                     <span class="icon icon-comment"></span>
-                </span>
-            {% endif %}
+                {% else %}
+                    <span class="message-replies-first">Comment</span>
+                {% endif %}
+            </span>
+            <span class="bullet">&#8226;</span>
             <span class="message-age" title="{{ timestamp }}">{{ age }}</span>
         </a>
     </div>

@@ -1,7 +1,7 @@
 /*! 
  * Mumlife Styles.
  * 
- * @version     2014-02-26 3.0.3
+ * @version     2014-02-27 3.1.0
  * @author      Michael Giuliano <michael@beatscope.co.uk>
  * @copyright   2014 Beatscope Limited | http://www.beatscope.co.uk/
  */
@@ -970,7 +970,7 @@ body.edit-account img.picture-edit {
 .message .message-author a:visited, .message .message-author a.ui-link:visited {
     font-weight:bold;
     margin-bottom:.3em;
-    line-height:1.5em;
+    line-height:1.3em;
     color:#64B0B3;
 }
 .message-area {
@@ -1000,23 +1000,33 @@ body.edit-account img.picture-edit {
     padding:10px;
     border-top:solid 1px #ececec;
 }
+    .message-tools span {
+        display:blokc;
+        float:left;
+    }
+    .message-tools .bullet {
+        padding:0 10px;
+        font-size:1.4em;
+        color:#999;
+    }
     .message-replies {
         position:relative;
-        display:block;
-        float:left;
         font-size:0.9em;
         font-weight:bold;
         color:#64B0B3;
-        padding-left:32px;
     }
-    .message-replies span.icon {
-        position:absolute;
-        top:-3px;
-        left:0;
-    }
+        .message-replies span.message-replies-first {
+            padding-left:10px;
+        }
+        .message-replies span.message-replies-count {
+            padding-left:32px;
+        }
+        .message-replies span.icon {
+            position:absolute;
+            top:-3px;
+            left:0;
+        }
     .message-age {
-        display:block;
-        float:right;
         font-size:0.9em;
         color:#999;
     }
@@ -1490,6 +1500,17 @@ body.profile .kids {}
     .message-body {
         padding-left:25%;
     }
+    .message .message-image {
+        margin-left:25%;
+        padding-left:0;
+    }
+    .message .message-image img {
+        margin-left:0;
+    }
+    .message-tools {
+        margin-left:25%;
+        padding-left:0;
+    }
 
 }
 
@@ -1565,12 +1586,6 @@ body.profile .kids {}
         border-radius:0;
         box-shadow:none;
         border-bottom:1px solid #b3b3b3;
-    }
-    .message .message-image {
-        padding-left:0;
-    }
-    .message .message-image img {
-        margin-left:25%;
     }
     .members {
         margin:5px 0 10px;
