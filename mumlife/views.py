@@ -1,9 +1,7 @@
 # mumlife/views.py
 import logging
-import json
 import operator
 import re
-import requests
 import urllib
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse, HttpResponseRedirect, Http404
@@ -11,7 +9,6 @@ from django.shortcuts import get_object_or_404
 from django.template import RequestContext, loader
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
-from django.contrib.sites.models import RequestSite
 from django.conf import settings
 from django.utils import timezone
 from tagging.models import Tag, TaggedItem
@@ -19,6 +16,7 @@ from longerusername.forms import AuthenticationForm
 from mumlife import utils
 from mumlife.models import Page, Member, Kid, Message, Friendships
 from mumlife.forms import SignUpForm, MemberForm, KidForm, MessageForm
+from api.helpers import APIRequest
 
 logger = logging.getLogger('mumlife.views')
 
@@ -32,8 +30,6 @@ Public Views.
 def home(request):
     if request.user.is_anonymous():
         context = {}
-        # DEBUG: list all available users
-        context['members'] = Member.objects.all()
         if request.method == 'POST':
             form = AuthenticationForm(data=request.POST)
             if form.is_valid():
@@ -81,28 +77,14 @@ def feed(request, tagstring=''):
     account = request.user.get_profile()
     context['account'] = account
 
-    # Fetch 1st page of results from the API
-    if re.search(r'http:|https:', settings.API_URL) is None:
-        site = RequestSite(request)
-        protocol = 'https' if request.is_secure() else 'http'
-        url = '{}://{}{}messages/1/{}'.format(protocol, site.domain, settings.API_URL, urllib.quote(tagstring))
-    else:
-        url = '{}messages/1/{}'.format(settings.API_URL, urllib.quote(tagstring))
-    # Session authentication
-    cookies = {
-        'sessionid': request.COOKIES[settings.SESSION_COOKIE_NAME],
-        'csrftoken': request.COOKIES[settings.CSRF_COOKIE_NAME]
+    params = {
+        'resource': 'message',
+        'search': tagstring,
     }
-    r = requests.get(url, verify=False, cookies=cookies, params={'format': 'json'})
-    try:
-        response = json.loads(r.text)
-        context['total'] = response['total']
-        context['results'] = response['html_content']
-        context['next'] = response['next']
-    except ValueError:
-        context['total'] = 0
-        context['results'] = ''
-        context['next'] = ''
+    response = APIRequest(request).get(**params)
+    context['total'] = response.get('total', 0)
+    context['results'] = response.get('html_content', '')
+    context['next'] = response.get('next', '')
 
     # Format empty results message
     if not context['total']:
@@ -135,25 +117,8 @@ def events(request, tagstring=''):
     account = request.user.get_profile()
     context['account'] = account
 
-    # Fetch 1st page of results from the API
-    if re.search(r'http:|https:', settings.API_URL) is None:
-        site = RequestSite(request)
-        protocol = 'https' if request.is_secure() else 'http'
-        url = '{}://{}{}messages/1/{}'.format(protocol, site.domain, settings.API_URL, urllib.quote(tagstring))
-    else:
-        url = '{}messages/1/{}'.format(settings.API_URL, urllib.quote(tagstring))
-    # Session authentication
-    cookies = {
-        'sessionid': request.COOKIES[settings.SESSION_COOKIE_NAME],
-        'csrftoken': request.COOKIES[settings.CSRF_COOKIE_NAME]
-    }
-    params = {
-        'format': 'json',
-        'events': 'true'
-    }
-    if request.GET.has_key('range') and request.GET['range']:
-        params['range'] = request.GET['range']
-    else:
+    range_ = request.GET.get('range')
+    if not range_:
         # when no range is provided, we check whether one is stored in the cookie
         # cookie name: ml_range
         if request.COOKIES.has_key('ml_range') and request.COOKIES['ml_range']:
@@ -161,16 +126,19 @@ def events(request, tagstring=''):
             # appended with the stored range
             url = '/events/{}?range={}'.format(urllib.quote(tagstring), request.COOKIES['ml_range'])
             return HttpResponseRedirect(url)
-    r = requests.get(url, verify=False, cookies=cookies, params=params)
-    try:
-        response = json.loads(r.text)
-        context['total'] = response['total']
-        context['results'] = response['html_content']
-        context['next'] = response['next']
-    except ValueError:
-        context['total'] = 0
-        context['results'] = ''
-        context['next'] = ''
+        else:
+            range_ = request.user.get_profile().max_range
+
+    params = {
+        'resource': 'event',
+        'search': tagstring,
+        'range': range_
+    }
+    response = APIRequest(request).get(**params)
+    context['total'] = response.get('total', 0)
+    context['results'] = response.get('html_content', '')
+    context['next'] = response.get('next', '')
+
 
     # Format empty results message
     if not context['total']:
@@ -193,28 +161,14 @@ def messages(request):
     context['account'] = account
     context['friends'] = account.get_friends(Friendships.APPROVED)
 
-    # Fetch 1st page of results from the API
-    if re.search(r'http:|https:', settings.API_URL) is None:
-        site = RequestSite(request)
-        protocol = 'https' if request.is_secure() else 'http'
-        url = '{}://{}{}messages/1/{}'.format(protocol, site.domain, settings.API_URL, '@private')
-    else:
-        url = '{}messages/1/{}'.format(settings.API_URL, '@private')
-    # Session authentication
-    cookies = {
-        'sessionid': request.COOKIES[settings.SESSION_COOKIE_NAME],
-        'csrftoken': request.COOKIES[settings.CSRF_COOKIE_NAME]
+    params = {
+        'resource': 'message',
+        'search': '@private',
     }
-    r = requests.get(url, verify=False, cookies=cookies, params={'format': 'json'})
-    try:
-        response = json.loads(r.text)
-        context['total'] = response['total']
-        context['results'] = response['html_content']
-        context['next'] = response['next']
-    except ValueError:
-        context['total'] = 0
-        context['results'] = ''
-        context['next'] = ''
+    response = APIRequest(request).get(**params)
+    context['total'] = response.get('total', 0)
+    context['results'] = response.get('html_content', '')
+    context['next'] = response.get('next', '')
 
     # Format empty results message
     if not context['total']:
@@ -321,24 +275,7 @@ def delete_event(request, event_id):
     if not message.eventdate:
         # Only events can be deleted
         raise Http404
-    # Delete the message
-    if re.search(r'http:|https:', settings.API_URL) is None:
-        site = RequestSite(request)
-        protocol = 'https' if request.is_secure() else 'http'
-        url = '{}://{}{}message/{}/'.format(protocol, site.domain,  settings.API_URL, message.id)
-    else:
-        url = '{}message/{}/'.format(settings.API_URL, message.id)
-    # Session authentication
-    cookies = {
-        'sessionid': request.COOKIES[settings.SESSION_COOKIE_NAME],
-        'csrftoken': request.COOKIES[settings.CSRF_COOKIE_NAME]
-    }
-    # POST request also requires 'X-CSRFToken' header
-    headers = {
-        'X-CSRFToken': request.COOKIES[settings.CSRF_COOKIE_NAME]
-    }
-    r = requests.delete(url, verify=False, headers=headers, cookies=cookies, params={'format': 'json'})
-    # And redirect to Events/Activities page
+    message.delete()
     return HttpResponseRedirect('/events/')
 
 
