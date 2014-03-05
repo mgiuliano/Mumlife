@@ -36,7 +36,9 @@
                 <a href="/profile/{{ member.slug }}">{{ member.name }}</a>
             {% endif %}
         </div>
+        {% if not member.is_admin %}
         <div class="message-area">{{ area }}</div>
+        {% endif %}
     </div>
     <div class="message-content clearfix">
         <div class="message-body">

@@ -148,7 +148,9 @@
                 <a href="/profile/{{ result.member.slug }}">{{ result.member.name }}</a>
             {% endif %}
         </div>
+        {% if not result.member.is_admin %}
         <div class="message-area">{{ result.area }}</div>
+        {% endif %}
     </div>
 
     <div class="message-content clearfix">
