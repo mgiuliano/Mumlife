@@ -34,11 +34,11 @@ class MemberTest(TestCase):
         self.assertEqual(self.m2.area, 'SE16')
         self.assertEqual(self.m3.area, 'SE22')
 
-    @unittest.skip('Depends on Bing Maps API')
-    def test_postcode_distance(self):
-        distance_1_2 = self.m1.get_distance_from(self.m2)
-        distance_1_3 = self.m1.get_distance_from(self.m3)
-        distance_2_3 = self.m2.get_distance_from(self.m3)
-        self.assertEqual(distance_1_2, {'units': u'Mile', 'distance-display': '0.8 mile', 'distance': 0.7857321953541907})
-        self.assertEqual(distance_1_3, {'units': u'Miles', 'distance-display': '3.4 miles', 'distance': 3.365372382212894})
-        self.assertEqual(distance_2_3, {'units': u'Miles', 'distance-display': '3.9 miles', 'distance': 3.8686050934826786})
+    #@unittest.skip('Depends on Bing Maps API')
+    #def test_postcode_distance(self):
+    #    distance_1_2 = self.m1.get_distance_from(self.m2)
+    #    distance_1_3 = self.m1.get_distance_from(self.m3)
+    #    distance_2_3 = self.m2.get_distance_from(self.m3)
+    #    self.assertEqual(distance_1_2, {'units': u'Mile', 'distance-display': '0.8 mile', 'distance': 0.7857321953541907})
+    #    self.assertEqual(distance_1_3, {'units': u'Miles', 'distance-display': '3.4 miles', 'distance': 3.365372382212894})
+    #    self.assertEqual(distance_2_3, {'units': u'Miles', 'distance-display': '3.9 miles', 'distance': 3.8686050934826786})
