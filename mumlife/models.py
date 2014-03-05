@@ -185,7 +185,14 @@ class Member(models.Model):
     @property
     def area(self):
         # For UK only, return inward code
-        return self.postcode.split()[0]
+        if self.postcode:
+            try:
+                area = self.postcode.split()[0]
+            except IndexError:
+                pass
+            else:
+                return area
+        return 'N/A'
 
     @property
     def kids(self):
