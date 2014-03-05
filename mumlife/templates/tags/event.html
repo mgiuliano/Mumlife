@@ -12,7 +12,7 @@
                 <span class="message-eventday">{{ eventday }}</span>
             </span>
             <span class="message-area">{{ area }}</span>
-            {% if postcode %}<span class="message-distance">{{ distance }}</span>{% endif %}
+            {% if postcode %}<span class="message-distance">{{ distance_display }}</span>{% endif %}
         </a>
     </div>
     <a href="/message/{{ id }}/{{ eventmonth }}/{{ eventday }}/" class="message-right">

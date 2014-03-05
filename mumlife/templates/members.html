@@ -32,7 +32,9 @@
             <div class="member-right">
                 <div class="member-author">
                     <a href="/profile/{{ member.slug }}">{{ member.name }}</a>
-                    <span>({{ member.distance }})</span>
+                    {% if member.distance and member.distance_display != 'N/A' %}
+                    <span>({{ member.distance_display }})</span>
+                    {% endif %}
                 </div>
                 <div class="member-body">
                     {% for tag in member.tags %}<span><a href="/members/%23{{ tag.key }}">{{ tag.value }}</a></span> {% endfor %}

@@ -22,6 +22,9 @@ if __name__ == "__main__":
         'parse-text',               # Parse and format hashtags, flags and links
         'extract-tags',             # Extract tag from string
         'extract-flags',            # Extract flags from string
+        'get-messages',             # List messages for given member
+        'get-events',               # List events for given member
+        'get-notifications',        # List notifications for given member
     ]
     parser = argparse.ArgumentParser(description="Mumlife Command-Line Test Tool")
     parser.add_argument('command', type=str, help='command to execute', choices=choices)
@@ -138,6 +141,48 @@ if __name__ == "__main__":
                 print 'Flags:', flags
             except Exception as e:
                 print ' >> ERROR -', e
+
+    elif args.command == 'get-messages':
+        try:
+            user_id = args.arguments.pop(0)
+        except IndexError:
+            print ' >> ERROR - Missing Member ID'
+            print
+            parser.print_help()
+        else:
+            from mumlife.models import Member
+            member = Member.objects.get(pk=int(user_id))
+            messages = member.get_messages(*args.arguments)
+            for m in messages:
+                print '>', repr(m)
+
+    elif args.command == 'get-events':
+        try:
+            user_id = args.arguments.pop(0)
+        except IndexError:
+            print ' >> ERROR - Missing Member ID'
+            print
+            parser.print_help()
+        else:
+            from mumlife.models import Member
+            member = Member.objects.get(pk=int(user_id))
+            events = member.get_events(*args.arguments)
+            for ev in events:
+                print '>', repr(ev)
+
+    elif args.command == 'get-notifications':
+        try:
+            user_id = args.arguments.pop(0)
+        except IndexError:
+            print ' >> ERROR - Missing Member ID'
+            print
+            parser.print_help()
+        else:
+            from mumlife.models import Member
+            member = Member.objects.get(pk=int(user_id))
+            notifications = member.get_notifications()
+            for n in notifications:
+                print '>', repr(n)
 
     else:
         parser.print_help()

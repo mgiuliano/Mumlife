@@ -18,7 +18,6 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from mumlife import utils
 from mumlife.models import Member, Kid, Friendships, Message
-from mumlife.engines import SearchEngine, NotificationEngine
 from api.serializers import MemberSerializer, \
                             KidSerializer, \
                             FriendshipsSerializer, \
@@ -185,7 +184,6 @@ class MessageListView(views.APIView):
             page = 1
 
         account = self.request.user.get_profile()
-        se = SearchEngine(account=account)
 
         # Adding 'events' as a query parameter tells us to return events only.
         show_events = False
@@ -200,16 +198,16 @@ class MessageListView(views.APIView):
                 except ValueError:
                     # the value passed was not an integer
                     pass
-            all_results = se.search_events(terms)
+            all_results = account.get_events(search=terms)
         else:
-            all_results = se.search_messages(terms)
+            all_results = account.get_messages(search=terms)
 
         # Pre-process results
         messages = []
         if show_events:
             # Events only: exclude out-of-range events    
             messages = [m for m in all_results \
-                          if m.get_distance(account)['distance-key'] <= distance_range]
+                          if account.get_distance_from(m)['distance'] <= distance_range]
         else:
             messages = list(all_results)
 
@@ -446,7 +444,7 @@ class NotificationListView(views.APIView):
 
     def get(self, request, format=None):
         account = self.request.user.get_profile()
-        r = NotificationEngine(account=account).get()
+        r = account.get_notifications()
 
         # Format results
         html_content = ''

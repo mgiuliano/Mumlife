@@ -3,12 +3,12 @@
 Django views to handle Uploads via AJAX.
 
 """
+import json
 import os
 import re
 import time
 import logging
 from io import FileIO, BufferedWriter
-from django.utils import simplejson as json
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponse, HttpResponseBadRequest, Http404, HttpResponseNotAllowed
 from django.conf import settings

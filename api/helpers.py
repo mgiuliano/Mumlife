@@ -56,14 +56,23 @@ class APIRequest(object):
 
 
         # the API uses session authentication
-        cookies = {
-            'sessionid': self.request.COOKIES[settings.SESSION_COOKIE_NAME],
-            'csrftoken': self.request.COOKIES[settings.CSRF_COOKIE_NAME]
-        }
-        r = requests.get(url, verify=False, cookies=cookies, params=params)
         try:
-            response = json.loads(r.text)
-        except ValueError:
-            response = {}
+            cookies = {
+                'sessionid': self.request.COOKIES[settings.SESSION_COOKIE_NAME],
+                'csrftoken': self.request.COOKIES[settings.CSRF_COOKIE_NAME]
+            }
+        except KeyError:
+            # 'csrftoken' is not set by the Test Runner,
+            # so this will fail
+            return APIResponse({'reason': 'Test run', 'status': 400})
+        try:
+            r = requests.get(url, verify=False, cookies=cookies, params=params)
+        except requests.exceptions.ConnectionError:
+            return APIResponse({'reason': 'Connection Error (Test run?)', 'status': 400})
+        else:
+            try:
+                response = json.loads(r.text)
+            except ValueError:
+                response = {}
 
         return APIResponse(response)

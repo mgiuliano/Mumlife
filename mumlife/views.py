@@ -339,7 +339,7 @@ def members(request, tagstring=''):
     members = [member.format(viewer=account) for member in members]
 
     # Order by decreasing distance
-    members = sorted(members, key=operator.itemgetter('distance-key'))
+    members = sorted(members, key=operator.itemgetter('distance'))
     context['members'] = members
 
     t = loader.get_template('members.html')

@@ -17,24 +17,34 @@ class MumlifeMiddleware(object):
         # make sure this view is not processed,
         # or we'll have ourself an infinite loop
         if request.user.is_authenticated() and view_func.__name__ in __processed_views:
-            # Fetch notifications from the API using cookie authentication
-            if re.search(r'http:|https:', settings.API_URL) is None:
-                site = RequestSite(request)        
-                protocol = 'https' if request.is_secure() else 'http'
-                url = '{}://{}{}notifications/'.format(protocol, site.domain, settings.API_URL)
-            else:
-                url = '{}notifications/'.format(settings.API_URL)
             # Session authentication
-            cookies = {
-                'sessionid': request.COOKIES[settings.SESSION_COOKIE_NAME],
-                'csrftoken': request.COOKIES[settings.CSRF_COOKIE_NAME]
-            }
-            r = requests.get(url, verify=False, cookies=cookies, params={'format': 'json'})
             try:
-                response = json.loads(r.text)
-                request.META["MUMLIFE_NOTIFICATIONS"] = response
-            except ValueError:
+                cookies = {
+                    'sessionid': request.COOKIES[settings.SESSION_COOKIE_NAME],
+                    'csrftoken': request.COOKIES[settings.CSRF_COOKIE_NAME]
+                }
+            except KeyError:
+                # 'csrftoken' is not set by the Test Runner,
+                # so this will fail
                 request.META["MUMLIFE_NOTIFICATIONS"] = {}
+            else:
+                # Fetch notifications from the API using cookie authentication
+                if re.search(r'http:|https:', settings.API_URL) is None:
+                    site = RequestSite(request)
+                    protocol = 'https' if request.is_secure() else 'http'
+                    url = '{}://{}{}notifications/'.format(protocol, site.domain, settings.API_URL)
+                else:
+                    url = '{}notifications/'.format(settings.API_URL)
+                try:
+                    r = requests.get(url, verify=False, cookies=cookies, params={'format': 'json'})
+                except requests.exceptions.ConnectionError:
+                    request.META["MUMLIFE_NOTIFICATIONS"] = {}
+                else:
+                    try:
+                        response = json.loads(r.text)
+                        request.META["MUMLIFE_NOTIFICATIONS"] = response
+                    except ValueError:
+                        request.META["MUMLIFE_NOTIFICATIONS"] = {}
         return None
 
 

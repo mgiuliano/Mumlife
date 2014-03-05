@@ -1,7 +1,10 @@
 # mumlife/models.py
 import logging
+import operator
 import random
 import re
+from copy import deepcopy
+from datetime import datetime, timedelta
 from django.db import models
 from django.db.models.signals import post_save
 from django.contrib.auth.models import User
@@ -10,8 +13,10 @@ from django.utils.encoding import force_unicode
 from django.utils.html import strip_tags
 from django.utils.timesince import timesince
 from tagging.fields import TagField
-from tagging.models import Tag
+from tagging.models import Tag, TaggedItem
 from markitup.fields import MarkupField
+from dateutil.rrule import rrule, WEEKLY
+from dateutil.relativedelta import relativedelta
 from mumlife import utils
 
 logger = logging.getLogger('mumlife.models')
@@ -108,22 +113,23 @@ class Member(models.Model):
     def is_admin(self):
         return 'Administrators' in [g['name'] for g in self.user.groups.values('name')]
 
-    def get_distance(self, viewer=None):
-        if not viewer or not viewer.geocode or not self.geocode:
-            return {
-                'units': 'N/A',
-                'distance': 'N/A',
-                'distance-key': 99999999999
-            }
+    def get_distance_from(self, entity=None):
+        if not entity or not entity.geocode or entity.geocode == '0.0, 0.0' or \
+            not self.geocode or self.geocode == '0.0, 0.0':
+                return {
+                    'units': 'N/A',
+                    'distance-display': 'N/A',
+                    'distance': 99999999999
+                }
         else:
-            units = viewer.units
-            units_display = 'Km' if units == 0 else viewer.get_units_display()
+            units = self.units
+            units_display = 'Km' if units == 0 else self.get_units_display()
             member_geocode = self.geocode.split(',')
-            viewer_geocode = viewer.geocode.split(',')
+            entity_geocode = entity.geocode.split(',')
             distance = utils.get_distance(float(member_geocode[0]),
                                           float(member_geocode[1]),
-                                          float(viewer_geocode[0]),
-                                          float(viewer_geocode[1]))
+                                          float(entity_geocode[0]),
+                                          float(entity_geocode[1]))
             if round(distance[units], 1) < 0.5:
                 units_display = 'kilometer' if units == 0 else units_display[:-1]
                 distance_display = 'less than half a {}'.format(units_display.lower())
@@ -132,11 +138,11 @@ class Member(models.Model):
                 distance_display = '{} {}'.format(round(distance[units], 1), units_display.lower())
             else:
                 distance_display = '{} {}'.format(round(distance[units], 1), units_display.lower())
-            distance_key = distance[units]
+            distance = distance[units]
         return {
             'units': units_display,
-            'distance': distance_display,
-            'distance-key': distance_key
+            'distance_display': distance_display,
+            'distance': distance
         }
 
     def format(self, viewer=None):
@@ -157,7 +163,7 @@ class Member(models.Model):
         member['area'] = self.area
         member['picture'] = self.picture.url if self.picture else ''
         # distance
-        member.update(self.get_distance(viewer))
+        member.update(self.get_distance_from(viewer))
         member['tags'] = self.tags
         member['kids'] = self.get_kids(viewer=viewer)
         return member
@@ -262,24 +268,295 @@ class Member(models.Model):
             try:
                 geocode = Geocode.objects.get(code=self.postcode)
             except Geocode.DoesNotExist:
-                # If the geocode for this postcode has not yet been stored,
-                # fetch it
-                try:
-                    point = utils.get_postcode_point(self.postcode)
-                except:
-                    # The function raises an Exception when the API call fails;
-                    # when this happens, do nothing
-                    logger.error('The Geocode retrieval for the postcode "{}" has failed.'.format(self.postcode))
+                if self.postcode is None:
                     geocode = '0.0, 0.0'
                 else:
-                    geocode = Geocode.objects.create(code=self.postcode, latitude=point[0], longitude=point[1])
+                    # If the geocode for this postcode has not yet been stored,
+                    # fetch it
+                    try:
+                        point = utils.get_postcode_point(self.postcode)
+                    except:
+                        # The function raises an Exception when the API call fails;
+                        # when this happens, do nothing
+                        logger.error('The Geocode retrieval for the postcode "{}" has failed.'.format(self.postcode))
+                        geocode = '0.0, 0.0'
+                    else:
+                        geocode = Geocode.objects.create(code=self.postcode, latitude=point[0], longitude=point[1])
             self.geocode = str(geocode)
 
+    def _filter_messages(self, search):
+        if search:
+            # whitespaces are not allowed, so get rid of them
+            search = re.sub(r'\s\s*', '', search)
+        else:
+            search = '@local'
+
+        tags = utils.Extractor(search).extract_tags().values()
+        if not tags:
+            # return all messages
+            messages = Message.objects.all()
+        else:
+            query_tags = Tag.objects.filter(name__in=tags)
+            messages = TaggedItem.objects.get_by_model(Message, query_tags)
+
+        # exclude replies
+        messages = messages.exclude(is_reply=True)
+
+        return messages
+        
+    def get_messages(self, search=None):
+        """Member Messages include:
+            - @local (default):
+                - Administrator messages (i.e. with no tags)
+                - LOCAL & GLOBAL messages within account area
+                - FRIENDS messages within account area, from account friends
+                (using @local is redundant, as it is the default);
+            - @global:
+                - GLOBAL messages outside account area;
+            - @friends:
+                - FRIENDS messages in all areas, from account friends
+            - @private:
+                - PRIVATE messages sent to account, regardless of area or friendship
+        """
+        messages = self._filter_messages(search=search)
+
+        # extract flags @flags
+        # only one flag is allowed. Exceptions will default to @local
+        flags = utils.Extractor(search).extract_flags()
+        if not flags or len(flags) > 1:
+            flags = ['@local']
+        try:
+            flag = flags[0]
+        except IndexError:
+            flag = None
+
+        # exclude events
+        messages = messages.exclude(eventdate__isnull=False)
+
+        # @friends results
+        if flag == '@friends':
+            # OWN FRIENDS messages
+            _own = models.Q(member=self, visibility=Message.FRIENDS)
+            # All messages from account friends
+            members_friends = [f['id'] for f in self.get_friends(status=Friendships.APPROVED).values('id')]
+            _friends = models.Q(member__id__in=members_friends,
+                         visibility__in=[Message.LOCAL, Message.GLOBAL, Message.FRIENDS])
+            messages = messages.filter(_own | _friends)
+
+        # @private results
+        elif flag == '@private':
+            # OWN PRIVATE messages
+            _own = models.Q(member=self, visibility=Message.PRIVATE)
+            # PRIVATE messages sent to account, regardless of area
+            _privates = models.Q(visibility=Message.PRIVATE, recipient=self)
+            messages = messages.filter(_own | _privates)
+
+        # @global results
+        elif flag == '@global':
+            # GLOBAL messages outside account area
+            _globals = models.Q(visibility=Message.GLOBAL) & ~models.Q(area=self.area)
+            messages = messages.filter(_globals)
+
+        # @local results
+        else:
+            # Administrators messages
+            # i.e.: admins messages with no tags
+            #     + admins messages in member area
+            _admins_notags = models.Q(visibility=Message.LOCAL, member__user__groups__name='Administrators', tags='')
+            _admins_locals = models.Q(visibility=Message.LOCAL, member__user__groups__name='Administrators', tags__contains='#{}'.format(self.area.lower()))
+            # LOCAL and GLOBAL messages within account area
+            _locals = models.Q(visibility__in=[Message.LOCAL, Message.GLOBAL], area=self.area)
+            # FRIENDS messages within account area, from account friends
+            members_friends = [f['id'] for f in self.get_friends(status=Friendships.APPROVED).values('id')]
+            _friends = models.Q(member__id__in=members_friends,
+                         visibility=Message.FRIENDS,
+                         area=self.area)
+            messages = messages.filter(_admins_notags | _admins_locals | _locals | _friends)
+            # Administrators messages to non-local areas should not be included
+            _admins_nolocals = models.Q(member__user__groups__name='Administrators') \
+                             & ~models.Q(tags='') \
+                             & ~models.Q(tags__contains='#{}'.format(self.area.lower()))
+            messages = messages.exclude(_admins_nolocals)
+
+        # order messages in reverse chronological order
+        messages = messages.order_by('-timestamp')
+        return messages.distinct()
+
+    def get_events(self, search=None):
+        """All events are returned, regardless of the location of the sender/author.
+        Events are ordered by Event Date, rather than Post Date, in chronological order.
+        Events are upcoming (i.e. no past events).
+
+        Recurring events are generated on-the-fly.
+        """
+        now = timezone.now()
+        messages = self._filter_messages(search=search)
+
+        # exclude non-events
+        messages = messages.exclude(eventdate__isnull=True)
+
+        # exclude past non-recurring events
+        messages = messages.exclude(occurrence=Message.OCCURS_ONCE,
+                                    eventdate__lt=now)
+
+        messages = messages.distinct()
+        events = list(messages)
+
+        # we keep recurring events for now, as we will use them to create the occurrences
+        # the occurences will then be filtered according to their dates
+        for message in messages.all():
+            if message.occurrence == Message.OCCURS_WEEKLY:
+                # generate occurrence from today, on this week day,
+                # at the the same time (hour, minutes, seconds)
+                if message.occurs_until:
+                    # when an end date is provided, we generate occurrences until that date only
+                    # ---
+                    # we have to convert date to datetime,
+                    # then make the datetime aware.
+                    # this is because Django stores date objects as naive dates
+                    d = datetime.combine(message.occurs_until, datetime.min.time())
+                    until = timezone.make_aware(d, timezone.get_default_timezone())
+                else:
+                    # otherwise we generate them for a month
+                    until = now+relativedelta(months=+1)
+
+                occurrences = list(rrule(WEEKLY,
+                                        byweekday=message.eventdate.weekday(),
+                                        byhour=message.eventdate.hour,
+                                        byminute=message.eventdate.minute,
+                                        bysecond=message.eventdate.second,
+                                        dtstart=now,
+                                        until=until))
+                # create events
+                for occurrence in occurrences:
+                    # we only add the occurence if its date is not the same as the original event
+                    # otherwise we get 2 identical events on the same day
+                    if occurrence.date() == message.eventdate.date():
+                        continue
+                    m = deepcopy(message)
+                    m.eventdate = occurrence
+                    events.append(m)
+
+        # filter out-of-date events+occurences
+        events = [e for e in events if e.eventdate >= now]
+
+        # order messages by increasing eventdate
+        events = sorted(events, key=operator.attrgetter('eventdate'))
+        return events
+
+    def get_notifications(self):
+        """Search for any new notifications for the member.
+        The results is different to the one stored in Member.notifications.all(),
+        which stores the notifications already notified (i.e. already read).
+        """
+        count = 0
+        results = []
+
+        # 1. Private Messages
+        # ------------------------------------------------
+        # member who have sent you private messages in the last 7 days
+        privates = Message.objects.filter(visibility=Message.PRIVATE,
+                                          recipient=self,
+                                          timestamp__gte=timezone.now()-timedelta(7))\
+                                  .order_by('-timestamp')
+        if privates.count():
+            count += privates.count()
+            results.append({
+                'type': 'messages',
+                'timestamp': privates[0].timestamp,
+                'age': privates[0].get_age(),
+                'count': privates.count()
+            })
+
+        # 2. Events of the day you're in
+        # ------------------------------------------------
+        # @TODO 'in' events
+        events = self.get_events()
+        events = [r for r in events if r.eventdate is not None and r.eventdate.date() == timezone.now().date()]
+        count += len(events)
+        for event in events:
+            evt = event.format(viewer=self)
+            results.append({
+                'type': 'events',
+                'timestamp': evt['timestamp'],
+                'event': evt
+            })
+
+        # 3. Friends requests
+        # ------------------------------------------------
+        friend_requests = self.get_friend_requests().count()
+        if friend_requests:
+            count += friend_requests
+            results.append({
+                'type': 'friends_requests',
+                'count': friend_requests
+            })
+
+        # 4. Messages you were part of in the last 30 days
+        # ------------------------------------------------
+        # this includes:
+        #   - replies to own meassage
+        #   - replies to messages I replied to
+
+        # other's replies to own messages
+        my_own = [m['id'] for m in Message.objects.filter(member=self, is_reply=False).values('id')]
+        replies_to_my_own = models.Q(is_reply=True, reply_to__in=my_own) & ~models.Q(member=self)
+
+        # replies to messages I replied to
+        #   - first, find parent messages to which I replied to
+        my_replies = Message.objects.filter(member=self, is_reply=True)
+        parents_replied_to = list(set([r.reply_to.id for r in my_replies]))
+        #   - we get notified of replies to this list of parent messages
+        replies_to_thread = models.Q(is_reply=True, reply_to__id__in=parents_replied_to) & ~models.Q(member=self)
+
+        # get messages
+        messages = Message.objects.filter(replies_to_my_own | replies_to_thread)\
+                                  .filter(timestamp__gte=timezone.now()-timedelta(30))\
+                                  .distinct()\
+                                  .order_by('-timestamp')
+
+        count += messages.count()
+
+        # group messages by thread
+        parents = [] # tracks parent messages used for grouping replies
+        threads = [] # holds threads
+        for message in messages:
+            if message.reply_to.id not in parents:
+                # we create a group which will hold all replies
+                # to the same parent
+                parents.append(message.reply_to.id)
+                thread = {
+                    'parent': message.reply_to.format(viewer=self),
+                    'messages': [
+                        message.format(viewer=self)
+                    ]
+                }
+                threads.append(thread)
+            else:
+                # we add the message to group already created
+                # the group index will be the same as the parent index in 'parents'
+                index = parents.index(message.reply_to.id)
+                if message.member.id not in [t['member']['id'] for t in threads[index]['messages']]:
+                    # we are interested in notifying who replied
+                    # if we have the same member replying twice, we ignore it
+                    threads[index]['messages'].append(message.format(viewer=self))
+        # add threads to results
+        for thread in threads:
+            results.append({
+                'type': 'threads',
+                'timestamp': thread['messages'][0]['timestamp'],
+                'age': thread['messages'][0]['age'],
+                'thread': thread
+            })
+
+        return {
+            'count': count,
+            'results': results
+        }
 
 def create_member(sender, instance, created, **kwargs):
     # Only create associated Member on creation,
-    # also make sure they are not created when used in the TestCase
-    if created and not kwargs.get('raw', False):
+    if created:
         member = Member.objects.create(user=instance)
         notifications = Notifications.objects.create(member=member)
 post_save.connect(create_member, sender=User)
@@ -393,6 +670,15 @@ class Message(models.Model):
     def __unicode__(self):
         return u'{}'.format(self.body)
 
+    def __repr__(self):
+        type_ = 'Event' if self.is_event else 'Message'
+        return '<{}: {} [{}]; From: {} [{}] ({})>'.format(type_,
+                                                          self.id,
+                                                          self.timestamp.date(),
+                                                          self.member,
+                                                          self.get_visibility_display(),
+                                                          self.tags)
+
     def save(self, *args, **kwargs):
         self.set_geocode()
         super(Message, self).save(*args, **kwargs)
@@ -419,34 +705,6 @@ class Message(models.Model):
         if not postcode:
             return None
         return postcode.upper()
-
-    def get_distance(self, viewer=None):
-        if not viewer or not viewer.geocode or not self.geocode:
-            return {
-                'units': 'N/A',
-                'distance': 'N/A',
-                'distance-key': 99999999999
-            }
-        else:
-            units = viewer.units
-            units_display = 'Km' if units == 0 else viewer.get_units_display()
-            message_geocode = self.geocode.split(',')
-            viewer_geocode = viewer.geocode.split(',')
-            distance = utils.get_distance(float(message_geocode[0]),
-                                          float(message_geocode[1]),
-                                          float(viewer_geocode[0]),
-                                          float(viewer_geocode[1]))
-            if round(distance[units], 1) <= 1:
-                units_display = units_display if units == 0 else units_display.lower()[:-1]
-                distance_display = '{} {}'.format(round(distance[units], 1), units_display)
-            else:
-                distance_display = '{} {}'.format(round(distance[units], 1), units_display.lower())
-            distance_key = distance[units]
-        return {
-            'units': units_display,
-            'distance': distance_display,
-            'distance-key': distance_key
-        }
 
     def format(self, viewer=None):
         message = dict([(f.name, getattr(self, f.name)) for f in self._meta.fields])
@@ -481,7 +739,8 @@ class Message(models.Model):
             if self.postcode:
                 message['area'] = self.postcode.split()[0]
             # distance
-            message.update(self.get_distance(viewer))
+            distance = viewer.get_distance_from(self)
+            message.update(distance)
         message['age'] = self.get_age()
         message['member'] = self.member.format(viewer=viewer)
         if message.has_key('recipient') and message['recipient']:
@@ -515,17 +774,20 @@ class Message(models.Model):
                 postcode = 'N/A'
             geocode = Geocode.objects.get(code=postcode)
         except Geocode.DoesNotExist:
-            # If the geocode for this postcode has not yet been stored,
-            # fetch it
-            try:
-                point = utils.get_postcode_point(postcode)
-            except:
-                # The function raises an Exception when the API call fails;
-                # when this happens, do nothing
-                logger.error('The Geocode retrieval for the postcode "{}" has failed.'.format(self.postcode))
+            if postcode is None or postcode == 'N/A':
                 geocode = '0.0, 0.0'
             else:
-                geocode = Geocode.objects.create(code=postcode, latitude=point[0], longitude=point[1])
+                # If the geocode for this postcode has not yet been stored,
+                # fetch it
+                try:
+                    point = utils.get_postcode_point(postcode)
+                except:
+                    # The function raises an Exception when the API call fails;
+                    # when this happens, do nothing
+                    logger.error('The Geocode retrieval for the postcode "{}" has failed.'.format(self.postcode))
+                    geocode = '0.0, 0.0'
+                else:
+                    geocode = Geocode.objects.create(code=postcode, latitude=point[0], longitude=point[1])
         self.geocode = str(geocode)
 
 

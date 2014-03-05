@@ -36,7 +36,9 @@ REGEX_URL = re.compile('((%s)((https?://|www\\.)(%s)(\/(%s*%s)?)?(\?%s*%s)?))'
 
 class Extractor(object):
 
-    def __init__(self, string):
+    def __init__(self, string=None):
+        if string is None:
+            string = ''
         self.string = string
 
     def parse(self, with_links=True):

@@ -40,8 +40,8 @@
             </div>
         {% endif %}
         <div class="message-event-info">
-            <div>{{ result.location }}{% if result.distance and result.distance != 'N/A' %}
-                <span>({{ result.distance }})</span>
+            <div>{{ result.location }}{% if result.distance and result.distance_display != 'N/A' %}
+                <span>({{ result.distance_display }})</span>
             {% endif %}</div>
         </div>
     </div>
