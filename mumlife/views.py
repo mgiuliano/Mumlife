@@ -319,14 +319,46 @@ def members(request):
             return HttpResponseRedirect('/members/')
 
     account = request.user.get_profile()
-    params = {
-        'resource': 'member',
-        'search': request.GET.get('search'),
-    }
-    response = APIRequest(request).get(**params)
+    #params = {
+    #    'resource': 'member',
+    #    'search': request.GET.get('search'),
+    #}
+    #response = APIRequest(request).get(**params)
+    #context = {
+    #    'account': account,
+    #    'data': response
+    #}
+
+    search = request.GET.get('search')
+    if search is None:
+        # No tags: return them all
+        members = Member.objects.all()
+    else:
+        search = re.sub(r'\s\s*', '', search)
+        tags = search.split(',')
+        query_tags = Tag.objects.filter(name__in=tags)
+        members = TaggedItem.objects.get_by_model(Member, query_tags)
+
+    # Exclude logged-in user & Administrators
+    members = members.exclude(user=request.user) \
+                     .exclude(user__groups__name='Administrators') \
+                     .exclude(user__is_active=False) \
+                     .exclude(gender=Member.IS_ORGANISER)
+
+    # Convert to list of dictionaries, so that we can order them by key
+    members = [member.format(viewer=account) for member in members]
+
+    # Order by decreasing distance
+    members = sorted(members, key=operator.itemgetter('distance'))
+
     context = {
         'account': account,
-        'data': response
+        'search': search,
+        'data': json.dumps({
+            'results': members,
+            'next': None,
+            'count': len(members)
+        })
     }
 
     t = loader.get_template('members.html')

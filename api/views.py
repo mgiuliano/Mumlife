@@ -27,6 +27,7 @@ from api.serializers import MemberSerializer, \
 
 logger = logging.getLogger('mumlife.api')
 
+
 @api_view(('GET',))
 @permission_classes((permissions.IsAdminUser, ))
 def api_root(request, format=None):
