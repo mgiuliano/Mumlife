@@ -1,7 +1,7 @@
 /*!
  * Mumlife - Common Scripts.
  *
- * @version     2014-02-27 1.1.0
+ * @version     2014-03-06 1.2.0
  * @author      Michael Giuliano <michael@beatscope.co.uk>
  * @copyright   2014 Beatscope Limited | http://www.beatscope.co.uk/
  */
@@ -751,6 +751,172 @@ ML.Feed.prototype.finish = function () {
 
 
 /**
+ * Members Lists
+ */
+ML.Members = function () {
+    var self = this;
+    this.loading = false;
+    this.autoscroll = true;
+    this.next = false;
+    try {
+        var data = arguments[0]['data'];
+        this.account = arguments[0]['account'];
+        if (arguments[0].hasOwnProperty('autoscroll') && arguments[0]['autoscroll']) {
+            this.autoscroll = true;
+        }
+    } catch (e) {
+        console.log(e);
+        return;
+    }
+    if (data['count'] == 0) {
+        this.render_template('noresults');
+    } else {
+        this.button = $('.feed .ui-btn');
+        if (data.hasOwnProperty('next')) {
+            this.next = data['next'];
+        }
+        this.render_template('default', data['results'], function () {
+            self.after_render();
+        });
+        if (this.autoscroll) {
+            // Fetch more when end of page is reached
+            $(window).scroll(function() {
+                if (!self.loading && self.next) {
+                    var trigger = $(".ui-page").height() - 280;
+                    if ($(document).scrollTop() + $(window).height() >= trigger) {
+                        self.refresh();
+                    }
+                }
+            });
+        }
+    }
+};
+
+ML.Members.prototype.refresh = function () {
+    var self = this;
+    this.button.remove();
+    this.loading = true;
+    $.mobile.loading("show");
+    if (this.next) {
+        $.ajax({
+            url: this.next,
+            type: 'GET',
+            contentType: "application/json; charset=UTF-8",
+            dataType: "json",
+            success: function (response) {
+                self.next = response['next'];
+                self.render_template('default', response['results'], function () {
+                    self.after_render();
+                });
+            },
+            error: function (e) {
+                console.log('FAILED -- ' + e);
+                self.after_render();
+            }
+        });
+    }
+};
+
+ML.Members.prototype.after_render = function () {
+    if (this.next) {
+        this.button.show();
+        this.button.blur();
+    } else {
+        this.button.hide();
+    }
+    $.mobile.loading("hide");
+    this.loading = false;
+};
+
+ML.Members.prototype.render_template = function (template, results, callback) {
+    var self = this;
+    if (template == 'noresults') {
+        var html = '<div class="member no-results clearfix">'
+                 + '  <div class="member-left">'
+                 + '    <div class="picture">'
+                 + '      <img class="avatar"'
+                 + '        src="' + ML.settings.get('static_url') + 'img/picture-default.png"'
+                 + '        alt="No results" width="48" height="48" />'
+                 + '    </div>'
+                 + '  </div>'
+                 + '  <div class="member-right">'
+                 + '    <div class="member-body">'
+                 + '      <p><span class="bold">Oops! It\'s lonely in here.</span></p>'
+                 + '      <p>It seems there are no mums or bumps matching these interests!'
+                 + '         Why don\'t you spread the word? The more the merrier they say :) </p>'
+                 + '    </div>'
+                 + '  </div>'
+                 + '</div>';
+        $('.feed').append(html);
+    } else {
+        for (var r in results) {
+            var member = results[r];
+            var html = '<div class="member clearfix">';
+            html += '  <div class="member-left">';
+            html += '    <div class="picture"><a href="/profile/' + member['slug'] + '"><img';
+            html += '         class="avatar"';
+            var picture_src = ML.settings.get('static_url') + 'img/picture-default.png';
+            if (member['picture'] != '') {
+                picture_src = member['picture'];
+            }
+            html += '         src="' + picture_src + '"';
+            html += '         alt="' + member['name'] + '" width="48" height="48" /></a></div>';
+            html += '    </div>';
+            html += '  <div class="member-right">';
+            html += '    <div class="member-author">';
+            html += '      <a href="/profile/' + member['slug'] + '">' + member['name'] + '</a>';
+            if (member['distance_display'] != 'N/A') {
+                html += '    <span>(' + member['distance_display'] + ')</span>';
+            }
+            html += '    </div>';
+            html += '    <div class="member-body">';
+            var interests = member['interests'].split(' ');
+            for (tag in interests) {
+                html += '<span><a href="/members/?search=' + interests[tag] + '">'
+                     + '#' + interests[tag]
+                     + '</a></span> ';
+            }
+            html += '    </div>';
+            html += '    <div class="member-tools clearfix">';
+            if (member['friend_status'] && member['friend_status'] == 'Approved') {
+                html += '<img src="' + ML.settings.get('static_url') + 'img/z.gif" class="icon icon-friend" alt="" />';
+            } else if (member['friend_status'] && member['friend_status'] == 'Pending') {
+                html += '<img src="' + ML.settings.get('static_url') + 'img/z.gif" class="icon icon-pendingfriend" alt="" />';
+            } else if (member['friend_status'] && member['friend_status'] == 'Requesting') {
+                html += '<a class="addtofriend" href="#' + this.account + ',' + member['id'] +'" rel="confirm">';
+                html += ' <img src="' + ML.settings.get('static_url') + 'img/z.gif" class="icon icon-confirmfriend" alt="" />';
+                html += '</a>';
+            } else if (member['friend_status'] && member['friend_status'] == 'Blocked') {
+                html += '<span>&nbsp;</span>';
+            } else {
+                html += '<a class="addtofriend" href="#' + this.account + ',' + member['id'] + '">';
+                html += '  <img src="' + ML.settings.get('static_url') + 'img/z.gif" class="icon icon-addtofriend" alt="" />';
+                html += '</a>';
+            }
+            html += '    </div>';
+            html += '  </div>';
+            html += '</div>';
+            $('.feed').append(html);
+        }
+
+        $('.feed').append(this.button);
+
+        // re-attach the click event, which was removed
+        // when we removed the element from the DOM
+        this.button.click(function () {
+            self.refresh();
+            return false;
+        });
+        new ML.AddToFriends({'class': 'addtofriend'});
+
+        if (typeof(callback) == 'function') {
+            callback();
+        }
+    }
+};
+
+
+/**
  * New Messages & Replies
  */
 ML.Messages = function (settings) {
@@ -1064,7 +1230,7 @@ ML.AddToFriends = function (settings) {
 
     var self = this;
 
-    $('a.'+this.classname).click(function () {
+    $('a.'+this.classname).off('click').on('click', function () {
         var button = $(this);
         var entities = button.attr('href').replace('#', '').split(',');
         var url = ML.settings.get('api_url') + 'friendships/';

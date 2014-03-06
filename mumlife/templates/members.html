@@ -19,64 +19,8 @@
 {% endblock %}
 
 {% block content %}
-<div class="members">
-    {% if members %}
-        {% for member in members %}
-        <div class="member clearfix">
-            <div class="member-left">
-                <div class="picture"><a href="/profile/{{ member.slug }}"><img
-                    class="avatar"
-                    src="{% if member.picture %}{{ member.picture }}{% else %}{{ STATIC_URL }}img/picture-default.png{% endif %}"
-                    alt="{{ member.name }}" width="48" height="48" /></a></div>
-            </div>
-            <div class="member-right">
-                <div class="member-author">
-                    <a href="/profile/{{ member.slug }}">{{ member.name }}</a>
-                    {% if member.distance_display != 'N/A' %}
-                    <span>({{ member.distance_display }})</span>
-                    {% endif %}
-                </div>
-                <div class="member-body">
-                    {% for tag in member.tags %}<span><a href="/members/%23{{ tag.key }}">{{ tag.value }}</a></span> {% endfor %}
-                </div>
-                <div class="member-tools clearfix">
-                    {% if member.friend_status and member.friend_status == 'Approved' %}
-                        <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-friend" alt="" />
-                    {% elif member.friend_status and member.friend_status == 'Pending' %}
-                        <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-pendingfriend" alt="" />
-                    {% elif member.friend_status and member.friend_status == 'Requesting' %}
-                        <a class="addtofriend" href="#{{ account.id }},{{ member.id }}" rel="confirm">
-                            <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-confirmfriend" alt="" />
-                        </a>
-                    {% elif member.friend_status and member.friend_status == 'Blocked' %}
-                        {% comment %}This member relationship is blocked{% endcomment %}
-                        <span>&nbsp;</span>
-                    {% else %}
-                        <a class="addtofriend" href="#{{ account.id }},{{ member.id }}">
-                            <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-addtofriend" alt="" />
-                        </a>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        {% endfor %}
-    {% else %}
-        <div class="member no-results clearfix">
-            <div class="member-left">
-                <div class="picture">
-                    <img class="avatar"
-                         src="{{ STATIC_URL }}img/picture-default.png"
-                         alt="No results" width="48" height="48" />
-                </div>
-            </div>
-            <div class="member-right">
-                <div class="member-body">
-                    <p><span class="bold">Oops! It's lonely in here.</span></p>
-                    <p>It seems there are no mums or bumps matching these interests! Why don't you spread the word? The more the merrier they say :) </p>
-                </div>
-            </div>
-        </div>
-    {% endif %}
+<div class="feed members">
+    <button data-icon="plus">More</button>
 </div>
 {% endblock %}
 
@@ -93,7 +37,7 @@
 {% block extrajs %}{{ block.super }}
 <script type="text/javascript">
     $(document).on('ml.Ready', function () {
-        new ML.AddToFriends({'class': 'addtofriend'});
+        new ML.Members({'data': {{ data|safe }}, 'account': {{ account.id }}, 'autoscroll': true});
     });
     mixpanel.track('Members Page Loaded');
 </script>

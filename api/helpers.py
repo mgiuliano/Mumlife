@@ -19,41 +19,43 @@ class APIRequest(object):
         self.request = request
 
     def _check_resource(self, resource):
-        if not resource in ('message', 'event'):
-            return APIResponse({'reason': 'Resource not implemented', 'status': 400})
+        if resource not in ('message', 'event', 'member'):
+            return False
+        return True
 
     def get(self, **kwargs):
         resource = kwargs.get('resource')
         if not resource:
-            return APIResponse({'reason': 'Resource name is required', 'status': 400})
+            return json.dumps(APIResponse({'reason': 'Resource name is required', 'status': 400}))
+        if not self._check_resource(resource):
+            return json.dumps(APIResponse({'reason': 'Resource not implemented', 'status': 400}))
 
-        self._check_resource(resource)
         params = {'format': 'json'}
 
         if resource == 'message':
-            res_loc = 'messages'
             search_query = urllib.quote(kwargs.get('search')) if \
                            kwargs.get('search') else ''
+            res_loc = 'messages/' + search_query
         elif resource == 'event':
-            res_loc = 'messages'
             search_query = urllib.quote(kwargs.get('search')) if \
                            kwargs.get('search') else ''
             params['range'] = kwargs.get('range')
             params['events'] = 'true'
+            res_loc = 'messages/' + search_query
+
+        if resource == 'member':
+            res_loc = 'members'
+            params['search'] = kwargs.get('search')
 
         if re.search(r'http:|https:', settings.API_URL) is None:
             site = RequestSite(self.request)
             protocol = 'https' if self.request.is_secure() else 'http'
-            url = '{}://{}{}{}/1/{}'.format(protocol,
-                                            site.domain,
-                                            settings.API_URL,
-                                            res_loc,
-                                            search_query)
+            url = '{}://{}{}{}'.format(protocol,
+                                       site.domain,
+                                       settings.API_URL,
+                                       res_loc)
         else:
-            url = '{}{}/1/{}'.format(settings.API_URL,
-                                     res_loc,
-                                     search_query)
-
+            url = '{}{}'.format(settings.API_URL, res_loc)
 
         # the API uses session authentication
         try:
@@ -64,15 +66,15 @@ class APIRequest(object):
         except KeyError:
             # 'csrftoken' is not set by the Test Runner,
             # so this will fail
-            return APIResponse({'reason': 'Test run', 'status': 400})
+            return json.dumps(APIResponse({'reason': 'Test run', 'status': 400}))
         try:
             r = requests.get(url, verify=False, cookies=cookies, params=params)
         except requests.exceptions.ConnectionError:
-            return APIResponse({'reason': 'Connection Error (Test run?)', 'status': 400})
+            return json.dumps(APIResponse({'reason': 'Connection Error (Test run?)', 'status': 400}))
         else:
             try:
                 response = json.loads(r.text)
             except ValueError:
                 response = {}
 
-        return APIResponse(response)
+        return json.dumps(APIResponse(response))

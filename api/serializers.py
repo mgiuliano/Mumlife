@@ -13,24 +13,8 @@ logger = logging.getLogger('api.serializers')
 
 
 class MemberSerializer(serializers.ModelSerializer):
-    status_display = serializers.RelatedField(source='get_status_display')
-    area = serializers.RelatedField(source='area')
-    gender_display = serializers.RelatedField(source='get_gender_display')
-    age = serializers.RelatedField(source='age')
-    location = serializers.RelatedField(source='geocode')
-    tags = serializers.RelatedField(source='tags')
-
     class Meta:
         model = Member
-        fields = ('id', 'fullname', 'slug', \
-                  'status', 'status_display', \
-                  'postcode', 'area', \
-                  'gender', 'gender_display', \
-                  'dob', 'age', \
-                  'picture', 'about', \
-                  'interests', 'units', 'max_range', \
-                  'spouse', 'friendships', \
-                  'location', 'tags')
 
 
 class KidSerializer(serializers.ModelSerializer):

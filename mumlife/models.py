@@ -110,6 +110,9 @@ class Member(models.Model):
     def __unicode__(self):
         return self.name
 
+    def __repr__(self):
+        return u'<Member: [{}] {}>'.format(self.id, self.name)
+
     def is_admin(self):
         return 'Administrators' in [g['name'] for g in self.user.groups.values('name')]
 
@@ -149,8 +152,8 @@ class Member(models.Model):
         member = {}
         member['id'] = self.id
         member['is_admin'] = self.is_admin()
-        member['user'] = self.user.id
         member['slug'] = self.slug
+        member['url'] = '/profile/{}'.format(self.slug)
         member['name'] = self.get_name(viewer)
         member['age'] = self.age
         member['gender'] = self.get_gender_display()
@@ -163,8 +166,9 @@ class Member(models.Model):
         member['area'] = self.area
         member['picture'] = self.picture.url if self.picture else ''
         # distance
-        member.update(self.get_distance_from(viewer))
-        member['tags'] = self.tags
+        if viewer is not None:
+            member.update(viewer.get_distance_from(self))
+        member['interests'] = self.interests.strip()
         member['kids'] = self.get_kids(viewer=viewer)
         return member
 
@@ -212,12 +216,6 @@ class Member(models.Model):
                 continue
             kids.append(kid.format(viewer=viewer))
         return kids
-
-    @property
-    def tags(self):
-        tags = Tag.objects.get_for_object(self)
-        tags = utils.Extractor(','.join([t.name for t in tags])).extract_tags()
-        return [{'key': tag[0], 'value': tag[1]} for tag in tags.items()]
 
     def add_friend(self, member, status):
         friend, created = Friendships.objects.get_or_create(
@@ -603,6 +601,7 @@ class Kid(models.Model):
         kid = dict([(f.name, getattr(self, f.name)) for f in self._meta.fields])
         kid['name'] = self.fullname
         kid['gender'] = self.get_gender_display()
+        del kid['id']
         del kid['dob']
         kid['age'] = self.age
         kid['visibility'] = self.get_visibility_display()

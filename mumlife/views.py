@@ -1,5 +1,6 @@
 # mumlife/views.py
 import logging
+import json
 import operator
 import re
 import urllib
@@ -81,7 +82,7 @@ def feed(request, tagstring=''):
         'resource': 'message',
         'search': tagstring,
     }
-    response = APIRequest(request).get(**params)
+    response = json.loads(APIRequest(request).get(**params))
     context['total'] = response.get('total', 0)
     context['results'] = response.get('html_content', '')
     context['next'] = response.get('next', '')
@@ -134,7 +135,7 @@ def events(request, tagstring=''):
         'search': tagstring,
         'range': range_
     }
-    response = APIRequest(request).get(**params)
+    response = json.loads(APIRequest(request).get(**params))
     context['total'] = response.get('total', 0)
     context['results'] = response.get('html_content', '')
     context['next'] = response.get('next', '')
@@ -165,7 +166,7 @@ def messages(request):
         'resource': 'message',
         'search': '@private',
     }
-    response = APIRequest(request).get(**params)
+    response = json.loads(APIRequest(request).get(**params))
     context['total'] = response.get('total', 0)
     context['results'] = response.get('html_content', '')
     context['next'] = response.get('next', '')
@@ -309,38 +310,24 @@ def message(request, mid, eventmonth=None, eventday=None):
 
 
 @login_required
-def members(request, tagstring=''):
-    account = request.user.get_profile()
-    context = {
-        'account': account
-    }
-
+def members(request):
     if request.method == 'POST' and request.POST.has_key('terms'):
-        tagstring = urllib.quote(request.POST['terms'])
-        return HttpResponseRedirect('/members/{}'.format(tagstring))
+        search = request.POST.get('terms')
+        if search:
+            return HttpResponseRedirect('/members/?search={}'.format(search))
+        else:
+            return HttpResponseRedirect('/members/')
 
-    tagstring = re.sub(r'\s\s*', '', tagstring)
-    if not tagstring:
-        # No tags: return them all
-        members = Member.objects.all()
-    else:
-        context['tagstring'] = tagstring
-        tags = utils.Extractor(tagstring).extract_tags()
-        query_tags = Tag.objects.filter(name__in=tags.values())
-        members = TaggedItem.objects.get_by_model(Member, query_tags)
-
-    # Exclude logged-in user & Administrators
-    members = members.exclude(user=request.user) \
-                     .exclude(user__groups__name='Administrators') \
-                     .exclude(user__is_active=False) \
-                     .exclude(gender=Member.IS_ORGANISER)
-
-    # Convert to list of dictionaries, so that we can order them by key
-    members = [member.format(viewer=account) for member in members]
-
-    # Order by decreasing distance
-    members = sorted(members, key=operator.itemgetter('distance'))
-    context['members'] = members
+    account = request.user.get_profile()
+    params = {
+        'resource': 'member',
+        'search': request.GET.get('search'),
+    }
+    response = APIRequest(request).get(**params)
+    context = {
+        'account': account,
+        'data': response
+    }
 
     t = loader.get_template('members.html')
     c = RequestContext(request, context)

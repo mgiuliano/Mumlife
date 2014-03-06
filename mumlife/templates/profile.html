@@ -35,8 +35,8 @@
 
         {% if member.about %}<div class="about">{{ member.about|linebreaks }}</div>{% endif %}
 
-        {% if member.tags %}
-        <p class="interests">I enjoy {% for tag in member.tags %}<a href="/members/%23{{ tag.key }}">{{ tag.value }}</a> {% endfor %}</p>
+        {% if member.interests %}
+        <p class="interests">I enjoy {% for tag in member.interests.split %}<a href="/members/?search={{ tag }}">#{{ tag }}</a> {% endfor %}</p>
         {% endif %}
 
         {% if member.kids|length %}

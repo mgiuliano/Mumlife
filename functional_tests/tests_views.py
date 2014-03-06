@@ -18,6 +18,10 @@ class ViewsTest(TestCase):
         cls._member.postcode = 'SE16 4JX'
         cls._member.save()
 
+        message = Message.objects.create(member=cls._member,
+                                         area=cls._member.area,
+                                         body='Message')
+
     def setUp(self):
         self.client.login(username="user@mumlife.co.uk", password="secure-password")
 

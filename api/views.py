@@ -3,6 +3,7 @@ import logging
 import copy
 import datetime
 import operator
+import re
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.http import Http404
@@ -16,6 +17,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
+from tagging.models import Tag, TaggedItem
 from mumlife import utils
 from mumlife.models import Member, Kid, Friendships, Message
 from api.serializers import MemberSerializer, \
@@ -38,23 +40,76 @@ def api_root(request, format=None):
 
 
 class MemberListView(generics.ListAPIView):
-    """
-    List all members (admin read-only).
+    """List all members.
 
+    Exclude logged-in user, Administrators, Organisers and banned members.
     """
-    queryset = Member.objects.all()
+    model = Member
     serializer_class = MemberSerializer
-    permissions = (permissions.IsAdminUser,)
+    paginate_by = settings.MEMBERS_PER_PAGE
+    
+    def get_queryset(self):
+        # We need to calculate the distance between the logged-in user
+        # and all members, so that the result can be ordered.
+        search = self.request.QUERY_PARAMS.get('search', None)
+        if search:
+            search = re.sub(r'\s\s*', '', search)
+            tags = search.split(',')
+            query_tags = Tag.objects.filter(name__in=tags)
+            members = TaggedItem.objects.get_by_model(Member, query_tags)
+        else:
+            members = Member.objects.all()
+        members = members.exclude(user=self.request.user) \
+                         .exclude(user__groups__name='Administrators') \
+                         .exclude(user__is_active=False) \
+                         .exclude(gender=Member.IS_ORGANISER)
+        _members = members.values('id', 'geocode')
+        _members = [dict([
+                          ('lat', float(m['geocode'].split(',')[0])),
+                          ('long', float(m['geocode'].split(',')[1])),
+                          ('id', m['id']),
+                        ]) for m in _members]
+        geocode = {}
+        geocode['lat'], geocode['long'] = tuple([float(g) for \
+            g in self.request.user.get_profile().geocode.split(',')])
+        _members = [dict([
+                          ('distance', utils.get_distance(geocode['lat'],
+                                                          geocode['long'],
+                                                          m['lat'],
+                                                          m['long'])[0]),
+                          ('id', m['id']),
+                        ]) for m in _members]
+        _members = sorted(_members, key=operator.itemgetter('distance'))
+
+        members = members.filter(pk__in=[m['id'] for m in _members])
+        return members
+
+    def list(self, request, *args, **kwargs):
+        self.object_list = self.filter_queryset(self.get_queryset())
+
+        # Switch between paginated or standard style responses
+        page = self.paginate_queryset(self.object_list)
+        if page is not None:
+            serializer = self.get_pagination_serializer(page)
+        else:
+            serializer = self.get_serializer(self.object_list, many=True)
+
+        # Override serialization with Member.format()
+        # Doing the formatting here means the operation is only calculated
+        # for the slice MEMBERS_PER_PAGE, instead of the entire QuerySet
+        _members = [obj['slug'] for obj in serializer.data['results']]
+        members = [m.format(request.user.get_profile()) for \
+                   m in Member.objects.filter(slug__in=_members)]
+        serializer.data['results'] = members
+
+        return Response(serializer.data)
 
 
 class MemberView(generics.RetrieveUpdateAPIView):
-    """
-    Allows partial update (PUT/PATCH).
+    """Allows partial update (PUT/PATCH).
 
     A member can only view/update its own account.
-
     Members cannot be deleted through the API.
-
     """
     model = Member
     serializer_class = MemberSerializer
@@ -68,23 +123,17 @@ class MemberView(generics.RetrieveUpdateAPIView):
 
 
 class KidListView(generics.ListAPIView):
-    """
-    List all kids (admin read-only).
-
-    """
+    """List all kids."""
     queryset = Kid.objects.all()
     serializer_class = KidSerializer
     permissions = (permissions.IsAdminUser,)
 
 
 class KidView(generics.RetrieveUpdateAPIView):
-    """
-    Allows partial update (PUT/PATCH).
+    """Allows partial update (PUT/PATCH).
 
     A member can only view/update its own kids.
-
     Kids cannot be deleted through the API.
-
     """
     model = Kid
     serializer_class = KidSerializer
@@ -171,10 +220,9 @@ class FriendshipView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class MessageListView(views.APIView):
-    """
-    List messages for the logged-in user.
-    Results are paginated.
+    """List messages for the logged-in user.
 
+    Results are paginated.
     """
 
     def get(self, request, page=1, terms='', format=None):
@@ -213,8 +261,8 @@ class MessageListView(views.APIView):
 
         # Return range according to page
         total = len(messages)
-        start = (page - 1) * settings.PAGING
-        end = start + settings.PAGING
+        start = (page - 1) * settings.MESSAGES_PER_PAGE
+        end = start + settings.MESSAGES_PER_PAGE
         results = [m.format(account) for m in messages[start:end]]
 
         # Record the last result's last message,
@@ -269,10 +317,12 @@ class MessageListView(views.APIView):
 
 
 class MessagePostView(APIView):
-    """
-    Post new Message or Reply.
+    """Provide PUT and PATCH methods.
 
+    Post new Message or Reply (PUT),
+    Partial update (PATCH).
     """
+
     def post(self, request, format=None):
         # message is required
         if not request.DATA.has_key('body') or not request.DATA['body']:
@@ -371,10 +421,6 @@ class MessagePostView(APIView):
         serializer = MessageSerializer(message)
         return Response(serializer.data)
 
-    """
-    Patch existing Message.
-
-    """
     def patch(self, request, format=None):
         try:
             message = Message.objects.get(pk=request.DATA['id'])
@@ -436,10 +482,7 @@ class MessageView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class NotificationListView(views.APIView):
-    """
-    List all notifications for the logged-in user.
-
-    """
+    """List all notifications for the logged-in user."""
     permissions = (permissions.IsAuthenticated,)
 
     def get(self, request, format=None):
