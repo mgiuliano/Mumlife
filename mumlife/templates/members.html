@@ -32,7 +32,7 @@
             <div class="member-right">
                 <div class="member-author">
                     <a href="/profile/{{ member.slug }}">{{ member.name }}</a>
-                    {% if member.distance and member.distance_display != 'N/A' %}
+                    {% if member.distance_display != 'N/A' %}
                     <span>({{ member.distance_display }})</span>
                     {% endif %}
                 </div>

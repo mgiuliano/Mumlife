@@ -27,7 +27,7 @@
     </div>
 
     <h2>{{ member.area }}</h2>
-    {% if member.id != account.id and member.distance and member.distance_display != 'N/A' %}
+    {% if member.id != account.id and member.distance_display != 'N/A' %}
     <div class="distance">{{ member.distance_display }}</div>
     {% endif %}
 
