@@ -1,7 +1,7 @@
 /*!
  * Mumlife - Common Scripts.
  *
- * @version     2014-03-06 1.2.0
+ * @version     2014-03-06 1.2.1
  * @author      Michael Giuliano <michael@beatscope.co.uk>
  * @copyright   2014 Beatscope Limited | http://www.beatscope.co.uk/
  */
@@ -872,9 +872,11 @@ ML.Members.prototype.render_template = function (template, results, callback) {
             html += '    <div class="member-body">';
             var interests = member['interests'].split(' ');
             for (tag in interests) {
-                html += '<span><a href="/members/?search=' + interests[tag] + '">'
-                     + '#' + interests[tag]
-                     + '</a></span> ';
+                if (interests[tag]) {
+                    html += '<span><a href="/members/?search=' + interests[tag] + '">'
+                         + '#' + interests[tag]
+                         + '</a></span> ';
+                }
             }
             html += '    </div>';
             html += '    <div class="member-tools clearfix">';
