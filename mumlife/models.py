@@ -44,7 +44,7 @@ class Geocode(models.Model):
     longitude = models.FloatField()
 
     def __unicode__(self):
-        return '{} {}'.format(self.latitude, self.longitude)
+        return '{} {}'.format(self.longitude, self.latitude)
 
 
 class MemberManager(models.Manager):
