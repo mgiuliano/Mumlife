@@ -13,6 +13,8 @@ logger = logging.getLogger('api.serializers')
 
 
 class MemberSerializer(serializers.ModelSerializer):
+    distance = serializers.RelatedField()
+
     class Meta:
         model = Member
 
@@ -37,6 +39,7 @@ class FriendshipsSerializer(serializers.ModelSerializer):
         model = Friendships
 
 
+
 class MessageSerializer(serializers.ModelSerializer):
     tags = serializers.RelatedField(source='get_tags')
     visibility_display = serializers.RelatedField(source='get_visibility_display')
@@ -45,6 +48,22 @@ class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
         fields = ('id', 'area', 'timestamp', \
+                  'name', 'location', 'eventdate', 'eventenddate', \
+                  'visibility', 'visibility_display', \
+                  'occurrence', 'occurs_until', \
+                  'tags', 'body', 'picture', \
+                  'is_reply', 'replies')
+
+
+class EventSerializer(serializers.ModelSerializer):
+    distance = serializers.RelatedField()
+    tags = serializers.RelatedField(source='get_tags')
+    visibility_display = serializers.RelatedField(source='get_visibility_display')
+    replies = serializers.PrimaryKeyRelatedField(source='replies', many=True, read_only=True)
+
+    class Meta:
+        model = Message
+        fields = ('id', 'area', 'distance', 'timestamp', \
                   'name', 'location', 'eventdate', 'eventenddate', \
                   'visibility', 'visibility_display', \
                   'occurrence', 'occurs_until', \

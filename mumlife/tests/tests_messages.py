@@ -137,7 +137,7 @@ class MessagesSearchTest(TestCase):
             ("@private",        [8]),
         ]
         for terms, expected in searches:
-            messages = self.U1.get_messages(terms)
+            messages = self.U1.get_messages(search=terms)
             self.assertQuerysetEqual(messages, expected, self._getId, ordered=False)
 
     def test_U2(self):

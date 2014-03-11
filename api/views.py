@@ -23,7 +23,8 @@ from mumlife.models import Member, Kid, Friendships, Message
 from api.serializers import MemberSerializer, \
                             KidSerializer, \
                             FriendshipsSerializer, \
-                            MessageSerializer
+                            MessageSerializer, \
+                            EventSerializer
 
 logger = logging.getLogger('mumlife.api')
 
@@ -35,7 +36,7 @@ def api_root(request, format=None):
         'members': reverse('members-list', request=request, format=format),
         'kids': reverse('kids-list', request=request, format=format),
         'friendships': reverse('friendships-list', request=request, format=format),
-        'messages': reverse('messages-list', request=request, format=format, args=[1,'']),
+        'messages': reverse('messages-list', request=request, format=format),
         'notifications': reverse('notifications-list', request=request, format=format),
     })
 
@@ -43,50 +44,25 @@ def api_root(request, format=None):
 class MemberListView(generics.ListAPIView):
     """List all members.
 
-    Exclude logged-in user, Administrators, Organisers and banned members.
+    The distance returned is in meters.
+    The query can be filtered by a lits of Tags (tagging.models.Tag).
     """
     model = Member
     serializer_class = MemberSerializer
     paginate_by = settings.MEMBERS_PER_PAGE
     
-    def get_queryset(self):
-        # We need to calculate the distance between the logged-in user
-        # and all members, so that the result can be ordered.
-        search = self.request.QUERY_PARAMS.get('search', None)
+    def list(self, request, *args, **kwargs):
+        search = request.QUERY_PARAMS.get('search', None)
         if search:
-            search = re.sub(r'\s\s*', '', search)
+            search = re.sub(r'\s\s*', ' ', search)
+            search = re.sub(r'#|%23', '', search)
             tags = search.split(',')
             query_tags = Tag.objects.filter(name__in=tags)
-            members = TaggedItem.objects.get_by_model(Member, query_tags)
         else:
-            members = Member.objects.all()
-        members = members.exclude(user=self.request.user) \
-                         .exclude(user__groups__name='Administrators') \
-                         .exclude(user__is_active=False) \
-                         .exclude(gender=Member.IS_ORGANISER)
-        _members = members.values('id', 'geocode')
-        _members = [dict([
-                          ('lat', float(m['geocode'].split(',')[0])),
-                          ('long', float(m['geocode'].split(',')[1])),
-                          ('id', m['id']),
-                        ]) for m in _members]
-        geocode = {}
-        geocode['lat'], geocode['long'] = tuple([float(g) for \
-            g in self.request.user.get_profile().geocode.split(',')])
-        _members = [dict([
-                          ('distance', utils.get_distance(geocode['lat'],
-                                                          geocode['long'],
-                                                          m['lat'],
-                                                          m['long'])[0]),
-                          ('id', m['id']),
-                        ]) for m in _members]
-        _members = sorted(_members, key=operator.itemgetter('distance'))
-
-        members = members.filter(pk__in=[m['id'] for m in _members])
-        return members
-
-    def list(self, request, *args, **kwargs):
-        self.object_list = self.filter_queryset(self.get_queryset())
+            query_tags = None
+        member = request.user.get_profile()
+        self.object_list = Member.objects.with_distance_from(viewer=member,
+                                                             query_tags=query_tags)
 
         # Switch between paginated or standard style responses
         page = self.paginate_queryset(self.object_list)
@@ -98,10 +74,12 @@ class MemberListView(generics.ListAPIView):
         # Override serialization with Member.format()
         # Doing the formatting here means the operation is only calculated
         # for the slice MEMBERS_PER_PAGE, instead of the entire QuerySet
-        _members = [obj['slug'] for obj in serializer.data['results']]
-        members = [m.format(request.user.get_profile()) for \
-                   m in Member.objects.filter(slug__in=_members)]
-        serializer.data['results'] = members
+        results = serializer.data['results'][:]
+        serializer.data['results'] = []
+        for obj in results:
+            _member = Member.objects.get(pk=obj['id'])
+            _member.distance = obj['distance']
+            serializer.data['results'].append(_member.format(member))
 
         return Response(serializer.data)
 
@@ -220,101 +198,67 @@ class FriendshipView(generics.RetrieveUpdateDestroyAPIView):
     permissions = (permissions.IsAdminUser,)
 
 
-class MessageListView(views.APIView):
+class MessageListView(generics.ListAPIView):
     """List messages for the logged-in user.
 
     Results are paginated.
     """
+    model = Message
+    serializer_class = MessageSerializer
+    paginate_by = settings.MESSAGES_PER_PAGE
 
-    def get(self, request, page=1, terms='', format=None):
-        try:
-            page = 1 if page < 1 else int(page)
-        except ValueError:
-            page = 1
-
-        account = self.request.user.get_profile()
+    def list(self, request, *args, **kwargs):
+        search = request.QUERY_PARAMS.get('search', None)
+        member = request.user.get_profile()
 
         # Adding 'events' as a query parameter tells us to return events only.
-        show_events = False
-        distance_range = 9999 # Nationwide
-        if request.GET.has_key('events'):
+        show_events = request.QUERY_PARAMS.get('events', None)
+        distance_range = None # Nationwide
+        if show_events is not None:
             # Events are fetched in a different way
             # particularly, the results need to be in a specific distance range
-            show_events = True
-            if request.GET.has_key('range'):
+            range_ = request.QUERY_PARAMS.get('range', None)
+            if range_ is not None:
                 try:
-                    distance_range = float(request.GET['range'])
+                    # the range can be sent in miles or kilometers
+                    # if the range is set in miles, we need to convert is to meters
+                    distance_range = float(range_)
+                    if member.units == 1:
+                        distance_range /= 0.6214
+                    distance_range *= 1000
                 except ValueError:
                     # the value passed was not an integer
                     pass
-            all_results = account.get_events(search=terms)
+            self.object_list = member.get_events(search=search,
+                                                 distance_range=distance_range)
+            self.serializer_class = EventSerializer
         else:
-            all_results = account.get_messages(search=terms)
+            self.object_list = member.get_messages(search=search)
 
-        # Pre-process results
-        messages = []
-        if show_events:
-            # Events only: exclude out-of-range events    
-            messages = [m for m in all_results \
-                          if account.get_distance_from(m)['distance'] <= distance_range]
+        # Switch between paginated or standard style responses
+        page = self.paginate_queryset(self.object_list)
+        if page is not None:
+            serializer = self.get_pagination_serializer(page)
         else:
-            messages = list(all_results)
+            serializer = self.get_serializer(self.object_list, many=True)
 
-        # Return range according to page
-        total = len(messages)
-        start = (page - 1) * settings.MESSAGES_PER_PAGE
-        end = start + settings.MESSAGES_PER_PAGE
-        results = [m.format(account) for m in messages[start:end]]
+        # Override serialization with Message.format()
+        # Doing the formatting here means the operation is only calculated
+        # for the slice MESSAGES_PER_PAGE, instead of the entire QuerySet
+        results = serializer.data['results'][:]
+        serializer.data['results'] = []
+        for obj in results:
+            _message = Message.objects.get(pk=obj['id'])
+            # This is not the nicest way of doing it, but all data
+            # added for occurences will be destroyed in the new Message object,
+            # as well as the distance we just calculated.
+            # So we need to add those back in.
+            if show_events is not None:
+                _message.distance = obj['distance']
+                _message.eventdate = obj['eventdate']
+            serializer.data['results'].append(_message.format(member))
 
-        # Record the last result's last message,
-        # this result will be None for the first page.
-        if page == 1:
-            last_message = None
-        else:
-            try:
-                last_message = messages[start-1].format(account)
-            except AssertionError:
-                # AssertionError is raise when using negative indexing
-                last_message = None
-            except IndexError:
-                # IndexError is raised when the result set is empty
-                last_message = None
-
-        # Determine whether this was the last page
-        # we are on the last page when the last page is greater or equal
-        # to the total number of results
-        next_page = '1/messages/{}/{}'.format(page + 1, terms) if end < total else ''
-        if next_page and show_events:
-            # we add the 'events' back to the querystring for the next page link
-            next_page = '{}{}'.format(next_page, '?events')
-            # we also add the range
-            next_page = '{}{}{}'.format(next_page, '&range=', distance_range)
-
-        # Format results
-        html_content = ''
-        previous_day = None if not last_message else last_message['eventdate']
-        template = 'tags/event.html' if show_events else 'tags/message.html'
-        for message in results:
-            if show_events:
-                # determine whether to display the day heading
-                day = message['eventdate']
-                if not previous_day or previous_day != day:
-                    # we check that the heading was not already displayed
-                    # by results from the previous page
-                    if not last_message or message['eventdate'] != last_message['eventdate']:
-                        message['heading'] = message['eventdate']
-                previous_day = day
-            message['STATIC_URL'] = settings.STATIC_URL
-            message['account'] = account.format()
-            html_content += loader.render_to_string(template, message)
-
-        response = {
-            'total': total,
-            'next': next_page,
-            'messages': results,
-            'html_content': html_content,
-        }
-        return Response(response)
+        return Response(serializer.data)
 
 
 class MessagePostView(APIView):

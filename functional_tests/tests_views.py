@@ -35,15 +35,15 @@ class ViewsTest(TestCase):
     def test_feed(self):
         response = self.client.get('/local/')
         self.assertEqual(response.status_code, 200)
-        response = self.client.get('/local/#hash')
+        response = self.client.get('/local/?search=#hash')
         self.assertEqual(response.status_code, 200)
-        response = self.client.get('/local/@private')
+        response = self.client.get('/local/?search=@private')
         self.assertEqual(response.status_code, 200)
 
     def test_events(self):
         response = self.client.get('/events/')
         self.assertEqual(response.status_code, 200)
-        response = self.client.get('/events/#hash')
+        response = self.client.get('/events/?search=#hash')
         self.assertEqual(response.status_code, 200)
 
     def test_messages(self):

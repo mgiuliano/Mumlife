@@ -156,7 +156,7 @@
     <div class="message-content clearfix">
         <div class="message-body">
             {{ result.body_with_links|safe|linebreaks }}
-            <div class="message-tags">{% for tag in result.tags_item %}<a href="/local/%23{{ tag.key }}">{{ tag.value }}</a> {% endfor %}</div>
+            <div class="message-tags">{% for tag in result.tags_item %}<a href="/local/?search=%23{{ tag.key }}">{{ tag.value }}</a> {% endfor %}</div>
         </div>
         {% if result.picture %}<div class="message-image">
             <img class="fullonclick" src="{{ result.picture }}" alt="" width="auto" height="auto" />

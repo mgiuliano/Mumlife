@@ -1,6 +1,5 @@
 # mumlife/views.py
 import logging
-import json
 import operator
 import re
 import urllib
@@ -65,40 +64,27 @@ Members Views.
 """
 
 @login_required
-def feed(request, tagstring=''):
-    context = {}
-    if request.method == 'POST' and request.POST.has_key('terms'):
-        tagstring = urllib.quote(request.POST['terms'])
-        return HttpResponseRedirect('/local/{}'.format(tagstring))
-
-    if not tagstring:
-        tagstring = ''
-    context['tagstring'] = tagstring
-
-    account = request.user.get_profile()
-    context['account'] = account
+def feed(request):
+    if request.method == 'POST':
+        search = request.POST.get('terms')
+        if search:
+            search = re.sub(r'#|%23', '', search)
+            return HttpResponseRedirect('/local/?search={}'.format(search))
+        else:
+            return HttpResponseRedirect('/local/')
 
     params = {
         'resource': 'message',
-        'search': tagstring,
+        'search': request.GET.get('search'),
     }
-    response = json.loads(APIRequest(request).get(**params))
-    context['total'] = response.get('total', 0)
-    context['results'] = response.get('html_content', '')
-    context['next'] = response.get('next', '')
+    response = APIRequest(request).get(**params)
 
-    # Format empty results message
-    if not context['total']:
-        data = {
-            'STATIC_URL': settings.STATIC_URL
-        }
-        if re.search(r'@friends', tagstring) is not None:
-            template = 'tags/message-nofriendsresults.html'
-        else:
-            template = 'tags/message-noresults.html'
-        content = loader.render_to_string(template, data)
-        context['noresults'] = content
-        
+    account = request.user.get_profile()
+    context = {
+        'account': account,
+        'data': response,
+        'search': request.GET.get('search'),
+    }
     t = loader.get_template('feed.html')
     c = RequestContext(request, context)
     return HttpResponse(t.render(c))
@@ -106,17 +92,15 @@ def feed(request, tagstring=''):
 
 @login_required
 def events(request, tagstring=''):
-    context = {}
-    if request.method == 'POST' and request.POST.has_key('terms'):
-        tagstring = urllib.quote(request.POST['terms'])
-        return HttpResponseRedirect('/events/{}'.format(tagstring))
-
-    if not tagstring:
-        tagstring = ''
-    context['tagstring'] = tagstring
+    if request.method == 'POST':
+        search = request.POST.get('terms')
+        if search:
+            search = re.sub(r'#|%23', '', search)
+            return HttpResponseRedirect('/events/?search={}'.format(search))
+        else:
+            return HttpResponseRedirect('/events/')
 
     account = request.user.get_profile()
-    context['account'] = account
 
     range_ = request.GET.get('range')
     if not range_:
@@ -125,30 +109,25 @@ def events(request, tagstring=''):
         if request.COOKIES.has_key('ml_range') and request.COOKIES['ml_range']:
             # the cookie is set, redirect to the same page,
             # appended with the stored range
-            url = '/events/{}?range={}'.format(urllib.quote(tagstring), request.COOKIES['ml_range'])
+            url = '/events/?range={}'.format(request.COOKIES.get('ml_range'))
+            if request.GET.get('search'):
+                url += '&search={}'.format(urllib.quote(request.GET.get('search')))
             return HttpResponseRedirect(url)
         else:
-            range_ = request.user.get_profile().max_range
+            range_ = account.max_range
 
     params = {
         'resource': 'event',
-        'search': tagstring,
+        'search': request.GET.get('search'),
         'range': range_
     }
-    response = json.loads(APIRequest(request).get(**params))
-    context['total'] = response.get('total', 0)
-    context['results'] = response.get('html_content', '')
-    context['next'] = response.get('next', '')
+    response = APIRequest(request).get(**params)
 
-
-    # Format empty results message
-    if not context['total']:
-        data = {
-            'STATIC_URL': settings.STATIC_URL
-        }
-        content = loader.render_to_string('tags/event-noresults.html', data)
-        context['noresults'] = content
-
+    context = {
+        'account': account,
+        'data': response,
+        'search': request.GET.get('search'),
+    }
     t = loader.get_template('events.html')
     c = RequestContext(request, context)
     return HttpResponse(t.render(c))
@@ -166,18 +145,8 @@ def messages(request):
         'resource': 'message',
         'search': '@private',
     }
-    response = json.loads(APIRequest(request).get(**params))
-    context['total'] = response.get('total', 0)
-    context['results'] = response.get('html_content', '')
-    context['next'] = response.get('next', '')
-
-    # Format empty results message
-    if not context['total']:
-        data = {
-            'STATIC_URL': settings.STATIC_URL
-        }
-        content = loader.render_to_string('tags/message-noprivates.html', data)
-        context['noresults'] = content
+    response = APIRequest(request).get(**params)
+    context['data'] = response
 
     t = loader.get_template('messages.html')
     c = RequestContext(request, context)
@@ -311,56 +280,26 @@ def message(request, mid, eventmonth=None, eventday=None):
 
 @login_required
 def members(request):
-    if request.method == 'POST' and request.POST.has_key('terms'):
+    if request.method == 'POST':
         search = request.POST.get('terms')
         if search:
+            search = re.sub(r'#|%23', '', search)
             return HttpResponseRedirect('/members/?search={}'.format(search))
         else:
             return HttpResponseRedirect('/members/')
 
+    params = {
+        'resource': 'member',
+        'search': request.GET.get('search'),
+    }
+    response = APIRequest(request).get(**params)
+
     account = request.user.get_profile()
-    #params = {
-    #    'resource': 'member',
-    #    'search': request.GET.get('search'),
-    #}
-    #response = APIRequest(request).get(**params)
-    #context = {
-    #    'account': account,
-    #    'data': response
-    #}
-
-    search = request.GET.get('search')
-    if search is None:
-        # No tags: return them all
-        members = Member.objects.all()
-    else:
-        search = re.sub(r'\s\s*', '', search)
-        tags = search.split(',')
-        query_tags = Tag.objects.filter(name__in=tags)
-        members = TaggedItem.objects.get_by_model(Member, query_tags)
-
-    # Exclude logged-in user & Administrators
-    members = members.exclude(user=request.user) \
-                     .exclude(user__groups__name='Administrators') \
-                     .exclude(user__is_active=False) \
-                     .exclude(gender=Member.IS_ORGANISER)
-
-    # Convert to list of dictionaries, so that we can order them by key
-    members = [member.format(viewer=account) for member in members]
-
-    # Order by decreasing distance
-    members = sorted(members, key=operator.itemgetter('distance'))
-
     context = {
         'account': account,
-        'search': search,
-        'data': json.dumps({
-            'results': members,
-            'next': None,
-            'count': len(members)
-        })
+        'data': response,
+        'search': request.GET.get('search'),
     }
-
     t = loader.get_template('members.html')
     c = RequestContext(request, context)
     return HttpResponse(t.render(c))

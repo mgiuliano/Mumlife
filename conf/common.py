@@ -27,10 +27,6 @@ AUTHENTICATION_BACKENDS = (
 MESSAGES_PER_PAGE = 12
 MEMBERS_PER_PAGE = 12
 
-### ADMIN SITE
-#GRAPPELLI_ADMIN_TITLE = 'Mumlife'
-#JQUERY_URL='js/jquery-1.9.1.min.js'
-
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = []

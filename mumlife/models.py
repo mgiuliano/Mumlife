@@ -11,6 +11,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from django.utils.encoding import force_unicode
 from django.utils.html import strip_tags
+from django.utils.text import Truncator
 from django.utils.timesince import timesince
 from tagging.fields import TagField
 from tagging.models import Tag, TaggedItem
@@ -43,7 +44,37 @@ class Geocode(models.Model):
     longitude = models.FloatField()
 
     def __unicode__(self):
-        return '{},{}'.format(self.latitude, self.longitude)
+        return '{} {}'.format(self.latitude, self.longitude)
+
+
+class MemberManager(models.Manager):
+    def with_distance_from(self, viewer=None, query_tags=None):
+        """Return all Members, ordered by their distance from the viewer.
+
+        Viewer has to exists, or this query doesn't make sense.
+        Exclude the logged-in user, Administrators, Organisers and banned members.
+        """
+        if viewer is None:
+            return self.all()
+        if query_tags is not None:
+            members = TaggedItem.objects.get_by_model(Member, query_tags)
+        else:
+            members = self.all()
+
+        point = 'POINT({})'.format(viewer.geocode)
+        members = members.exclude(user=viewer.user) \
+                         .exclude(user__groups__name='Administrators') \
+                         .exclude(user__is_active=False) \
+                         .exclude(gender=Member.IS_ORGANISER) \
+                         .extra(
+                                select={'distance': """ST_Distance(
+                                    ST_GeographyFromText(%s),
+                                    ST_GeographyFromText(CONCAT('POINT(', geocode, ')'))
+                                )"""},
+                                select_params=(point,),
+                         ) \
+                         .order_by('distance')
+        return members
 
 
 class Member(models.Model):
@@ -90,6 +121,8 @@ class Member(models.Model):
     friendships = models.ManyToManyField('self', null=True, blank=True, through='Friendships', \
                                          symmetrical=False, related_name='friends_with+')
 
+    objects = MemberManager()
+
     def save(self, *args, **kwargs):
         if self.id is not None:
             # The profile is created after user creation,
@@ -117,31 +150,26 @@ class Member(models.Model):
         return 'Administrators' in [g['name'] for g in self.user.groups.values('name')]
 
     def get_distance_from(self, entity=None):
-        if not entity or not entity.geocode or entity.geocode == '0.0, 0.0' or \
-            not self.geocode or self.geocode == '0.0, 0.0':
+        if not entity or not entity.geocode or entity.geocode == '0.0 0.0' or \
+            not self.geocode or self.geocode == '0.0 0.0':
                 return {
                     'units': 'N/A',
                     'distance-display': 'N/A',
                     'distance': 99999999999
                 }
         else:
-            units = self.units
+            units = entity.units if hasattr(entity, 'units') else self.units
             units_display = 'Km' if units == 0 else self.get_units_display()
-            member_geocode = self.geocode.split(',')
-            entity_geocode = entity.geocode.split(',')
-            distance = utils.get_distance(float(member_geocode[0]),
-                                          float(member_geocode[1]),
-                                          float(entity_geocode[0]),
-                                          float(entity_geocode[1]))
-            if round(distance[units], 1) < 0.5:
+            distance = self.distance / 1000
+            distance = distance if units == 0 else distance * 0.6214
+            if round(distance, 1) < 0.5:
                 units_display = 'kilometer' if units == 0 else units_display[:-1]
                 distance_display = 'less than half a {}'.format(units_display.lower())
-            elif round(distance[units], 1) <= 1.1:
+            elif round(distance, 1) <= 1.1:
                 units_display = units_display if units == 0 else units_display[:-1]
-                distance_display = '{} {}'.format(round(distance[units], 1), units_display.lower())
+                distance_display = '{} {}'.format(round(distance, 1), units_display.lower())
             else:
-                distance_display = '{} {}'.format(round(distance[units], 1), units_display.lower())
-            distance = distance[units]
+                distance_display = '{} {}'.format(round(distance, 1), units_display.lower())
         return {
             'units': units_display,
             'distance_display': distance_display,
@@ -157,7 +185,6 @@ class Member(models.Model):
         member['name'] = self.get_name(viewer)
         member['age'] = self.age
         member['gender'] = self.get_gender_display()
-        # escape about to prevent script attacks
         member['about'] = strip_tags(force_unicode(self.about)) if self.about else ''
         if viewer:
             member['friend_status'] = viewer.check_if_friend(self)
@@ -167,7 +194,24 @@ class Member(models.Model):
         member['picture'] = self.picture.url if self.picture else ''
         # distance
         if viewer is not None:
-            member.update(viewer.get_distance_from(self))
+            try:
+                # The distance might have already been set by an earlier query
+                # e.g. list of members includes the distance already
+                # If not, this will raise an AttributeError
+                _distance = self.distance
+            except AttributeError:
+                point_from = 'POINT({})'.format(viewer.geocode)
+                point_to = 'POINT({})'.format(self.geocode)
+                distance_query = Member.objects.raw("""SELECT id, ST_Distance(
+                                            ST_GeographyFromText(%s),
+                                            ST_GeographyFromText(%s)
+                                          ) As distance
+                                          FROM mumlife_member
+                                          WHERE id=%s""",
+                                       [point_from, point_to, self.id])
+                self.distance = distance_query[0].distance
+            distance = self.get_distance_from(viewer)
+            member.update(distance)
         member['interests'] = self.interests.strip()
         member['kids'] = self.get_kids(viewer=viewer)
         return member
@@ -262,12 +306,12 @@ class Member(models.Model):
             self.slug = slug
 
     def set_geocode(self):
-        if not self.geocode or self.geocode == '0.0, 0.0':
+        if not self.geocode or self.geocode == '0.0 0.0':
             try:
                 geocode = Geocode.objects.get(code=self.postcode)
             except Geocode.DoesNotExist:
                 if self.postcode is None:
-                    geocode = '0.0, 0.0'
+                    geocode = '0.0 0.0'
                 else:
                     # If the geocode for this postcode has not yet been stored,
                     # fetch it
@@ -277,29 +321,25 @@ class Member(models.Model):
                         # The function raises an Exception when the API call fails;
                         # when this happens, do nothing
                         logger.error('The Geocode retrieval for the postcode "{}" has failed.'.format(self.postcode))
-                        geocode = '0.0, 0.0'
+                        geocode = '0.0 0.0'
                     else:
                         geocode = Geocode.objects.create(code=self.postcode, latitude=point[0], longitude=point[1])
             self.geocode = str(geocode)
 
-    def _filter_messages(self, search):
+    def _filter_messages(self, search=None):
+        query_tags = None
         if search:
-            # whitespaces are not allowed, so get rid of them
-            search = re.sub(r'\s\s*', '', search)
-        else:
-            search = '@local'
-
-        tags = utils.Extractor(search).extract_tags().values()
-        if not tags:
-            # return all messages
+            search = re.sub(r'\s\s*', ' ', search)
+            search = re.sub(r'#|%23', '', search)
+            tags = ['#{}'.format(t) for t in search.split() if not t.startswith('@')]
+            if tags:
+                query_tags = Tag.objects.filter(name__in=tags)
+        if query_tags is None:
             messages = Message.objects.all()
         else:
-            query_tags = Tag.objects.filter(name__in=tags)
             messages = TaggedItem.objects.get_by_model(Message, query_tags)
-
         # exclude replies
         messages = messages.exclude(is_reply=True)
-
         return messages
         
     def get_messages(self, search=None):
@@ -380,7 +420,7 @@ class Member(models.Model):
         messages = messages.order_by('-timestamp')
         return messages.distinct()
 
-    def get_events(self, search=None):
+    def get_events(self, search=None, distance_range=None):
         """All events are returned, regardless of the location of the sender/author.
         Events are ordered by Event Date, rather than Post Date, in chronological order.
         Events are upcoming (i.e. no past events).
@@ -398,6 +438,23 @@ class Member(models.Model):
                                     eventdate__lt=now)
 
         messages = messages.distinct()
+
+        # add extra distance field
+        # Django ORM does not support HAVING clauses,
+        # so we have to use the distance function twice, once to filter the results,
+        # and once to add the field to the row.
+        point = 'POINT({})'.format(self.geocode)
+        range_ = distance_range if distance_range is not None else 10**5
+        messages = messages.extra(select={'distance': """ST_Distance(
+                                      ST_GeographyFromText(%s),
+                                      ST_GeographyFromText(CONCAT('POINT(', mumlife_message.geocode, ')'))
+                                  )"""},
+                                  select_params=(point,))
+        messages = messages.extra(where=["""ST_Distance(
+                                      ST_GeographyFromText(%s),
+                                      ST_GeographyFromText(CONCAT('POINT(', mumlife_message.geocode, ')'))
+                                  ) <= %s"""],
+                                  params=[point, range_])
         events = list(messages)
 
         # we keep recurring events for now, as we will use them to create the occurrences
@@ -671,9 +728,10 @@ class Message(models.Model):
 
     def __repr__(self):
         type_ = 'Event' if self.is_event else 'Message'
+        date_ = self.eventdate.date() if self.is_event else self.timestamp.date()
         return '<{}: {} [{}]; From: {} [{}] ({})>'.format(type_,
                                                           self.id,
-                                                          self.timestamp.date(),
+                                                          date_,
                                                           self.member,
                                                           self.get_visibility_display(),
                                                           self.tags)
@@ -681,6 +739,10 @@ class Message(models.Model):
     def save(self, *args, **kwargs):
         self.set_geocode()
         super(Message, self).save(*args, **kwargs)
+
+    @property
+    def is_event(self):
+        return True if self.eventdate is not None else False
 
     @property
     def replies(self):
@@ -691,10 +753,6 @@ class Message(models.Model):
 
     def get_replies(self, viewer=None):
         return [message.format(viewer=viewer) for message in self.replies]
-
-    def is_event(self):
-        return True if self.eventdate else False
-    is_event.boolean = True
 
     @property
     def postcode(self):
@@ -718,6 +776,7 @@ class Message(models.Model):
         # parse body to display hashtag links
         message['body'] = utils.Extractor(body).parse(with_links=False)
         message['body_with_links'] = utils.Extractor(body).parse()
+        message['synopsis'] = Truncator(strip_tags(force_unicode(self.body))).words(20, truncate=' ...')
         message['date'] = self.timestamp.strftime('%c')
         message['picture'] = self.picture.url if self.picture else ''
         # format event details
@@ -737,7 +796,26 @@ class Message(models.Model):
             # we therefore override it by the event location postcode area
             if self.postcode:
                 message['area'] = self.postcode.split()[0]
-            # distance
+            # distance between the message and the viewer
+            # the actual distance is in the message object,
+            # so we add it to the viewer before calling its distance getter.
+            try:
+                # The distance might have already been set by an earlier query
+                # e.g. list of members includes the distance already
+                # If not, this will raise an AttributeError
+                _distance = self.distance
+            except AttributeError:
+                point_from = 'POINT({})'.format(viewer.geocode)
+                point_to = 'POINT({})'.format(self.geocode)
+                distance_query = Member.objects.raw("""SELECT id, ST_Distance(
+                                            ST_GeographyFromText(%s),
+                                            ST_GeographyFromText(%s)
+                                          ) As distance
+                                          FROM mumlife_member
+                                          WHERE id=%s""",
+                                       [point_from, point_to, viewer.id])
+                self.distance = distance_query[0].distance
+            viewer.distance = self.distance
             distance = viewer.get_distance_from(self)
             message.update(distance)
         message['age'] = self.get_age()
@@ -749,22 +827,27 @@ class Message(models.Model):
             message['reply_to'] = self.reply_to.id
         else:
             message['tags'] = self.get_tags()
-            message['tags_item'] = self.get_tags(filter='item')
-            message['tags_inline'] = self.get_tags(filter='inline')
+            message['tags_item'] = self.get_tags(filter_='item')
+            message['tags_inline'] = self.get_tags(filter_='inline')
             message['replies'] = self.get_replies(viewer=viewer)
         return message
 
-    def get_tags(self, filter=None):
+    def get_tags(self, filter_=None):
         tags = utils.Extractor(self.tags).extract_tags()
-        if filter:
-            if filter == 'item':
-                # remove inline tags 
-                for tag in utils.Extractor(self.body).extract_tags().keys():
-                    del tags[tag]
-            elif filter == 'inline':
-                # inline tags only
-                tags = utils.Extractor(self.body).extract_tags()
-        return [{'key': tag[0], 'value': tag[1]} for tag in tags.items()]
+        item_tags = tags.copy()
+        inline_tags = utils.Extractor(self.body).extract_tags()
+        for tag in inline_tags.keys():
+            if item_tags.has_key(tag):
+                del item_tags[tag]
+        if filter_:
+            if filter_ == 'item':
+                return [{'key': tag[0], 'value': tag[1]} for \
+                        tag in item_tags.items()]
+            elif filter_ == 'inline':
+                return [{'key': tag[0], 'value': tag[1]} for \
+                        tag in inline_tags.items()]
+        return [{'key': tag[0], 'value': tag[1]} for \
+                tag in tags.items()]
 
     def set_geocode(self):
         try:
@@ -774,7 +857,7 @@ class Message(models.Model):
             geocode = Geocode.objects.get(code=postcode)
         except Geocode.DoesNotExist:
             if postcode is None or postcode == 'N/A':
-                geocode = '0.0, 0.0'
+                geocode = '0.0 0.0'
             else:
                 # If the geocode for this postcode has not yet been stored,
                 # fetch it
@@ -784,7 +867,7 @@ class Message(models.Model):
                     # The function raises an Exception when the API call fails;
                     # when this happens, do nothing
                     logger.error('The Geocode retrieval for the postcode "{}" has failed.'.format(self.postcode))
-                    geocode = '0.0, 0.0'
+                    geocode = '0.0 0.0'
                 else:
                     geocode = Geocode.objects.create(code=postcode, latitude=point[0], longitude=point[1])
         self.geocode = str(geocode)

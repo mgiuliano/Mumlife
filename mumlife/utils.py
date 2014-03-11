@@ -59,24 +59,23 @@ class Extractor(object):
 
     def replace_with_hash(self, matchobj):
         hashtag = matchobj.group(0)
-        return '<a href="/local/%23{}">{}</a>'.format(hashtag[1:], hashtag)
+        return '<a href="/local/?search=%23{}">{}</a>'.format(hashtag[1:], hashtag)
 
     def replace_with_flag(self, matchobj):
         flagtag = matchobj.group(0)
         if flagtag not in ('local', 'global', 'friends'):
             return flagtag
-        return '<a href="/local/@{}">{}</a>'.format(flagtag[1:], flagtag)
+        return '<a href="/local/?search=@{}">{}</a>'.format(flagtag[1:], flagtag)
 
     def replace_with_link(self, matchobj):
         link = matchobj.group(0)
         return '<a href="{}" target="_blank">{}</a>'.format(link, link)
 
     def extract_tags(self):
-        """
-        Extract hashtags from a string.
+        """Extract hashtags from a string.
+
         hashtags are returned as dictionaries, whose keys are the hastags values
         without the leading character #.
-
         """
         tags = {}
         for match in REGEX_TAGS.findall(self.string):
@@ -84,20 +83,16 @@ class Extractor(object):
         return tags
 
     def extract_flags(self):
-        """
-        Extract flags from a string.
-        flags are returned as a 1-dimension list.
+        """Extract flags from a string.
 
+        flags are returned as a 1-dimension list.
         """
         allowed = ['@local', '@global', '@friends', '@private']
         matches = REGEX_FLAGS.findall(self.string)
         return filter(lambda x: x in matches, allowed)
 
     def extract_postcode(self):
-        """
-        Extract UK postcode.
-
-        """
+        """Extract UK postcode."""
         outcode_pattern = '[A-PR-UWYZ]([0-9]{1,2}|([A-HIK-Y][0-9](|[0-9]|[ABEHMNPRVWXY]))|[0-9][A-HJKSTUW])'
         incode_pattern = '[0-9][ABD-HJLNP-UW-Z]{2}'
         postcode_re = re.compile(r'(GIR 0AA|%s %s)' % (outcode_pattern, incode_pattern))
@@ -188,32 +183,3 @@ def get_postcode_point(postcode):
             else:
                 return (coordinates[0], coordinates[1])
     return (0, 0)
-
-
-def get_postcodes_distance(postcode_from, postcode_to):
-    """
-    Calculates the distance between 2 postcodes, 
-    using the Haversine formula.
-
-    Returns a tuple with kilometers and miles values.
-    1Km is equivalent to 0.6214 miles.
-
-    """
-    point_from = get_postcode_point(postcode_from)
-    point_to = get_postcode_point(postcode_to)
-    return get_distance(point_from[0], point_from[1], point_to[0], point_to[1])
-
-
-def get_distance(latitude_from, longitude_from, latitude_to, longitude_to):
-    R = 6371;
-    dLon = math.radians(longitude_to - longitude_from)
-    dLat = math.radians(latitude_to - latitude_from)
-    lat1 = math.radians(latitude_from);
-    lat2 = math.radians(latitude_to);
-    a = math.sin(dLat/2) * math.sin(dLat/2) \
-      + math.sin(dLon/2) * math.sin(dLon/2) \
-      * math.cos(lat1) * math.cos(lat2)
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
-    distance = R * c; # KM
-    miles = distance * 0.6214
-    return (distance, miles)

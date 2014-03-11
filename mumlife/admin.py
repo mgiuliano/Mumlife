@@ -172,9 +172,8 @@ class MessageAdmin(admin.ModelAdmin):
             return obj
 
     def is_event(self, obj):
-        if obj.eventdate:
-            return True
-        return False
+        return obj.is_event
+    is_event.boolean = True
 
 
 class NotificationsAdmin(admin.ModelAdmin):

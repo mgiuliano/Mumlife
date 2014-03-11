@@ -13,7 +13,7 @@
 <div class="search-form" data-entity="search-form">
     <form method="post" action="/members/">
         {% csrf_token %}
-        <input type="text" data-clear-btn="true" name="terms" placeholder="search #interests" value="{% if tagstring %}{{ tagstring }}{% endif %}" />
+        <input type="text" data-clear-btn="true" name="terms" placeholder="search #interests" value="{% if search %}{{ search }}{% endif %}" />
     </form>
 </div>
 {% endblock %}

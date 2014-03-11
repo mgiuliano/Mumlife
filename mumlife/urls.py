@@ -12,7 +12,7 @@ urlpatterns = patterns('',
 
     url(r'^$', 'mumlife.views.home'),
     url(Page.REGEX(), 'mumlife.views.page'),
-    url(r'^local/(?P<tagstring>.*)', 'mumlife.views.feed'),
+    url(r'^local/$', 'mumlife.views.feed'),
     url(r'^events/(?P<tagstring>.*)', 'mumlife.views.events'),
     url(r'^messages/$', 'mumlife.views.messages'),
     url(r'^notifications', 'mumlife.views.notifications'),

@@ -152,9 +152,13 @@ if __name__ == "__main__":
         else:
             from mumlife.models import Member
             member = Member.objects.get(pk=int(user_id))
-            messages = member.get_messages(*args.arguments)
-            for m in messages:
-                print '>', repr(m)
+            arguments = dict([(a[0], a[1]) for a in [arg.split('=') for arg in args.arguments]])
+            messages = member.get_messages(**arguments)
+            if messages.count():
+                for m in messages:
+                    print '>', repr(m)
+            else:
+                print '>> No Messages found.'
 
     elif args.command == 'get-events':
         try:
@@ -166,9 +170,13 @@ if __name__ == "__main__":
         else:
             from mumlife.models import Member
             member = Member.objects.get(pk=int(user_id))
-            events = member.get_events(*args.arguments)
-            for ev in events:
-                print '>', repr(ev)
+            arguments = dict([(a[0], a[1]) for a in [arg.split('=') for arg in args.arguments]])
+            events = member.get_events(**arguments)
+            if len(events):
+                for ev in events:
+                    print '>', repr(ev)
+            else:
+                print '>> No Events found.'
 
     elif args.command == 'get-notifications':
         try:

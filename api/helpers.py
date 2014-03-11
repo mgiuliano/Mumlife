@@ -33,18 +33,16 @@ class APIRequest(object):
         params = {'format': 'json'}
 
         if resource == 'message':
-            search_query = urllib.quote(kwargs.get('search')) if \
-                           kwargs.get('search') else ''
-            res_loc = 'messages/' + search_query
+            res_loc = 'messages/'
+            params['search'] = kwargs.get('search')
         elif resource == 'event':
-            search_query = urllib.quote(kwargs.get('search')) if \
-                           kwargs.get('search') else ''
             params['range'] = kwargs.get('range')
             params['events'] = 'true'
-            res_loc = 'messages/' + search_query
+            params['search'] = kwargs.get('search')
+            res_loc = 'messages/'
 
         if resource == 'member':
-            res_loc = 'members'
+            res_loc = 'members/'
             params['search'] = kwargs.get('search')
 
         if re.search(r'http:|https:', settings.API_URL) is None:

@@ -591,66 +591,91 @@ ML.ImageRotate = function (settings) {
 
 
 /**
- * Feeds
+ * Messages List
  */
-ML.Feed = function (settings) {
+ML.Feed = function () {
     var self = this;
     this.loading = false;
-    this.settings = settings;
-    this.button = $('.feed .ui-btn');
-    this.button.click(function () {
-        self.refresh();
-        return false;
-    });
-    if (settings.hasOwnProperty('filters') && settings['filters']) {
-        this.setFilters();
-    }
-    if (settings.hasOwnProperty('slider') && settings['slider']) {
-        // update slider value
-        var pattern = new RegExp(/\?range=.+/g);
-        var matches = pattern.exec(location.search);
-        if (matches) {
-            var match = matches.pop().split('=').pop();
-            // we wait a fraction of a second to make sure the DOM has the CSS files added to it.
-            // this issue has been seen on Windows Phone 8.
-            setTimeout(function () {
-                $("#range").val(match);
-                $("#range").slider('refresh');
-            }, 250);
-            // update cookie value
-            $.cookie('ml_range', match);
+    this.flag;
+    this.autoscroll = true;
+    this.template = 'default';
+    this.previous = null;
+    this.next = false;
+    try {
+        var data = arguments[0]['data'];
+        this.account = arguments[0]['account'];
+        if (arguments[0].hasOwnProperty('flag') && arguments[0]['flag']) {
+            this.flag = arguments[0]['flag'];
         }
-        // add slider handler,
-        // when button clicked on
-        $("#filter").on("click", function (event) {
-            self.slide($('#range').val());
-            return false;
+        if (arguments[0].hasOwnProperty('autoscroll') && arguments[0]['autoscroll']) {
+            this.autoscroll = true;
+        }
+        if (arguments[0].hasOwnProperty('template') && arguments[0]['template']) {
+            this.template = arguments[0]['template'];
+        }
+    } catch (e) {
+        console.log(e);
+        return;
+    }
+    this.check_flags();
+    this.check_slider();
+    if (data['count'] == 0) {
+        this.render_template('noresults-' + this.template);
+    } else {
+        this.button = $('.feed .ui-btn');
+        if (data.hasOwnProperty('next')) {
+            this.next = data['next'];
+        }
+        this.render_template(this.template, data['results'], function () {
+            self.after_render();
         });
-    }
-    if (settings['next'] != '') {
-        this.button.show();
-    }
-
-    if (this.settings.hasOwnProperty('autoscroll') && this.settings['autoscroll']) {
-        // Fetch more when end of page is reached
-        $(window).scroll(function() {
-            if (!self.loading && settings['next'] != '') {
-                var trigger = $(".ui-page").height() - 280;
-                if ($(document).scrollTop() + $(window).height() >= trigger) {
-                    self.refresh();
+        if (this.autoscroll) {
+            // Fetch more when end of page is reached
+            $(window).scroll(function() {
+                if (!self.loading && self.next) {
+                    var trigger = $(".ui-page").height() - 280;
+                    if ($(document).scrollTop() + $(window).height() >= trigger) {
+                        self.refresh();
+                    }
                 }
+            });
+        }
+    }
+};
+
+ML.Feed.prototype.refresh = function () {
+    var self = this;
+    this.button.remove();
+    this.loading = true;
+    $.mobile.loading("show");
+    if (this.next) {
+        $.ajax({
+            url: this.next,
+            type: 'GET',
+            contentType: "application/json; charset=UTF-8",
+            dataType: "json",
+            success: function (response) {
+                self.next = response['next'];
+                self.render_template(self.template, response['results'], function () {
+                    self.after_render();
+                });
+            },
+            error: function (e) {
+                console.log('FAILED -- ' + e);
+                self.after_render();
             }
         });
     }
 };
 
-ML.Feed.prototype.setFilters = function () {
-    // Activate the correct filter
+ML.Feed.prototype.check_flags = function () {
+    // Activate the correct icon,
+    // and set the global flag.
     var terms = $('.search-form').find('input[type="text"]').val();
     var pattern = new RegExp(/@\w+/g);
-    var filter = pattern.exec(terms);
-    filter = filter ? filter[0] : null;
-    switch (filter) {
+    var flag = pattern.exec(terms);
+    this.flag = flag ? flag[0] : null;
+    switch (this.flag) {
         case '@global':
             $('[data-role="filter-name"]').text("Global posts");
             $('[data-entity="filter"][rel="@local"]').removeClass('active');
@@ -680,11 +705,39 @@ ML.Feed.prototype.setFilters = function () {
             }
         }
         // append filter flag
-        filtered.push($(this).attr('rel'));
+        if ($(this).attr('rel') != '@local') {
+            filtered.push($(this).attr('rel'));
+        }
         // finally, go there
-        location = trim(filtered.join(' '));
+        location = location.pathname + '?search=' + trim(filtered.join(' '));
         return false;
     });
+};
+
+ML.Feed.prototype.check_slider = function () {
+    var self = this;
+    if ($('[data-entity="slider"]').size() > 0) {
+        // update slider value
+        var pattern = new RegExp(/range=\d+(?:\.\d*)*/g);
+        var matches = pattern.exec(location.search);
+        if (matches) {
+            var match = matches.pop().split('=').pop();
+            // we wait a fraction of a second to make sure the DOM has the CSS files added to it.
+            // this issue has been seen on Windows Phone 8.
+            setTimeout(function () {
+                $("#range").val(match);
+                $("#range").slider('refresh');
+            }, 250);
+            // update cookie value
+            $.cookie('ml_range', match);
+        }
+        // add slider handler,
+        // when button clicked on
+        $("#filter").on("click", function (event) {
+            self.slide($('#range').val());
+            return false;
+        });
+    }
 };
 
 ML.Feed.prototype.slide = function (distance) {
@@ -694,52 +747,23 @@ ML.Feed.prototype.slide = function (distance) {
     //
     // if an empty range is provided (i.e. range=),
     // the range used will be the one saved in the cookie, if any.
-    var pattern = new RegExp(/\?range=.+/g);
+    var pattern = new RegExp(/range=\d+(?:\.\d*)*/g);
     var loc = location.href;
-    if (pattern.exec(loc)) {
-        loc = loc.replace(pattern, '?range='+distance);
+    var matches = pattern.exec(loc);
+    if (matches) {
+        loc = loc.replace(pattern, 'range='+distance);
     } else {
-        loc += '?range='+distance;
+        if (location.search == '') {
+            loc += '?range='+distance;
+        } else {
+            loc += '&range='+distance;
+        }
     }
     location = loc;
 };
 
-ML.Feed.prototype.refresh = function () {
-    var self = this;
-    this.loading = true;
-    $.mobile.loading("show");
-    this.button.remove();
-    if (this.settings['next'] != '') {
-        this.settings['next'] = this.settings['next'].replace('&amp;', '&');
-        var url = ML.settings.get('site_url') + this.settings['next'];
-        $.ajax({
-            url: url,
-            type: 'GET',
-            contentType: "application/json; charset=UTF-8",
-            dataType: "json",
-            success: function (response) {
-                $('.feed').append(response['html_content'])
-                          .append(self.button);
-                // re-attach the click event, which was removed
-                // when we removed the element from the DOM
-                self.button.click(function () {
-                    self.refresh();
-                    return false;
-                });
-                // update global next index
-                self.settings['next'] = response['next'];
-                self.finish();
-            },
-            error: function (e) {
-                console.log('FAILED -- ' + e);
-                self.finish();
-            }
-        });
-    }
-};
-
-ML.Feed.prototype.finish = function () {
-    if (this.settings['next'] != '') {
+ML.Feed.prototype.after_render = function () {
+    if (this.next) {
         this.button.show();
         this.button.blur();
     } else {
@@ -747,6 +771,239 @@ ML.Feed.prototype.finish = function () {
     }
     $.mobile.loading("hide");
     this.loading = false;
+};
+
+ML.Feed.prototype.render_template = function (template, results, callback) {
+    var self = this;
+    if (template == 'noresults-default') {
+
+        /*
+            No Results (default)
+                                    */
+
+        var html = '<div class="message no-results clearfix">'
+                 + '  <div class="message-left">'
+                 + '    <div class="message-picture">'
+                 + '      <img class="avatar"'
+                 + '        src="' + ML.settings.get('static_url') + 'img/picture-default.png"'
+                 + '        alt="No results" width="48" height="48" />'
+                 + '    </div>'
+                 + '  </div>'
+                 + '  <div class="message-right">'
+                 + '    <div class="message-author">'
+                 + '      <p><span class="bold">Oops! It\'s lonely in here.</span></p>'
+        if (this.flag && this.flag == '@private') {
+            html += '<p>You don\'t have any private messages.</p>';
+        } else if (this.flag && this.flag == '@friends') {
+            html += '<p>You can speak to your friends here more privately.'
+                 + ' Organising a #tea-party and would like to invite them in..?'
+                 + ' Want to set up a #playdate..?</p>';
+        } else {
+            html += '<p>You can ask questions or share knowledge with mums within your post code.'
+                 + ' Best #nursery in the area..? #garden-sale this Saturday? Has anyone seen Fluffy..?</p>'
+                 + '<p>Really, anything :-)</p>';
+        }
+        html += '    </div>'
+             + '  </div>'
+             + '</div>';
+        $('.feed').append(html);
+
+    } else if (template == 'noresults-event') {
+
+        /*
+            No Events
+                        */
+        
+        var html = '<div class="message no-results">'
+                 + '  <div class="message-left">'
+                 + '    <div class="message-picture">'
+                 + '      <img class="avatar"'
+                 + '           src="' + ML.settings.get('static_url') + 'img/calendar.png"'
+                 + '           alt="No results" width="48" height="48" />'
+                 + '    </div>'
+                 + '    <span class="message-area">404</span>'
+                 + '  </div>'
+                 + '  <div class="message-right">'
+                 + '    <div class="message-author">'
+                 + '      <p><span class="bold">Oops! It\'s lonely in here.</span></p>'
+                 + '      <p>No activities match your search criteria.</p>'
+                 + '      <p>You might want to increase the distance range using the target icon below.</p>'
+                 + '      <p>You can also increase the maximum range in your account preferences.</p>'
+                 + '    </div>'
+                 + '  </div>'
+                 + '  <div class="message-content clearfix"></div>'
+                 + '</div>';
+
+        $('.feed').append(html);
+
+    } else {
+
+        for (var r in results) {
+            var message = results[r];
+            var html = '';
+            if (template == 'event') {
+
+                /*
+                    Event Template
+                                    */
+
+                var calendar_picture_src = ML.settings.get('static_url') + 'img/calendar.png';
+                var message_url = '/message/' + message['id'] + '/'
+                                + message['eventmonth'] + '/'
+                                + message['eventday'] + '/';
+                // Do not duplicate the heading
+                var eventdate = null;
+                if (!this.previous || message['eventdate'] != this.previous) {
+                    eventdate = message['eventdate'];
+                }
+                this.previous = message['eventdate'];
+                if (eventdate) {
+                    html += '<h3>' + eventdate + '</h3>';
+                }
+                html += '<div class="message">';
+                html += '  <div class="message-left">';
+                html += '    <a href="' + message_url + '" class="message-event-link">';
+                html += '      <span class="message-picture">';
+                html += '        <img class="avatar"';
+                html += '             src="' + calendar_picture_src + '"';
+                html += '             alt="' + message['eventdate'] + '" width="48" height="48" />';
+                html += '        <span class="message-eventmonth">' + message['eventmonth'] + '</span>';
+                html += '        <span class="message-eventday">' + message['eventday'] + '</span>';
+                html += '      </span>';
+                html += '      <span class="message-area">' + message['area'] + '</span>';
+                if (message['postcode'] != '') {
+                    html += '<span class="message-distance">' + message['distance_display'] + '</span>';
+                }
+                html += '    </a>';
+                html += '  </div>';
+                html += '    <a href="' + message_url + '" class="message-right">';
+                html += '      <span class="message-author">' + message['name'] + '</span>';
+                html += '      <span class="message-time">' + message['eventtime'] + '</span>';
+                html += '      <span class="message-body">';
+                html += message['location'];
+                for (var tag in message['tags']) {
+                    html += ' <span>' + message['tags'][tag]['value'] + '</span>';
+                }
+                html += '      </span>';
+                html += '    </a>';
+                html += '  <div class="message-content clearfix">';
+                html += '    <a href="' + message_url + '" class="message-tools clearfix">';
+                html += '      <span class="message-replies">';
+                if (message['replies'].length > 0) {
+                    html += ' <span class="message-replies-count">' + message['replies'].length + '</span>';
+                    html += ' <span class="icon icon-comment"></span>';
+                } else {
+                    html += ' <span class="message-replies-first">Comment</span>';
+                }
+                html += '      </span>';
+                html += '      <span class="bullet">&#8226;</span>';
+                html += '      <span class="message-age" title="' + message['timestamp'] + '">' + message['age'] + '</span>';
+                html += '    </a>';
+                html += '  </div>';
+                html += '</div>';
+
+            } else {
+
+                /*
+                    Default template
+                                        */
+
+                var default_picture_src = ML.settings.get('static_url') + 'img/picture-default.png';
+                html += '<div class="message clearfix">';
+                html += '  <div class="message-left">';
+                html += '    <div class="message-picture">';
+                if (message['member']['is_admin']) {
+                    html += '  <a href="/message/' + message['id'] + '/">';
+                    var picture_src = message['member']['picture'] != ''
+                                      ? message['member']['picture']
+                                      : default_picture_src;
+                    html += '    <img class="avatar"';
+                    html += '      src="' + picture_src + '"';
+                    html += '      alt="' + message['member']['name'] + '" width="48" height="48" />';
+                    html += '  </a>';
+                } else if (message['recipient'] && message['member']['id'] == this.account) {
+                    html += '<a href="/profile/' + message['recipient']['slug'] + '">';
+                    var picture_src = message['recipient']['picture'] != ''
+                                      ? message['recipient']['picture']
+                                      : default_picture_src;
+                    html += '    <img class="avatar"';
+                    html += '      src="' + picture_src + '"';
+                    html += '      alt="' + message['recipient']['name'] + '" width="48" height="48" />';
+                    html += '  </a>';
+                } else {
+                    html += '  <a href="/profile/' + message['member']['slug'] + '">';
+                    var picture_src = message['member']['picture'] != ''
+                                      ? message['member']['picture']
+                                      : default_picture_src;
+                    html += '    <img class="avatar"';
+                    html += '      src="' + picture_src + '"';
+                    html += '      alt="' + message['member']['name'] + '" width="48" height="48" />';
+                    html += '  </a>';
+                }
+                html += '    </div>';
+                html += '  </div>';
+                html += '  <div class="message-right">';
+                html += '    <div class="message-author">';
+                if (message['member']['is_admin']) {
+                    html += '<a href="/message/' + message['id'] + '/">' + message['member']['name'] + '</a>';
+                } else if (message['recipient'] && message['member']['id'] == this.account) {
+                    html += '<a href="/profile/' + message['recipient']['slug'] + '">' + message['recipient']['name'] + '</a>';
+                } else {
+                    html += '<a href="/profile/' + message['member']['slug'] + '">' + message['member']['name'] + '</a>';
+                }
+                html += '    </div>';
+                if (!message['member']['is_admin']) {
+                    html += '<div class="message-area">' + message['area'] + '</div>';
+                }
+                html += '  </div>';
+                html += '  <div class="message-content clearfix">';
+                html += '    <div class="message-body">';
+                html += '      <a href="/message/' + message['id'] + '/" class="message-body-link">';
+                html += '          ' + message['synopsis'];
+                for (var tag in message['tags_item']) {
+                    html += ' <span>' + message['tags_item'][tag]['value'] + '</span>';
+                }
+                html += '      </a>';
+                html += '    </div>';
+                if (message['picture'] != '') {
+                    html += '<div class="message-image"><a href="/message/' + message['id'] + '/">';
+                    html += '  <img src="' + message['picture'] + '" alt="" width="auto" height="auto" />';
+                    html += '</a></div>';
+                }
+                html += '    <a href="/message/' + message['id'] + '/" class="message-tools clearfix">';
+                html += '        <span class="message-replies">';
+                if (message['replies'].length > 0) {
+                    html += '      <span class="message-replies-count">' + message['replies'].length + '</span>';
+                    html += '      <span class="icon icon-comment"></span>';
+                } else {
+                    html += '      <span class="message-replies-first">Comment</span>';
+                }
+                html += '        </span>';
+                html += '        <span class="bullet">&#8226;</span>';
+                html += '        <span class="message-age" title="'
+                        + message['timestamp'] + '">'
+                        + message['age'] + '</span>';
+                html += '    </a>';
+                html += '  </div>';
+                html += '</div>';
+
+            }
+            $('.feed').append(html);
+        }
+
+        $('.feed').append(this.button);
+
+        // re-attach the click event, which was removed
+        // when we removed the element from the DOM
+        this.button.click(function () {
+            self.refresh();
+            return false;
+        });
+
+        if (typeof(callback) == 'function') {
+            callback();
+        }
+    }
 };
 
 

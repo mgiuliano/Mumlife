@@ -27,7 +27,6 @@
     </div>
 
     <div class="feed">
-        {% if noresults %}{{ noresults }}{% else %}{{ results|safe }}{% endif %}
         <button data-icon="plus">More</button>
     </div>
 {% endblock %}
@@ -43,7 +42,12 @@
 {% block extrajs %}{{ block.super }}
 <script type="text/javascript">
     $(document).on('ml.Ready', function () {
-        new ML.Feed({'results': {{ total }}, 'next': '{{ next }}', 'autoscroll': true});
+        new ML.Feed({
+            'data': {{ data|safe }},
+            'account': {{ account.id }},
+            'flag': '@private',
+            'autoscroll': true
+        });
         new ML.Messages();
     });
 </script>

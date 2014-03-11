@@ -5,7 +5,7 @@
 {% block heading %}
 {% spaceless %}
 <h1>Activities</h1>
-{% if tagstring %}<h2>{{ tagstring }}</h2>{% endif %}
+{% if search %}<h2>{{ search }}</h2>{% endif %}
 {% endspaceless %}
 {% endblock %}
 
@@ -13,7 +13,7 @@
 <div class="search-form" data-entity="search-form">
     <form method="post" action="/events/">
         {% csrf_token %}
-        <input type="text" data-clear-btn="true" name="terms" placeholder="Search for #topics" value="{% if tagstring %}{{ tagstring }}{% else %}{% endif %}" />
+        <input type="text" data-clear-btn="true" name="terms" placeholder="Search for #topics" value="{% if search %}{{ search }}{% else %}{% endif %}" />
     </form>
 </div>
 {% endblock %}
@@ -22,7 +22,6 @@
 
 {% block content %}
     <div class="feed">
-        {% if noresults %}{{ noresults }}{% else %}{{ results|safe }}{% endif %}
         <button data-icon="plus">More</button>
     </div>
 {% endblock %}
@@ -52,7 +51,7 @@
 {% block extrajs %}{{ block.super }}
 <script type="text/javascript">
     $(document).on('ml.Ready', function () {
-        new ML.Feed({'results': {{ total }}, 'next': '{{ next }}', 'slider': true, 'events_only': true, 'autoscroll': true});
+        new ML.Feed({'data': {{ data|safe }}, 'account': {{ account.id }}, 'autoscroll': true, 'template': 'event'});
     });
     mixpanel.track('Activities Page Loaded');
 </script>
