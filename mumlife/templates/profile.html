@@ -98,8 +98,10 @@
         new ML.AddToFriends({'class': 'addtofriend'});
         new ML.Messages();
     });
+    {% if not DEBUG %}
     mixpanel.track('Profile Page Loaded', {
         'Profile ID': '{{ member.id }}'
     });
+    {% endif %}
 </script>
 {% endblock %}

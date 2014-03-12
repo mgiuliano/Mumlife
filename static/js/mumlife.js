@@ -1,7 +1,7 @@
 /*!
  * Mumlife - Common Scripts.
  *
- * @version     2014-03-06 1.2.1
+ * @version     2014-03-12 1.3.1
  * @author      Michael Giuliano <michael@beatscope.co.uk>
  * @copyright   2014 Beatscope Limited | http://www.beatscope.co.uk/
  */
@@ -268,6 +268,7 @@ ML.utils = new ML.Utils();
  */
 ML.Settings = function (settings) {
     this.settings = {
+        'debug': settings['debug'],
         'site_url': settings['site_url'],
         'static_url': settings.hasOwnProperty('static_url') ? settings['static_url'] : '/static/',
         'api_url': settings['api_url'],
@@ -1246,8 +1247,10 @@ ML.Messages.prototype.refresh = function () {
                 var errors = [];
                 var body = trim(box.find('.message-body').val());
                 var visibility = null;
+                var is_private = false;
                 if (box.data('type') == 'private-message') {
                     visibility = 0; // PRIVATE
+                    is_private = true;
                     if (!recipient) {
                         errors.push('<p>Please select a friend</p>');
                     }
@@ -1323,21 +1326,17 @@ ML.Messages.prototype.refresh = function () {
                         contentType: "application/json; charset=UTF-8",
                         dataType: "json",
                         success: function (response) {
-                            // Track event on Mixpanel
-                            mixpanel.track('Post Sent', {
-                                'Is Event': is_event
-                            }, function () {
-                                if (is_event) {
-                                    // Redirect events posts to events calendar
-                                    location = ML.settings.get('site_url') + 'events/';
-                                } else if (box.data('type') == 'message') {
-                                    // Redirect posts to local feed
-                                    location = ML.settings.get('site_url');
-                                } else {
-                                    // Reload the current page for replies and private messages
-                                    location.reload(true);
-                                }
-                            });
+                            var is_post = box.data('type') == 'message' ? true : false;
+                            if (ML.settings.get('debug')) {
+                                self.after_post(is_event, is_private);
+                            } else {
+                                // Track event on Mixpanel
+                                mixpanel.track('Post Sent', {
+                                    'Is Event': is_event
+                                }, function () {
+                                    self.after_post(is_event, is_private);
+                                });
+                            }
                         },
                         error: function (e) {
                             try {
@@ -1376,161 +1375,174 @@ ML.Messages.prototype.refresh = function () {
     
 };
 
+ML.Messages.prototype.after_post = function (is_event, is_private) {
+    if (is_event) {
+        // Redirect events posts to events calendar
+        location = ML.settings.get('site_url') + 'events/';
+    } else if (is_private) {
+        // Reload the current page for replies and private messages
+        location.reload(true);
+    } else {
+        // Redirect posts to local feed
+        location = ML.settings.get('site_url');
+    }
+};
+
 
 // AutoFields are automatically saved when they lose focus
 // @TODO fields value validation (DoB, postcode)
 ML.AutoField = function (settings) {
-    var self = this;
-    this.model = settings['model'];
-    this.entity = settings['entity'];
-    this.field = $('#id_'+settings['field']);
-    this.widget = settings.hasOwnProperty('widget') ? settings['widget'] : null;
-    this.value = this.field.val(); // store initial value
-    switch (this.widget) {
-        case 'elastic':
-            // The value for elastic textareas is in the twin object
-            this.value = $('#id_'+settings['field']+'-twin').text();
-            break;
-        case 'select':
-            // The value for selects is in the data-value attribute
-            this.value = $('#id_'+settings['field']).data('value');
-            var choices = this.field.find('input');
-            choices.click(function () {
-                self.field.val($(this).val());
-                self.update();
-            });
-            break;
-        case 'date':
-            // attach onchange event
-            this.field.on('change', function () {
-            var value = self.field.val();
-                if (value !== self.value) {
-                    self.update();
-                }
-            });
-            break;
-    }
-
-    // attach onblur event
-    // store the data when user leaves the field
-    this.field.on('blur', function () {
-        var value = self.field.val();
-        if (value !== self.value) {
+var self = this;
+this.model = settings['model'];
+this.entity = settings['entity'];
+this.field = $('#id_'+settings['field']);
+this.widget = settings.hasOwnProperty('widget') ? settings['widget'] : null;
+this.value = this.field.val(); // store initial value
+switch (this.widget) {
+    case 'elastic':
+        // The value for elastic textareas is in the twin object
+        this.value = $('#id_'+settings['field']+'-twin').text();
+        break;
+    case 'select':
+        // The value for selects is in the data-value attribute
+        this.value = $('#id_'+settings['field']).data('value');
+        var choices = this.field.find('input');
+        choices.click(function () {
+            self.field.val($(this).val());
             self.update();
-        }
-    });
-
-    // Make sure the field is updated if the user leaves the page
-    // without triggering the onblur event
-    $(window).on('beforeunload', function (e) {
+        });
+        break;
+    case 'date':
+        // attach onchange event
+        this.field.on('change', function () {
         var value = self.field.val();
-        if (value && value !== self.value) {
-            self.update(function () {
-                // make sure to tell the browser to continue
-                // once the request is complete
-                return true;
-            });
-        }
-    });
+            if (value !== self.value) {
+                self.update();
+            }
+        });
+        break;
+}
+
+// attach onblur event
+// store the data when user leaves the field
+this.field.on('blur', function () {
+    var value = self.field.val();
+    if (value !== self.value) {
+        self.update();
+    }
+});
+
+// Make sure the field is updated if the user leaves the page
+// without triggering the onblur event
+$(window).on('beforeunload', function (e) {
+    var value = self.field.val();
+    if (value && value !== self.value) {
+        self.update(function () {
+            // make sure to tell the browser to continue
+            // once the request is complete
+            return true;
+        });
+    }
+});
 
 };
 
 ML.AutoField.prototype.update = function (callback) {
-    // disable field to avoid sending a second request
-    // before the first has finished
-    this.field.attr('disabled', 'disabled');
-    var url = ML.settings.get('api_url') + this.model + '/' + this.entity + '/';
-    var data = {};
-    data[this.field.attr('name')] = this.field.val();
-    var self = this;
-    $.ajax({
-        url: url,
-        data: JSON.stringify(data),
-        async: false, // always wait for the request to complete
-        type: 'PATCH',
-        contentType: "application/json; charset=UTF-8",
-        dataType: "json",
-        success: function (response) {
-            self.done();
-            if (typeof(callback) == 'function') {
-                callback();
-            }
-        },
-        error: function (e) {
-            try {
-                var messages = ['Oops something went wrong!\n'];
-                var text = JSON.parse(e.responseText);
-                for (var f in text) {
-                    messages.push(text[f]);
-                }
-                alert(messages.join("\n"));
-            } catch (err) {
-                console.log('FAILED -- ' + err);
-            }
-            self.done();
-            if (typeof(callback) == 'function') {
-                callback();
-            }
+// disable field to avoid sending a second request
+// before the first has finished
+this.field.attr('disabled', 'disabled');
+var url = ML.settings.get('api_url') + this.model + '/' + this.entity + '/';
+var data = {};
+data[this.field.attr('name')] = this.field.val();
+var self = this;
+$.ajax({
+    url: url,
+    data: JSON.stringify(data),
+    async: false, // always wait for the request to complete
+    type: 'PATCH',
+    contentType: "application/json; charset=UTF-8",
+    dataType: "json",
+    success: function (response) {
+        self.done();
+        if (typeof(callback) == 'function') {
+            callback();
         }
-    });
+    },
+    error: function (e) {
+        try {
+            var messages = ['Oops something went wrong!\n'];
+            var text = JSON.parse(e.responseText);
+            for (var f in text) {
+                messages.push(text[f]);
+            }
+            alert(messages.join("\n"));
+        } catch (err) {
+            console.log('FAILED -- ' + err);
+        }
+        self.done();
+        if (typeof(callback) == 'function') {
+            callback();
+        }
+    }
+});
 };
 
 ML.AutoField.prototype.done = function () {
-    this.value = this.field.val();
-    this.field.attr('disabled', null);
+this.value = this.field.val();
+this.field.attr('disabled', null);
 };
 
 
 /**
- * Add-to-friend buttons
- */
+* Add-to-friend buttons
+*/
 ML.AddToFriends = function (settings) {
-    this.classname = settings['class'];
+this.classname = settings['class'];
 
-    var self = this;
+var self = this;
 
-    $('a.'+this.classname).off('click').on('click', function () {
-        var button = $(this);
-        var entities = button.attr('href').replace('#', '').split(',');
-        var url = ML.settings.get('api_url') + 'friendships/';
-        var status = 0;
-        if (button.attr('rel') == 'block') {
-            status = 2;
-        }
-        var data = {
-            'from_member': parseInt(entities[0]),
-            'to_member': parseInt(entities[1]),
-            'status': status
-        };
-        $.ajax({
-            url: url,
-            data: JSON.stringify(data),
-            type: 'POST',
-            contentType: "application/json; charset=UTF-8",
-            dataType: "json",
-            success: function (response) {
-                button.unbind('click').click(function () { return false; });
-                if (button.attr('rel') == 'confirm') {
-                    button.find('img').removeClass('icon-addtofriend').addClass('icon-friend');
-                    button.find('span').text('Friend');
-                } else if (button.attr('rel') == 'block') {
-                    button.find('img').removeClass('icon-addtofriend').addClass('icon-addtofriend');
-                    button.find('span').text('Blocked');
-                } else {
-                    button.find('img').removeClass('icon-addtofriend').addClass('icon-pendingfriend');
-                    button.find('span').text('Requested');
-                }
-            },
-            error: function (e) {
-                try {
-                    if (JSON.parse(e.responseText).detail == "Already Exists") {
-                        // Fails silently - the relation is probably blocked
-                    }
-                } catch (err) {
-                    console.log('FAILED -- ' + err);
-                }
+$('a.'+this.classname).off('click').on('click', function () {
+    var button = $(this);
+    var entities = button.attr('href').replace('#', '').split(',');
+    var url = ML.settings.get('api_url') + 'friendships/';
+    var status = 0;
+    if (button.attr('rel') == 'block') {
+        status = 2;
+    }
+    var data = {
+        'from_member': parseInt(entities[0]),
+        'to_member': parseInt(entities[1]),
+        'status': status
+    };
+    $.ajax({
+        url: url,
+        data: JSON.stringify(data),
+        type: 'POST',
+        contentType: "application/json; charset=UTF-8",
+        dataType: "json",
+        success: function (response) {
+            button.unbind('click').click(function () { return false; });
+            if (button.attr('rel') == 'confirm') {
+                button.find('img').removeClass('icon-addtofriend').addClass('icon-friend');
+                button.find('span').text('Friend');
+            } else if (button.attr('rel') == 'block') {
+                button.find('img').removeClass('icon-addtofriend').addClass('icon-addtofriend');
+                button.find('span').text('Blocked');
+            } else {
+                button.find('img').removeClass('icon-addtofriend').addClass('icon-pendingfriend');
+                button.find('span').text('Requested');
             }
-        });
-        return false;
+        },
+        error: function (e) {
+            try {
+                if (JSON.parse(e.responseText).detail == "Already Exists") {
+                    // Fails silently - the relation is probably blocked
+                }
+            } catch (err) {
+                console.log('FAILED -- ' + err);
+            }
+        }
     });
+    return false;
+});
 };

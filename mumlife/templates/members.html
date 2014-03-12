@@ -39,6 +39,6 @@
     $(document).on('ml.Ready', function () {
         new ML.Members({'data': {{ data|safe }}, 'account': {{ account.id }}, 'autoscroll': true});
     });
-    mixpanel.track('Members Page Loaded');
+    {% if not DEBUG %}mixpanel.track('Members Page Loaded');{% endif %}
 </script>
 {% endblock %}

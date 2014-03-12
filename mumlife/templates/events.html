@@ -53,6 +53,6 @@
     $(document).on('ml.Ready', function () {
         new ML.Feed({'data': {{ data|safe }}, 'account': {{ account.id }}, 'autoscroll': true, 'template': 'event'});
     });
-    mixpanel.track('Activities Page Loaded');
+    {% if not DEBUG %}mixpanel.track('Activities Page Loaded');{% endif %}
 </script>
 {% endblock %}

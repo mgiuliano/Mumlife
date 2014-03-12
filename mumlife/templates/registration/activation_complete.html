@@ -18,7 +18,9 @@
 {% endblock %}
 
 {% block extrajs %}{{ super }}
+{% if not DEBUG %}
 <script type="text/javascript">
     mixpanel.track('Account Activated');
 </script>
+{% endif %}
 {% endblock %}

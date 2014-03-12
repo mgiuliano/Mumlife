@@ -50,7 +50,8 @@ class MumlifeMiddleware(object):
 
 def request(request):
     meta = {
-        'API_URL': settings.API_URL
+        'API_URL': settings.API_URL,
+        'DEBUG': settings.DEBUG,
     }
 
     if request.user.is_authenticated():

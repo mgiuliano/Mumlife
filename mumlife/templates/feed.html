@@ -47,6 +47,6 @@
     $(document).on('ml.Ready', function () {
         new ML.Feed({'data': {{ data|safe }}, 'account': {{ account.id }}, 'autoscroll': true});
     });
-    mixpanel.track('Local Page Loaded');
+    {% if not DEBUG %}mixpanel.track('Local Page Loaded');{% endif %}
 </script>
 {% endblock %}
