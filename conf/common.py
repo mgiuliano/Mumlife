@@ -127,6 +127,7 @@ INSTALLED_APPS = (
     'tagging',
     'markitup',
     'mumlife',
+    'geo',
 )
 
 ### REGISTRATION
