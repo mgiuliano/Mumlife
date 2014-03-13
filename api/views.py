@@ -312,8 +312,13 @@ class MessagePostView(APIView):
         # additional tags can be specified.
         # even when an empty string is posted, we do not add the default tag.
         if request.DATA.has_key('tags'):
-            if request.DATA['tags']:
-                tags.extend(request.DATA['tags'].split())
+            _tags = request.DATA.get('tags', '')
+            if _tags:
+                tags.extend(_tags.lower().split())
+            # we also add the member area as a tag,
+            # though only for non-admins
+            if not member.is_admin:
+                tags.append('#{}'.format(member.area.lower()))
         else:
             # when no tags are specified, we include the member area as a tag
             tags.append('#{}'.format(member.area.lower()))

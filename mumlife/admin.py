@@ -6,6 +6,8 @@ from django.contrib.auth.models import User, Group
 from django.contrib.auth.admin import UserAdmin, GroupAdmin
 from django.utils import timezone
 from mumlife.models import Member, Kid, Friendships, Message, Notifications, Geocode, Page
+from geo.models import Postcode
+from geo.admin import PostcodeAdmin
 
 logger = logging.getLogger('mumlife.admin')
 
@@ -198,3 +200,4 @@ site.register(Message, MessageAdmin)
 site.register(Notifications, NotificationsAdmin)
 site.register(Geocode, GeocodeAdmin)
 site.register(Page, PageAdmin)
+site.register(Postcode, PostcodeAdmin)

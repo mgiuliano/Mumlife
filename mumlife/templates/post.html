@@ -6,18 +6,19 @@
 <div class="write-message">
     <div data-entity="message" data-type="message">
 
+        <div class="ui-content" id="errors"
+             data-role="popup"
+             data-transition="pop"
+             data-position-to="window"
+             data-dismissible="false"
+             data-theme="a"
+             data-overlay-theme="a">
+            <a class="ui-btn-left" href="#" data-role="button" data-iconpos="notext" data-icon="delete" data-rel="back" data-theme="a">Close</a>
+            <div id="errors-content"></div>
+        </div>
+
         <div class="box">
             <div class="form-card">
-                <div class="ui-content" id="errors"
-                     data-role="popup"
-                     data-transition="pop"
-                     data-position-to="window"
-                     data-dismissible="false"
-                     data-theme="a"
-                     data-overlay-theme="a">
-                    <a class="ui-btn-left" href="#" data-role="button" data-iconpos="notext" data-icon="delete" data-rel="back" data-theme="a">Close</a>
-                    <div id="errors-content"></div>
-                </div>
                 {{ form.body }}
 
                 <div class="form-field picture">
@@ -39,19 +40,8 @@
                     {% endif %}{% endcomment %}
                 </div>
 
-                {% if account.is_admin %}
-                    <div class="form-field">
-                        <label>Enter areas to broadcast this message to</label>
-                        {{ form.tags }}
-                        <p class="description">Leave empty to reach all of Mumlife.</p>
-                        <p class="description">To reach specific areas, enter list with hashtags, separated with spaces.
-                                               e.g.: #se22 #se23</p>
-                    </div>
-                {% endif %}
-            </div>
-
-            <div class="form-visibility">
                 {% if not account.is_admin %}
+                <div class="form-visibility">
                     {{ form.visibility }}
                     <div class="message-types clearfix">
                         {% for option in form.visibility.field.choices %}<div class="message-type">
@@ -59,17 +49,41 @@
                                 <p>{{ option.1 }}</p>
                                 {% if option.1 == 'Friends' %}
                                 <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-friends" alt="" />
-                                <span>Only your friends will see this message</span>
+                                <span>Only your friends will see this post</span>
                                 {% elif option.1 == 'Global' %}
                                 <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-global" alt="" />
-                                <span>Everyone on Mumlife will see this message</span>
+                                <span>Everyone on Mumlife will see this post</span>
                                 {% else %}
                                 <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-local" alt="" />
-                                <span>Everyone in your local area will see this message</span>
+                                <span>Everyone in your local area will see this post</span>
                                 {% endif %}
                             </a>
                         </div>{% endfor %}
                     </div>
+                </div>
+                {% endif %}
+
+            <div class="form-field">
+                {% if account.is_admin %}
+                    <label>Enter areas to broadcast this message to</label>
+                    {{ form.tags }}
+                    <p class="description">Leave empty to reach all of Mumlife.</p>
+                    <p class="description">To reach specific areas, enter list with hashtags, separated with spaces.
+                                           e.g.: #se22 #se23</p>
+                {% else %}
+                    <div class="related-areas" data-entity="areas">
+                        <p class="description">You can also make your post visible to other areas in your borough.</p>
+                        {% spaceless %}
+                        {% for area in areas %}
+                            <label>
+                                {{ area.town_area }} [{{ area.postcode }}]
+                                <input type="checkbox" value="{{ area.postcode }}"
+                                    {% if account.area == area.postcode%}checked="checked" disabled="disabled"{% endif %}>
+                            </label>
+                        {% endfor %}
+                        {% endspaceless %}
+                    </div>
+                    <div class="hidden">{{ form.tags }}</div>
                 {% endif %}
             </div>
 

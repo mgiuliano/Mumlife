@@ -19,8 +19,10 @@ from markitup.fields import MarkupField
 from dateutil.rrule import rrule, WEEKLY
 from dateutil.relativedelta import relativedelta
 from mumlife import utils
+from geo.models import Postcode
 
 logger = logging.getLogger('mumlife.models')
+POSTCODE_AREAS = Postcode.objects.all_areas()
 
 
 class Page(models.Model):
@@ -146,6 +148,7 @@ class Member(models.Model):
     def __repr__(self):
         return u'<Member: [{}] {}>'.format(self.id, self.name)
 
+    @property
     def is_admin(self):
         return 'Administrators' in [g['name'] for g in self.user.groups.values('name')]
 
@@ -179,7 +182,7 @@ class Member(models.Model):
     def format(self, viewer=None):
         member = {}
         member['id'] = self.id
-        member['is_admin'] = self.is_admin()
+        member['is_admin'] = self.is_admin
         member['slug'] = self.slug
         member['url'] = '/profile/{}'.format(self.slug)
         member['name'] = self.get_name(viewer)
@@ -346,7 +349,8 @@ class Member(models.Model):
         """Member Messages include:
             - @local (default):
                 - Administrator messages (i.e. with no tags)
-                - LOCAL & GLOBAL messages within account area
+                - LOCAL & GLOBAL messages within account areas
+                  (account area and messages tagged with the account area)
                 - FRIENDS messages within account area, from account friends
                 (using @local is redundant, as it is the default);
             - @global:
@@ -400,15 +404,23 @@ class Member(models.Model):
             # Administrators messages
             # i.e.: admins messages with no tags
             #     + admins messages in member area
-            _admins_notags = models.Q(visibility=Message.LOCAL, member__user__groups__name='Administrators', tags='')
-            _admins_locals = models.Q(visibility=Message.LOCAL, member__user__groups__name='Administrators', tags__contains='#{}'.format(self.area.lower()))
-            # LOCAL and GLOBAL messages within account area
-            _locals = models.Q(visibility__in=[Message.LOCAL, Message.GLOBAL], area=self.area)
+            _admins_notags = models.Q(visibility=Message.LOCAL, 
+                                      member__user__groups__name='Administrators', 
+                                      tags='')
+            _admins_locals = models.Q(visibility=Message.LOCAL, 
+                                      member__user__groups__name='Administrators', 
+                                      tags__contains='#{}'.format(self.area.lower()))
+            # LOCAL and GLOBAL messages within account areas
+            regex = r'\y{}\y'.format(self.area.lower())
+            _locals = models.Q(visibility__in=[Message.LOCAL, Message.GLOBAL], 
+                               area=self.area) | \
+                      models.Q(visibility__in=[Message.LOCAL, Message.GLOBAL], 
+                               tags__regex=regex)
             # FRIENDS messages within account area, from account friends
             members_friends = [f['id'] for f in self.get_friends(status=Friendships.APPROVED).values('id')]
             _friends = models.Q(member__id__in=members_friends,
-                         visibility=Message.FRIENDS,
-                         area=self.area)
+                                visibility=Message.FRIENDS,
+                                area=self.area)
             messages = messages.filter(_admins_notags | _admins_locals | _locals | _friends)
             # Administrators messages to non-local areas should not be included
             _admins_nolocals = models.Q(member__user__groups__name='Administrators') \
@@ -779,6 +791,7 @@ class Message(models.Model):
         message['synopsis'] = Truncator(strip_tags(force_unicode(self.body))).words(20, truncate=' ...')
         message['date'] = self.timestamp.strftime('%c')
         message['picture'] = self.picture.url if self.picture else ''
+        message['areas'] = ' '.join(self.get_areas_from_tags())
         # format event details
         if self.eventdate:
             # escape location to prevent script attacks
@@ -848,6 +861,11 @@ class Message(models.Model):
                         tag in inline_tags.items()]
         return [{'key': tag[0], 'value': tag[1]} for \
                 tag in tags.items()]
+
+    def get_areas_from_tags(self):
+        tags = utils.Extractor(self.tags.upper()).extract_tags().keys()
+        tags = [t for t in tags if t in POSTCODE_AREAS]
+        return tags
 
     def set_geocode(self):
         try:

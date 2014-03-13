@@ -81,32 +81,8 @@
                     class="message-body elastic" 
                     rows="2" cols="70" required="required">{% if form.body.value %}{{ form.body.value }}{% endif %}</textarea>
 
-                {% comment %}<label>Event Visibility</label>{{ form.visibility }}{% endcomment %}
             </div>
 
-            {% comment %}
-            All events are considered @global for now, so no need for the visibility select.
-            <div class="form-visibility">
-                {{ form.visibility }}
-                <div class="message-types clearfix">
-                    {% for option in form.visibility.field.choices %}<div class="message-type">
-                        <a href="#" data-entity="message-type" class="message-option" data-type="{{ option.0 }}">
-                            <p>{{ option.1 }}</p>
-                            {% if option.1 == 'Friends' %}
-                            <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-friends" alt="" />
-                            <span>Only your friends will see this message</span>
-                            {% elif option.1 == 'Global' %}
-                            <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-global" alt="" />
-                            <span>Everyone on Mumlife will see this message</span>
-                            {% else %}
-                            <img src="{{ STATIC_URL }}img/z.gif" class="icon icon-local" alt="" />
-                            <span>Everyone in your local area will see this message</span>
-                            {% endif %}
-                        </a>
-                    </div>{% endfor %}
-                </div>
-            </div>
-            {% endcomment %}
             <div class="hidden">{{ form.visibility }}</div>
 
             <div class="submit-btn">

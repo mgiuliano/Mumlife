@@ -16,6 +16,7 @@ from longerusername.forms import AuthenticationForm
 from mumlife import utils
 from mumlife.models import Page, Member, Kid, Message, Friendships
 from mumlife.forms import SignUpForm, MemberForm, KidForm, MessageForm
+from geo.models import Postcode
 from api.helpers import APIRequest
 
 logger = logging.getLogger('mumlife.views')
@@ -185,11 +186,13 @@ def write(request):
 @login_required
 def post(request):
     account = request.user.get_profile()
+    areas = Postcode.objects.get_related(account.area)
     # Messages are created using the API,
     # so there is no need to handle the POST action here.
     # we use the MessageForm for re-usability
     context = {
         'account': account,
+        'areas': areas,
         'form': MessageForm()
     }
     t = loader.get_template('post.html')

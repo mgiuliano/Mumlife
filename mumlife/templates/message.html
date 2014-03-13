@@ -149,7 +149,13 @@
             {% endif %}
         </div>
         {% if not result.member.is_admin %}
-        <div class="message-area">{{ result.area }}</div>
+        <div class="message-area">
+            {% if result.is_event %}
+                {{ result.area }}
+            {% else %}
+                {{ result.areas }}
+            {% endif %}
+        </div>
         {% endif %}
     </div>
 

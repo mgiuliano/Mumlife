@@ -1,7 +1,7 @@
 /*!
  * Mumlife - Common Scripts.
  *
- * @version     2014-03-12 1.3.1
+ * @version     2014-03-13 1.4.0
  * @author      Michael Giuliano <michael@beatscope.co.uk>
  * @copyright   2014 Beatscope Limited | http://www.beatscope.co.uk/
  */
@@ -954,7 +954,13 @@ ML.Feed.prototype.render_template = function (template, results, callback) {
                 }
                 html += '    </div>';
                 if (!message['member']['is_admin']) {
-                    html += '<div class="message-area">' + message['area'] + '</div>';
+                    html += '<div class="message-area">';
+                    if (message['is_event']) {
+                        html += message['area'];
+                    } else {
+                        html += message['areas'];
+                    }
+                    html += '</div>';
                 }
                 html += '  </div>';
                 html += '  <div class="message-content clearfix">';
@@ -1191,11 +1197,35 @@ ML.Messages.prototype.refresh = function () {
     $('textarea.message-body').unbind();
     $('textarea.message-body').elastic();
 
-    // Handle message type selection
+    // Message areas
+    function set_tags(tags) {
+        $('#id_tags').val(tags.join(' '));
+    }
+    var checked_areas = [];
+    $('[data-entity="areas"]').find('input:checked').each(function () {
+        checked_areas.push('#'+$(this).val());
+    });
+    set_tags(checked_areas);
+    $('[data-entity="areas"]').find('input').on('change', function () {
+        var val = '#'+$(this).val();
+        var ind = $.inArray(val, checked_areas);
+        if (ind >= 0) {
+            checked_areas.splice(ind, 1);
+        } else {
+            checked_areas.push(val);
+        }
+        set_tags(checked_areas);
+    });
+
+    // Message visibility
     var selected = $('.message-visibility').find('option[selected="selected"]');
     $('a[data-entity="message-type"]').each(function () {
         if ($(this).data('type') == selected.val()) {
             $(this).addClass('selected');
+            if (selected.val() != 2) { // Local
+                $('[data-entity="areas"]').hide();
+                set_tags([]);
+            }
         }
     });
     $('a[data-entity="message-type"]').click(function () {
@@ -1205,6 +1235,13 @@ ML.Messages.prototype.refresh = function () {
         // set the hidden option
         $('.message-visibility').find('option').attr('selected', null);
         $('.message-visibility').find('option[value="'+$(this).data('type')+'"]').attr('selected', 'selected');
+        if ($(this).data('type') != 2) { // Local
+            $('[data-entity="areas"]').hide();
+            set_tags([]);
+        } else {
+            $('[data-entity="areas"]').show();
+            set_tags(checked_areas);
+        }
         return false;
     });
 
@@ -1244,6 +1281,10 @@ ML.Messages.prototype.refresh = function () {
             }
             // attach POST click handler
             box.find('[data-entity="button"]').bind('click', function () {
+                var button = $(this);
+                box.addClass('ui-disabled');
+                button.attr('disabled', 'disabled');
+                button.attr('data-disabled', "true");
                 var errors = [];
                 var body = trim(box.find('.message-body').val());
                 var visibility = null;
@@ -1314,6 +1355,9 @@ ML.Messages.prototype.refresh = function () {
                 });
                 if (errors.length > 0) {
                     valid = false;
+                    box.removeClass('ui-disabled');
+                    button.attr('disabled', null);
+                    button.attr('data-disabled', null);
                     $('#errors-content').html(errors.join(''));
                     $('#errors').popup('open');
                 }
@@ -1339,6 +1383,7 @@ ML.Messages.prototype.refresh = function () {
                             }
                         },
                         error: function (e) {
+                            button.attr('disabled', null);
                             try {
                                 console.log('FAILED -- ' + JSON.parse(e.responseText).detail);
                             } catch (err) {
@@ -1392,104 +1437,104 @@ ML.Messages.prototype.after_post = function (is_event, is_private) {
 // AutoFields are automatically saved when they lose focus
 // @TODO fields value validation (DoB, postcode)
 ML.AutoField = function (settings) {
-var self = this;
-this.model = settings['model'];
-this.entity = settings['entity'];
-this.field = $('#id_'+settings['field']);
-this.widget = settings.hasOwnProperty('widget') ? settings['widget'] : null;
-this.value = this.field.val(); // store initial value
-switch (this.widget) {
-    case 'elastic':
-        // The value for elastic textareas is in the twin object
-        this.value = $('#id_'+settings['field']+'-twin').text();
-        break;
-    case 'select':
-        // The value for selects is in the data-value attribute
-        this.value = $('#id_'+settings['field']).data('value');
-        var choices = this.field.find('input');
-        choices.click(function () {
-            self.field.val($(this).val());
-            self.update();
-        });
-        break;
-    case 'date':
-        // attach onchange event
-        this.field.on('change', function () {
-        var value = self.field.val();
-            if (value !== self.value) {
+    var self = this;
+    this.model = settings['model'];
+    this.entity = settings['entity'];
+    this.field = $('#id_'+settings['field']);
+    this.widget = settings.hasOwnProperty('widget') ? settings['widget'] : null;
+    this.value = this.field.val(); // store initial value
+    switch (this.widget) {
+        case 'elastic':
+            // The value for elastic textareas is in the twin object
+            this.value = $('#id_'+settings['field']+'-twin').text();
+            break;
+        case 'select':
+            // The value for selects is in the data-value attribute
+            this.value = $('#id_'+settings['field']).data('value');
+            var choices = this.field.find('input');
+            choices.click(function () {
+                self.field.val($(this).val());
                 self.update();
-            }
-        });
-        break;
-}
-
-// attach onblur event
-// store the data when user leaves the field
-this.field.on('blur', function () {
-    var value = self.field.val();
-    if (value !== self.value) {
-        self.update();
+            });
+            break;
+        case 'date':
+            // attach onchange event
+            this.field.on('change', function () {
+            var value = self.field.val();
+                if (value !== self.value) {
+                    self.update();
+                }
+            });
+            break;
     }
-});
 
-// Make sure the field is updated if the user leaves the page
-// without triggering the onblur event
-$(window).on('beforeunload', function (e) {
-    var value = self.field.val();
-    if (value && value !== self.value) {
-        self.update(function () {
-            // make sure to tell the browser to continue
-            // once the request is complete
-            return true;
-        });
-    }
-});
+    // attach onblur event
+    // store the data when user leaves the field
+    this.field.on('blur', function () {
+        var value = self.field.val();
+        if (value !== self.value) {
+            self.update();
+        }
+    });
+
+    // Make sure the field is updated if the user leaves the page
+    // without triggering the onblur event
+    $(window).on('beforeunload', function (e) {
+        var value = self.field.val();
+        if (value && value !== self.value) {
+            self.update(function () {
+                // make sure to tell the browser to continue
+                // once the request is complete
+                return true;
+            });
+        }
+    });
 
 };
 
 ML.AutoField.prototype.update = function (callback) {
-// disable field to avoid sending a second request
-// before the first has finished
-this.field.attr('disabled', 'disabled');
-var url = ML.settings.get('api_url') + this.model + '/' + this.entity + '/';
-var data = {};
-data[this.field.attr('name')] = this.field.val();
-var self = this;
-$.ajax({
-    url: url,
-    data: JSON.stringify(data),
-    async: false, // always wait for the request to complete
-    type: 'PATCH',
-    contentType: "application/json; charset=UTF-8",
-    dataType: "json",
-    success: function (response) {
-        self.done();
-        if (typeof(callback) == 'function') {
-            callback();
-        }
-    },
-    error: function (e) {
-        try {
-            var messages = ['Oops something went wrong!\n'];
-            var text = JSON.parse(e.responseText);
-            for (var f in text) {
-                messages.push(text[f]);
+    // disable field to avoid sending a second request
+    // before the first has finished
+    this.field.attr('disabled', 'disabled');
+    var url = ML.settings.get('api_url') + this.model + '/' + this.entity + '/';
+    var data = {};
+    data[this.field.attr('name')] = this.field.val();
+    var self = this;
+    $.ajax({
+        url: url,
+        data: JSON.stringify(data),
+        async: false, // always wait for the request to complete
+        type: 'PATCH',
+        contentType: "application/json; charset=UTF-8",
+        dataType: "json",
+        success: function (response) {
+            self.done();
+            if (typeof(callback) == 'function') {
+                callback();
             }
-            alert(messages.join("\n"));
-        } catch (err) {
-            console.log('FAILED -- ' + err);
+        },
+        error: function (e) {
+            try {
+                var messages = ['Oops something went wrong!\n'];
+                var text = JSON.parse(e.responseText);
+                for (var f in text) {
+                    messages.push(text[f]);
+                }
+                alert(messages.join("\n"));
+            } catch (err) {
+                console.log('FAILED -- ' + err);
+            }
+            self.done();
+            if (typeof(callback) == 'function') {
+                callback();
+            }
         }
-        self.done();
-        if (typeof(callback) == 'function') {
-            callback();
-        }
-    }
-});
+    });
 };
 
 ML.AutoField.prototype.done = function () {
-this.value = this.field.val();
-this.field.attr('disabled', null);
+    this.value = this.field.val();
+    this.field.attr('disabled', null);
 };
 
 
@@ -1497,52 +1542,52 @@ this.field.attr('disabled', null);
 * Add-to-friend buttons
 */
 ML.AddToFriends = function (settings) {
-this.classname = settings['class'];
+    this.classname = settings['class'];
 
-var self = this;
+    var self = this;
 
-$('a.'+this.classname).off('click').on('click', function () {
-    var button = $(this);
-    var entities = button.attr('href').replace('#', '').split(',');
-    var url = ML.settings.get('api_url') + 'friendships/';
-    var status = 0;
-    if (button.attr('rel') == 'block') {
-        status = 2;
-    }
-    var data = {
-        'from_member': parseInt(entities[0]),
-        'to_member': parseInt(entities[1]),
-        'status': status
-    };
-    $.ajax({
-        url: url,
-        data: JSON.stringify(data),
-        type: 'POST',
-        contentType: "application/json; charset=UTF-8",
-        dataType: "json",
-        success: function (response) {
-            button.unbind('click').click(function () { return false; });
-            if (button.attr('rel') == 'confirm') {
-                button.find('img').removeClass('icon-addtofriend').addClass('icon-friend');
-                button.find('span').text('Friend');
-            } else if (button.attr('rel') == 'block') {
-                button.find('img').removeClass('icon-addtofriend').addClass('icon-addtofriend');
-                button.find('span').text('Blocked');
-            } else {
-                button.find('img').removeClass('icon-addtofriend').addClass('icon-pendingfriend');
-                button.find('span').text('Requested');
-            }
-        },
-        error: function (e) {
-            try {
-                if (JSON.parse(e.responseText).detail == "Already Exists") {
-                    // Fails silently - the relation is probably blocked
-                }
-            } catch (err) {
-                console.log('FAILED -- ' + err);
-            }
+    $('a.'+this.classname).off('click').on('click', function () {
+        var button = $(this);
+        var entities = button.attr('href').replace('#', '').split(',');
+        var url = ML.settings.get('api_url') + 'friendships/';
+        var status = 0;
+        if (button.attr('rel') == 'block') {
+            status = 2;
         }
+        var data = {
+            'from_member': parseInt(entities[0]),
+            'to_member': parseInt(entities[1]),
+            'status': status
+        };
+        $.ajax({
+            url: url,
+            data: JSON.stringify(data),
+            type: 'POST',
+            contentType: "application/json; charset=UTF-8",
+            dataType: "json",
+            success: function (response) {
+                button.unbind('click').click(function () { return false; });
+                if (button.attr('rel') == 'confirm') {
+                    button.find('img').removeClass('icon-addtofriend').addClass('icon-friend');
+                    button.find('span').text('Friend');
+                } else if (button.attr('rel') == 'block') {
+                    button.find('img').removeClass('icon-addtofriend').addClass('icon-addtofriend');
+                    button.find('span').text('Blocked');
+                } else {
+                    button.find('img').removeClass('icon-addtofriend').addClass('icon-pendingfriend');
+                    button.find('span').text('Requested');
+                }
+            },
+            error: function (e) {
+                try {
+                    if (JSON.parse(e.responseText).detail == "Already Exists") {
+                        // Fails silently - the relation is probably blocked
+                    }
+                } catch (err) {
+                    console.log('FAILED -- ' + err);
+                }
+            }
+        });
+        return false;
     });
-    return false;
-});
 };

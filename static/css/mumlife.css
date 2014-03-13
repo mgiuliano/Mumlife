@@ -1,7 +1,7 @@
 /*! 
  * Mumlife Styles.
  * 
- * @version     2014-02-27 3.1.0
+ * @version     2014-03-13 3.2.0
  * @author      Michael Giuliano <michael@beatscope.co.uk>
  * @copyright   2014 Beatscope Limited | http://www.beatscope.co.uk/
  */
@@ -1404,6 +1404,19 @@ body.profile .kids {}
         color:#fff;
         text-shadow: 0 1px 0 #888;
     }
+
+    .write-message .related-areas {
+        margin-top:20px;
+    }
+        .write-message .related-areas .ui-btn-inner {
+            font-size:0.9em;
+            line-height:1.4em;
+        }
+        .write-message .related-areas  .ui-disabled .ui-btn-inner {
+            color:#000;
+            text-shadow:none;
+        }
+
     .write-message .submit-btn {
         margin-top:15px;
     }
