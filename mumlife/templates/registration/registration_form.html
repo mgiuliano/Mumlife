@@ -15,6 +15,7 @@
     <form id="id_form_register" class="form-card" action="" method="post">
         {% csrf_token %}
         <div class="form-field">
+            <label class="nonsticky">Email address</label>
             <input type="email" placeholder="Email address" name="email" id="id_email">
             {% if form.email.errors %}
                 <div class="form-errors">{{ form.email.errors }}</div>
@@ -23,12 +24,14 @@
         <div class="form-field culumns-2">
             <div class="ui-grid-a">
                 <div class="ui-block-a">
+                    <label class="nonsticky">First name</label>
                     {{ form.first_name }}
                     {% if form.first_name.errors %}
                         <div class="form-errors">{{ form.first_name.errors }}</div>
                     {% endif %}
                 </div>
                 <div class="ui-block-b">
+                    <label class="nonsticky">Last name</label>
                     {{ form.last_name }}
                     {% if form.last_name.errors %}
                         <div class="form-errors">{{ form.last_name.errors }}</div>
@@ -37,6 +40,7 @@
             </div>
         </div>
         <div class="form-field">
+            <label class="nonsticky">Postcode</label>
             {{ form.postcode }}
             {% if form.postcode.errors %}
                 <div class="form-errors">{{ form.postcode.errors }}</div>
@@ -46,6 +50,7 @@
             {% endif %}
         </div>
         <div class="form-field">
+            <label class="nonsticky">Password</label>
             {{ form.password }}
             {% if form.password.errors %}
                 <div class="form-errors">{{ form.password.errors }}</div>

@@ -55,9 +55,11 @@
                     <form method="post" action="" class="form-card">
                         {% csrf_token %}
                         <div class="form-field">
+                            <label class="nonsticky">Email address</label>
                             <input id="{{ form.username.id_for_label }}" name="username" type="email" placeholder="Email address" />
                         </div>
                         <div class="form-field">
+                            <label class="nonsticky">Password</label>
                             <input id="{{ form.password.id_for_label }}" name="password" type="password" placeholder="Password" />
                         </div>
                         <input type="hidden" name="next" value="{{ next }}" />
