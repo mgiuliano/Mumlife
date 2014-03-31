@@ -35,35 +35,35 @@ class MessagesSearchTest(TestCase):
         u1 = User.objects.create_user(username="u1@mumlife.co.uk",
                                       email="u1@mumlife.co.uk",
                                       password="secure-password")
-        cls.U1 = u1.get_profile()
+        cls.U1 = u1.profile
         cls.U1.fullname = 'Freya Hum'
         cls.U1.postcode = 'SE16 4JX'
         cls.U1.save()
         u2 = User.objects.create_user(username="u2@mumlife.co.uk",
                                       email="u2@mumlife.co.uk",
                                       password="secure-password")
-        cls.U2 = u2.get_profile()
+        cls.U2 = u2.profile
         cls.U2.fullname = 'Suzanna Cole'
         cls.U2.postcode = 'SE16 4RA'
         cls.U2.save()
         u3 = User.objects.create_user(username="u3@mumlife.co.uk",
                                       email="u3@mumlife.co.uk",
                                       password="secure-password")
-        cls.U3 = u3.get_profile()
+        cls.U3 = u3.profile
         cls.U3.fullname = 'Amanda Poke'
         cls.U3.postcode = 'SE16 6NN'
         cls.U3.save()
         u4 = User.objects.create_user(username="u4@mumlife.co.uk",
                                       email="u4@mumlife.co.uk",
                                       password="secure-password")
-        cls.U4 = u4.get_profile()
+        cls.U4 = u4.profile
         cls.U4.fullname = 'Rachel Chatter'
         cls.U4.postcode = 'SE22 0NH'
         cls.U4.save()
         u5 = User.objects.create_user(username="u5@mumlife.co.uk",
                                       email="u5@mumlife.co.uk",
                                       password="secure-password")
-        cls.U5 = u5.get_profile()
+        cls.U5 = u5.profile
         cls.U5.fullname = 'Sarah Parker'
         cls.U5.postcode = 'SE22 0HN'
         cls.U5.save()

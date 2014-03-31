@@ -13,7 +13,7 @@ class ViewsTest(TestCase):
         user = User.objects.create_user(username="user@mumlife.co.uk",
                                         email="user@mumlife.co.uk",
                                         password="secure-password")
-        cls._member = user.get_profile()
+        cls._member = user.profile
         cls._member.fullname = 'Test User'
         cls._member.postcode = 'SE16 4JX'
         cls._member.save()

@@ -56,7 +56,7 @@ def request(request):
 
     if request.user.is_authenticated():
         # Check for new notifications
-        account = request.user.get_profile()
+        account = request.user.profile
         try:
             read = account.notifications.total
         except:

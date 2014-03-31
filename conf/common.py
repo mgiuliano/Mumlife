@@ -19,7 +19,6 @@ STATIC_ROOT = os.path.abspath(os.path.join(BASE_DIR, '../static'))
 # AUTH CONTRIB MODULE
 LOGIN_URL = '/'
 LOGIN_REDIRECT_URL = '/'
-AUTH_PROFILE_MODULE = 'mumlife.Member'
 AUTHENTICATION_BACKENDS = (
     'mumlife.auth.EmailBackend',
 )

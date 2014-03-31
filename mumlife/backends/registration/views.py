@@ -34,7 +34,7 @@ class RegistrationView(BaseRegistrationView):
         new_user.last_name = last_name
         new_user.save()
 
-        member = new_user.get_profile()
+        member = new_user.profile
         member.fullname = ' '.join([first_name, last_name])
         member.postcode = cleaned_data["postcode"]
         member.save()

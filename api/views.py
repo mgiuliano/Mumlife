@@ -60,7 +60,7 @@ class MemberListView(generics.ListAPIView):
             query_tags = Tag.objects.filter(name__in=tags)
         else:
             query_tags = None
-        member = request.user.get_profile()
+        member = request.profile
         self.object_list = Member.objects.with_distance_from(viewer=member,
                                                              query_tags=query_tags)
 
@@ -119,7 +119,7 @@ class KidView(generics.RetrieveUpdateAPIView):
 
     def get_object(self):
         obj = super(KidView, self).get_object()
-        if not self.request.user.get_profile() in obj.parents.all():
+        if not self.request.user.profile in obj.parents.all():
             # A user can only view/update its own kids
             raise PermissionDenied
         return obj
@@ -209,7 +209,7 @@ class MessageListView(generics.ListAPIView):
 
     def list(self, request, *args, **kwargs):
         search = request.QUERY_PARAMS.get('search', None)
-        member = request.user.get_profile()
+        member = request.user.profile
 
         # Adding 'events' as a query parameter tells us to return events only.
         show_events = request.QUERY_PARAMS.get('events', None)
@@ -276,7 +276,7 @@ class MessagePostView(APIView):
                             exception=True)
 
         # the sender is always the logged-in user
-        member = request.user.get_profile()
+        member = request.user.profile
 
         # check for mid
         # if present, attach message as reply
@@ -377,7 +377,7 @@ class MessagePostView(APIView):
         except Message.DoesNotExist:
             raise Http404
 
-        if message.member != request.user.get_profile():
+        if message.member != request.user.profile:
             # only the creator can edit its own events
             raise PermissionDenied
 
@@ -403,7 +403,7 @@ class MessagePostView(APIView):
 
         # reset tags
         tags = utils.Extractor(message.body).extract_tags().values()
-        tags.append('#{}'.format(request.user.get_profile().area.lower()))
+        tags.append('#{}'.format(request.user.profile.area.lower()))
         if message.location:
             postcode = utils.Extractor(message.location).extract_postcode()
             if postcode:
@@ -425,7 +425,7 @@ class MessageView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_object(self):
         obj = super(MessageView, self).get_object()
-        if obj.member != self.request.user.get_profile():
+        if obj.member != self.request.user.profile:
             # A user can only view/update/destroy its own messages
             raise PermissionDenied
         return obj
@@ -436,7 +436,7 @@ class NotificationListView(views.APIView):
     permissions = (permissions.IsAuthenticated,)
 
     def get(self, request, format=None):
-        account = self.request.user.get_profile()
+        account = self.request.user.profile
         r = account.get_notifications()
 
         # Format results

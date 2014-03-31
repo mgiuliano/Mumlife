@@ -171,13 +171,13 @@ class FileUploader(object):
             response = self._ajax_upload(request)
             # save the object
             if self.model == 'Member':
-                member = request.user.get_profile()
+                member = request.user.profile
                 member.picture = re.sub(settings.MEDIA_URL, '', self.storage.filename)
                 member.save()
         except Http404:
             # the request was made without any file; i.e . remove current file
             if self.model == 'Member':
-                member = request.user.get_profile()
+                member = request.user.profile
                 member.picture = None
                 member.save()
             ret_json = {'success': True, 'filename': ''}

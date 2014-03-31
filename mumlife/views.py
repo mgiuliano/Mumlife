@@ -80,7 +80,7 @@ def feed(request):
     }
     response = APIRequest(request).get(**params)
 
-    account = request.user.get_profile()
+    account = request.user.profile
     context = {
         'account': account,
         'data': response,
@@ -101,7 +101,7 @@ def events(request, tagstring=''):
         else:
             return HttpResponseRedirect('/events/')
 
-    account = request.user.get_profile()
+    account = request.user.profile
 
     range_ = request.GET.get('range')
     if not range_:
@@ -138,7 +138,7 @@ def events(request, tagstring=''):
 def messages(request):
     context = {}
 
-    account = request.user.get_profile()
+    account = request.user.profile
     context['account'] = account
     context['friends'] = account.get_friends(Friendships.APPROVED)
 
@@ -156,7 +156,7 @@ def messages(request):
 
 @login_required
 def notifications(request):
-    account = request.user.get_profile()
+    account = request.user.profile
     context = {
         'account': account
     }
@@ -185,7 +185,7 @@ def write(request):
 
 @login_required
 def post(request):
-    account = request.user.get_profile()
+    account = request.user.profile
     areas = Postcode.objects.get_related(account.area)
     # Messages are created using the API,
     # so there is no need to handle the POST action here.
@@ -202,7 +202,7 @@ def post(request):
 
 @login_required
 def post_event(request):
-    account = request.user.get_profile()
+    account = request.user.profile
     # Events are created using the API,
     # so there is no need to handle the POST action here.
     # we use the MessageForm for re-usability
@@ -218,13 +218,13 @@ def post_event(request):
 @login_required
 def edit_event(request, event_id):
     message = get_object_or_404(Message, pk=event_id)
-    if message.member != request.user.get_profile():
+    if message.member != request.user.profile:
         # Only the creator can edit its own events
         raise PermissionDenied
     if not message.eventdate:
         # Only events can be edited
         raise Http404
-    account = request.user.get_profile()
+    account = request.user.profile
     context = {
         'account': account,
         'edit_mode': True,
@@ -242,7 +242,7 @@ def edit_event(request, event_id):
 @login_required
 def delete_event(request, event_id):
     message = get_object_or_404(Message, pk=event_id)
-    if message.member != request.user.get_profile():
+    if message.member != request.user.profile:
         # Only the creator can edit its own events
         raise PermissionDenied
     if not message.eventdate:
@@ -254,9 +254,9 @@ def delete_event(request, event_id):
 
 @login_required
 def message(request, mid, eventmonth=None, eventday=None):
-    account = request.user.get_profile()
+    account = request.user.profile
     message = get_object_or_404(Message, pk=mid)
-    formatted_message = message.format(viewer=request.user.get_profile())
+    formatted_message = message.format(viewer=request.user.profile)
     if eventmonth and eventday:
         formatted_message['eventmonth'] = eventmonth
         formatted_message['eventday'] = eventday
@@ -297,7 +297,7 @@ def members(request):
     }
     response = APIRequest(request).get(**params)
 
-    account = request.user.get_profile()
+    account = request.user.profile
     context = {
         'account': account,
         'data': response,
@@ -310,7 +310,7 @@ def members(request):
 
 @login_required
 def profile(request, slug=None):
-    account = request.user.get_profile()
+    account = request.user.profile
     if slug:
         try:
             member = Member.objects.get(slug__exact=slug)
@@ -332,7 +332,7 @@ def profile(request, slug=None):
 
 @login_required
 def profile_edit(request, section=None, kid=None):
-    account = request.user.get_profile()
+    account = request.user.profile
     context = {
         'account': account
     }

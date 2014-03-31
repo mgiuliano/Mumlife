@@ -59,7 +59,7 @@ class ImageRotater(object):
             return HttpResponseBadRequest("No image provided.")
         if field == 'picture':
             # Process member picture
-            member = request.user.get_profile()
+            member = request.user.profile
             if not member.picture:
                 return HttpResponseBadRequest("No image provided.")
             image_path = os.path.join(settings.MEDIA_ROOT, member.picture.name)
