@@ -64,10 +64,13 @@ class MemberManager(models.Manager):
             members = self.all()
 
         point = 'POINT({})'.format(viewer.geocode)
-        members = members.exclude(user=viewer.user) \
-                         .exclude(user__groups__name='Administrators') \
-                         .exclude(user__is_active=False) \
-                         .exclude(gender=Member.IS_ORGANISER) \
+        members_ids = [m['id'] for m in members.exclude(user=viewer.user) \
+                                               .exclude(user__profile__geocode__isnull=True) \
+                                               .exclude(user__groups__name='Administrators') \
+                                               .exclude(user__is_active=False) \
+                                               .exclude(gender=Member.IS_ORGANISER) \
+                                               .values('id')]
+        members = members.filter(id__in=members_ids) \
                          .extra(
                                 select={'distance': """ST_Distance(
                                     ST_GeographyFromText(%s),
