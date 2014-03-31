@@ -60,7 +60,7 @@ class MemberListView(generics.ListAPIView):
             query_tags = Tag.objects.filter(name__in=tags)
         else:
             query_tags = None
-        member = request.profile
+        member = request.user.profile
         self.object_list = Member.objects.with_distance_from(viewer=member,
                                                              query_tags=query_tags)
 
