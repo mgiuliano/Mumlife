@@ -80,7 +80,7 @@ class SignUpForm(forms.Form):
         postcode = Extractor(self.cleaned_data.get("postcode")).extract_postcode()
         if postcode is None:
             raise forms.ValidationError('Invald postcode.')
-
+        return postcode
 
 class MemberForm(forms.ModelForm):
     class Meta:
