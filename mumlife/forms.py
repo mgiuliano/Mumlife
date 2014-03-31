@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 #from django.contrib.auth.forms import PasswordResetForm
 #from django.contrib.auth.tokens import default_token_generator
 from mumlife.models import Member, Kid, Message
+from mumlife.utils import Extractor
 from mumlife.widgets import ImageWidget
 
 logger = logging.getLogger('mumlife.forms')
@@ -72,6 +73,13 @@ class SignUpForm(forms.Form):
         except User.DoesNotExist:
             return email
         raise forms.ValidationError('A user with that email address already exists.')
+
+    def clean_postcode(self):
+        if not self.cleaned_data.has_key("postcode"):
+            raise forms.ValidationError('Postcode is required.')
+        postcode = Extractor(self.cleaned_data.get("postcode")).extract_postcode()
+        if postcode is None:
+            raise forms.ValidationError('Invald postcode.')
 
 
 class MemberForm(forms.ModelForm):
