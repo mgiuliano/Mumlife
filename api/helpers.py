@@ -19,7 +19,7 @@ class APIRequest(object):
         self.request = request
 
     def _check_resource(self, resource):
-        if resource not in ('message', 'event', 'member'):
+        if resource not in ('message', 'event', 'member', 'notification'):
             return False
         return True
 
@@ -41,9 +41,12 @@ class APIRequest(object):
             params['search'] = kwargs.get('search')
             res_loc = 'messages/'
 
-        if resource == 'member':
+        elif resource == 'member':
             res_loc = 'members/'
             params['search'] = kwargs.get('search')
+
+        elif resource == 'notification':
+            res_loc = 'notifications/'
 
         if re.search(r'http:|https:', settings.API_URL) is None:
             site = RequestSite(self.request)

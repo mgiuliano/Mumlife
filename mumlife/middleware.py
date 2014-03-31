@@ -7,44 +7,23 @@ from django.conf import settings
 from django.middleware.csrf import get_token
 from django.contrib.sites.models import RequestSite
 from mumlife import views
+from api.helpers import APIRequest
 
 logger = logging.getLogger('mumlife.middleware')
 
 
 class MumlifeMiddleware(object):
     def process_view(self, request, view_func, view_args, view_kwargs):
+        # Fetch notifications from the API
         __processed_views = dir(views)
         # make sure this view is not processed,
         # or we'll have ourself an infinite loop
         if request.user.is_authenticated() and view_func.__name__ in __processed_views:
-            # Session authentication
-            try:
-                cookies = {
-                    'sessionid': request.COOKIES[settings.SESSION_COOKIE_NAME],
-                    'csrftoken': request.COOKIES[settings.CSRF_COOKIE_NAME]
-                }
-            except KeyError:
-                # 'csrftoken' is not set by the Test Runner,
-                # so this will fail
-                request.META["MUMLIFE_NOTIFICATIONS"] = {}
-            else:
-                # Fetch notifications from the API using cookie authentication
-                if re.search(r'http:|https:', settings.API_URL) is None:
-                    site = RequestSite(request)
-                    protocol = 'https' if request.is_secure() else 'http'
-                    url = '{}://{}{}notifications/'.format(protocol, site.domain, settings.API_URL)
-                else:
-                    url = '{}notifications/'.format(settings.API_URL)
-                try:
-                    r = requests.get(url, verify=False, cookies=cookies, params={'format': 'json'})
-                except requests.exceptions.ConnectionError:
-                    request.META["MUMLIFE_NOTIFICATIONS"] = {}
-                else:
-                    try:
-                        response = json.loads(r.text)
-                        request.META["MUMLIFE_NOTIFICATIONS"] = response
-                    except ValueError:
-                        request.META["MUMLIFE_NOTIFICATIONS"] = {}
+            params = {
+                'resource': 'notification',
+            }
+            response = APIRequest(request).get(**params)
+            request.META["MUMLIFE_NOTIFICATIONS"] = json.loads(response)
         return None
 
 
@@ -55,17 +34,26 @@ def request(request):
     }
 
     if request.user.is_authenticated():
-        # Check for new notifications
-        account = request.user.profile
+        # The account notifications hold the ones already read
         try:
-            read = account.notifications.total
+            member_notifications = request.user.profile.notifications
         except:
+            # legacy - users with no notifications related objects will fail
             read = 0
-        if request.META.has_key("MUMLIFE_NOTIFICATIONS") and request.META["MUMLIFE_NOTIFICATIONS"]:
-            total = request.META["MUMLIFE_NOTIFICATIONS"]['total']
-            meta['notifications'] = request.META["MUMLIFE_NOTIFICATIONS"]
+        else:
+            # make sure the list of stored notifications is updated before using it
+            member_notifications.update()
+            read = member_notifications.total
+        # We retrieve all notifications from the API,
+        # whose results have already been fetched by the middleware view processor;
+        # in META["MUMLIFE_NOTIFICATIONS"]
+        notifications = request.META.get("MUMLIFE_NOTIFICATIONS")
+        if notifications is not None:
+            meta['notifications'] = notifications
+            total = notifications.get('total', 0)
         else:
             total = 0
+        # Process difference (i.e. unread ones)
         unread = total - read
         if unread < 0:
             unread = 0

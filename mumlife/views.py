@@ -162,12 +162,12 @@ def notifications(request):
     }
 
     # Notifications are processed by MumlifeMiddleware
-    if request.META.has_key("MUMLIFE_NOTIFICATIONS") and request.META["MUMLIFE_NOTIFICATIONS"]:
-        response = request.META["MUMLIFE_NOTIFICATIONS"]
-        context['total'] = response['total']
-        context['results'] = response['html_content']
+    notifications = request.META.get("MUMLIFE_NOTIFICATIONS")
+    if notifications is not None:
+        context['total'] = notifications.get('total', 0)
+        context['results'] = notifications.get('html_content', '')
         # Reset account notifications
-        account.notifications.reset(response)
+        account.notifications.reset(notifications)
     else:
         context['noresults'] = 'You do not have any notifications.'
 

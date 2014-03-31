@@ -530,6 +530,7 @@ class Member(models.Model):
             count += privates.count()
             results.append({
                 'type': 'messages',
+                'messages': [m.format(viewer=self) for m in privates],
                 'timestamp': privates[0].timestamp,
                 'age': privates[0].get_age(),
                 'count': privates.count()
@@ -603,10 +604,7 @@ class Member(models.Model):
                 # we add the message to group already created
                 # the group index will be the same as the parent index in 'parents'
                 index = parents.index(message.reply_to.id)
-                if message.member.id not in [t['member']['id'] for t in threads[index]['messages']]:
-                    # we are interested in notifying who replied
-                    # if we have the same member replying twice, we ignore it
-                    threads[index]['messages'].append(message.format(viewer=self))
+                threads[index]['messages'].append(message.format(viewer=self))
         # add threads to results
         for thread in threads:
             results.append({
@@ -895,29 +893,32 @@ class Message(models.Model):
 class Notifications(models.Model):
     member = models.OneToOneField(Member, related_name='notifications')
     total = models.IntegerField(default=0)
-    messages = models.IntegerField(default=0)
     friends_requests = models.IntegerField(default=0)
+    messages = models.ManyToManyField(Message, related_name='notification_messages', blank=True)
     events = models.ManyToManyField(Message, related_name='notification_events', blank=True)
     threads = models.ManyToManyField(Message, related_name='notification_threads', blank=True)
 
     def __unicode__(self):
         return u"{} Message(s), {} Friend(s) Request(s), {} Event(s), {} Thread(s)"\
-               .format(self.messages,
+               .format(self.messages.count(),
                        self.friends_requests,
                        self.events.count(),
                        self.threads.count())
 
     def count(self):
-        return self.messages \
+        return self.messages.count() \
                + self.friends_requests \
                + self.events.count() \
                + self.threads.count()
 
-    def clear(self):
-        self.messages = 0
+    def clear(self, commit=True):
+        self.total = 0
+        self.messages.clear()
         self.friends_requests = 0
         self.events.clear()
         self.threads.clear()
+        if commit:
+            self.save()
 
     def reset(self, data):
         """
@@ -925,19 +926,36 @@ class Notifications(models.Model):
         'data' is the result of the Notification API.
 
         """
-        self.total = data['total']
-        self.events.clear()
-        self.threads.clear()
-        for result in data['results']:
-            if result['type'] in ('events', 'threads'):
+        self.clear(commit=False)
+        for result in data.get('results', []):
+            if result['type'] in ('messages', 'events', 'threads'):
                 # ManyToMany fields
-                if result['type'] == 'events':
+                if result['type'] == 'messages':
+                    for message in result['messages']:
+                        self.messages.add(Message.objects.get(pk=message['id']))
+                elif result['type'] == 'events':
                     self.events.add(Message.objects.get(pk=result['event']['id']))
                 else:
                     for message in result['thread']['messages']:
                         self.threads.add(Message.objects.get(pk=message['id']))
             else:
                 setattr(self, result['type'], result['count'])
+        self.total = self.count()
+        self.save()
+
+    def update(self):
+        """
+        We need to remove all outdated notifications:
+            - private messages older than 7 days
+            - thread messages older than 30 days
+        """
+        for message in self.messages.all():
+            if message.timestamp < timezone.now() - timedelta(7):
+                self.messages.remove(message)
+        for message in self.threads.all():
+            if message.timestamp < timezone.now() - timedelta(30):
+                self.threads.remove(message)
+        self.total = self.count()
         self.save()
 
     class Meta:

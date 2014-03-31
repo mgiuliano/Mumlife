@@ -441,15 +441,23 @@ class NotificationListView(views.APIView):
 
         # Format results
         html_content = ''
+        notification_messages = account.notifications.messages.all()
         notification_events = account.notifications.events.all()
         notification_threads = account.notifications.threads.all()
         for result in r['results']:
-            if result['type'] in ('events', 'threads'):
+            if result['type'] in ('events', 'messages', 'threads'):
                 # ManyToMany fields, notification is read if in list
                 if result['type'] == 'events':
                     read = result['event']['id'] in \
                            [m['id'] for m in notification_events.values('id')]
+                elif result['type'] == 'messages':
+                    read = True
+                    for message in result['messages']:
+                        if message['id'] not in [m['id'] for m in notification_messages.values('id')]:
+                            read = False
+                            break
                 else:
+                    # Threads
                     read = True
                     for message in result['thread']['messages']:
                         if message['id'] not in [m['id'] for m in notification_threads.values('id')]:
@@ -459,6 +467,16 @@ class NotificationListView(views.APIView):
                 read = getattr(account.notifications, result['type'])
             template = 'tags/notification-{}.html'.format(result['type'])
             html_data = copy.deepcopy(result)
+            if result['type'] == 'threads':
+                # we are interested in notifying who replied
+                # if we have the same member replying twice, we ignore it
+                _thread_messages = []
+                _thread_members = []
+                for message in html_data['thread']['messages']:
+                    if message['member']['id'] not in _thread_members:
+                        _thread_messages.append(message)
+                        _thread_members.append(message['member']['id'])
+                html_data['thread']['messages'] = _thread_messages
             html_data['read'] = read
             html_data['STATIC_URL'] = settings.STATIC_URL
             html_content += loader.render_to_string(template, html_data)
