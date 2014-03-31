@@ -1,7 +1,7 @@
 /*!
  * Mumlife - Common Scripts.
  *
- * @version     2014-03-13 1.4.0
+ * @version     2014-03-31 1.5.0
  * @author      Michael Giuliano <michael@beatscope.co.uk>
  * @copyright   2014 Beatscope Limited | http://www.beatscope.co.uk/
  */
@@ -897,8 +897,6 @@ ML.Feed.prototype.render_template = function (template, results, callback) {
                     html += ' <span class="message-replies-first">Comment</span>';
                 }
                 html += '      </span>';
-                html += '      <span class="bullet">&#8226;</span>';
-                html += '      <span class="message-age" title="' + message['timestamp'] + '">' + message['age'] + '</span>';
                 html += '    </a>';
                 html += '  </div>';
                 html += '</div>';

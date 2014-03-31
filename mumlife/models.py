@@ -761,7 +761,8 @@ class Message(models.Model):
         return Message.objects.filter(is_reply=True, reply_to=self).order_by('timestamp')
 
     def get_age(self):
-        return timesince(self.timestamp, timezone.now())
+        ts = timesince(self.timestamp, timezone.now())
+        return ts.split(',')[0]
 
     def get_replies(self, viewer=None):
         return [message.format(viewer=viewer) for message in self.replies]
